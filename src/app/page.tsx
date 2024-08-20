@@ -15,14 +15,14 @@ export default function Home() {
             <Button>Click me</Button>
             <Card>
               <CardHeader>
-                <CardTitle>Card Title</CardTitle>
+                <CardTitle>Titular Card Title</CardTitle>
                 <CardDescription>Card Description</CardDescription>
               </CardHeader>
               <CardContent>
-                <p>Card Content</p>
+                <p>BIG Card Content</p>
               </CardContent>
               <CardFooter>
-                <p>Card Footer</p>
+                <p>Last Card Footer</p>
               </CardFooter>
             </Card>
           </div>
