@@ -60,7 +60,7 @@ export default function Home() {
 
   return (
     <main className="flex flex-col">
-      <div className="mb-4 mr-4">
+      <div className="mb-4 mr-4 ml-4">
         <Card>
           <CardHeader className="flex gap-3">
             <CardTitle>Savings Planner</CardTitle>
@@ -141,7 +141,7 @@ export default function Home() {
           </CardFooter>
         </Card>
       </div>
-      <div className="mb-4 mr-4">
+      <div className="mb-4 mr-4 ml-4">
       <Card>
           <CardHeader className="flex gap-3">
             <CardTitle>Income Expectations</CardTitle>
