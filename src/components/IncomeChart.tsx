@@ -3,7 +3,6 @@
 import { Bar, BarChart, CartesianGrid, XAxis } from "recharts"
 import { ChartData } from '@/types/chart';
 
- 
 import {
     ChartConfig,
     ChartContainer,
@@ -21,11 +20,10 @@ export function IncomeChart({ chartData }: { chartData: ChartData }) {
         color: "#2563eb",
     },
     income: {
-        label: "Income",
+        label: "Passive Income",
         color: "#60a5fa",
     },
     } satisfies ChartConfig
- 
 
     return (
         <ChartContainer config={chartConfig} className="min-h-[200px] w-half">
@@ -40,7 +38,7 @@ export function IncomeChart({ chartData }: { chartData: ChartData }) {
             <ChartTooltip content={<ChartTooltipContent />} />
             <ChartLegend content={<ChartLegendContent />} />
             <Bar dataKey="balance" fill="var(--color-balance)" radius={4} />
-            <Bar dataKey="income" fill="var(--color-income)" radius={4} />
+            <Bar dataKey="conservativeIncome" fill="var(--color-income)" radius={4} />
         </BarChart>
         </ChartContainer>
     )

@@ -1,7 +1,7 @@
 "use client"
 
 import { ChartData } from '@/types/chart';
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { IncomeChart } from "@/components/IncomeChart"
 import { Button, } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -18,45 +18,75 @@ import {
 export default function Home() {
   
   const newForm = {
-    year: 2024,
     income: 100000,
     raiseRate: .03,
     saveRate: .20,
     balance: 100000,
-    taxRate: .45,
+    taxRate: .40,
     returnRate: .08,
 }
 
-  const [formData, setFormData] = useState(newForm)
-  const handleChange = (evt: React.ChangeEvent<HTMLInputElement>) => {
-      if ((evt.target.name === "raise") || (evt.target.name === "saveRate") || (evt.target.name === "taxRate") || (evt.target.name === "return")) {
-          setFormData({...formData, [evt.target.name]: parseFloat(evt.target.value) * 0.01 })
-      }
-      else {
-      setFormData({...formData, [evt.target.name]: evt.target.value })
-      }
-      console.log(formData)
-  }
-  const handleClick = () => {
+  const [formData, setFormData] = useState(newForm);
+  const [chartData, setChartData] = useState<ChartData>([]);
 
+  const handleChange = (evt: React.ChangeEvent<HTMLInputElement>) => {
+    if ((evt.target.name === "raiseRate") || (evt.target.name === "saveRate") || (evt.target.name === "taxRate") || (evt.target.name === "returnRate")) {
+        setFormData({...formData, [evt.target.name]: parseFloat(evt.target.value) * 0.01 })
+    }
+    else {
+    setFormData({...formData, [evt.target.name]: evt.target.value })
+    }
+    console.log(formData)
   }
-  const chartData: ChartData = [
-    { year: formData.year, balance: formData.balance, income: (formData.balance * 0.04) },
-    { year: (formData.year + 1), balance: (formData.balance * (1 + formData.returnRate) + (formData.income * formData.saveRate) ), income: 1880 },
-    { year: 2026, balance: 72390, income: 2896 },
-    { year: 2027, balance: 101521, income: 4061 },
-    { year: 2028, balance: 134775, income: 5391 },
-    { year: 2029, balance: 172570, income: 6903 },
-    { year: 2030, balance: 215357, income: 8614 },
-    { year: 2031, balance: 263361, income: 10545 },
-    { year: 2032, balance: 317928, income: 12717 },
-    { year: 2033, balance: 378832, income: 15153 },
-    { year: 2034, balance: 446977, income: 17879 },
-    { year: 2035, balance: 523052, income: 20922 },
-    { year: 2036, balance: 607808, income: 24312 },
-    { year: 2037, balance: 702057, income: 28082 },
-    { year: 2038, balance: 806683, income: 32267 },
-  ]
+  useEffect(() => {
+    const newChartData = generateFinancialData(
+      formData.income,
+      formData.raiseRate,
+      formData.saveRate,
+      formData.taxRate,
+      formData.returnRate,
+      formData.balance
+    );
+    setChartData(newChartData);
+  }, [formData]);
+
+  function generateFinancialData(initialIncome: number, initialRaise: number, initialSavingsRate: number, taxRate: number, portfolioReturn: number, initialBalance: number, years = 15) {
+    const data = [];
+    let currentIncome = initialIncome;
+    let currentRaise = initialRaise;
+    let currentSavingsRate = initialSavingsRate;
+    let currentBalance = initialBalance;
+  
+    for (let year = 2024; year < 2024 + years; year++) {
+      const takeHome = (currentIncome * (1 - currentSavingsRate)) * (1 - taxRate);
+      const netContribution = currentSavingsRate * currentIncome;
+      const portfolioGrowth = currentBalance * portfolioReturn;
+      currentBalance = currentBalance * (1 + portfolioReturn) + netContribution;
+      const capitalIncome = currentBalance * portfolioReturn;
+      const conservativeIncome = currentBalance * .04; // Conservative income at 4%
+  
+      data.push({
+        year: year,
+        income: Math.round(currentIncome),
+        takeHome: Math.round(takeHome),
+        raiseRate: currentRaise,
+        saveRate: currentSavingsRate,
+        taxRate: taxRate,
+        netContribution: Math.round(netContribution),
+        portfolioReturn: portfolioReturn,
+        balance: Math.round(currentBalance),
+        capitalIncome: Math.round(capitalIncome),
+        conservativeIncome: Math.round(conservativeIncome)
+      });
+  
+      // Update for next year
+      currentIncome *= (1 + currentRaise);
+      currentSavingsRate = Math.min(currentSavingsRate + 0.01, 1); // Cap at 100%
+      // currentRaise = Math.max(currentRaise - 0.001, 0); // Decrease raise by 0.1% each year, minimum 0%
+    }
+  
+    return data;
+  }
 
   return (
     <main className="flex flex-col">
@@ -126,13 +156,13 @@ export default function Home() {
               <Input
                 required
                 type="number"
-                name="balance"
+                name="taxRate"
                 placeholder="40%"
                 onChange={handleChange}
                 />
             </div>
             </div>
-            <p><Button onClick={handleClick}>Show me my $$</Button></p>
+            <p><Button>Show me my $$</Button></p>
           </CardContent>
           <CardFooter>
             <div className="flex w-100 justify-between">
@@ -147,9 +177,9 @@ export default function Home() {
             <CardTitle>Income Expectations</CardTitle>
             <CardDescription>How much passive income are you set to earn?</CardDescription>
           </CardHeader>
-          <CardContent className="flex flex-col gap-4">
-      <IncomeChart chartData={chartData}/>
-      </CardContent>
+          <CardContent className="flex flex-col gap-3">
+            <IncomeChart chartData={chartData}/>
+          </CardContent>
           <CardFooter>
             <div className="flex w-100 justify-between">
             <p>Income and Balance by Year</p>
