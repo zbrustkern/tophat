@@ -50,7 +50,7 @@ export default function Home() {
     setChartData(newChartData);
   }, [formData]);
 
-  function generateFinancialData(initialIncome: number, initialRaise: number, initialSavingsRate: number, taxRate: number, portfolioReturn: number, initialBalance: number, years = 15) {
+  function generateFinancialData(initialIncome: number, initialRaise: number, initialSavingsRate: number, taxRate: number, portfolioReturn: number, initialBalance: number, years = 25) {
     const data = [];
     let currentIncome = initialIncome;
     let currentRaise = initialRaise;

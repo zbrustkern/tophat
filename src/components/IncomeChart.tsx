@@ -1,6 +1,6 @@
 "use client"
  
-import { Bar, BarChart, CartesianGrid, XAxis } from "recharts"
+import { Bar, BarChart, CartesianGrid, XAxis, YAxis, Line, ComposedChart } from "recharts"
 import { ChartData } from '@/types/chart';
 
 import {
@@ -19,7 +19,7 @@ export function IncomeChart({ chartData }: { chartData: ChartData }) {
         label: "Balance",
         color: "#2563eb",
     },
-    income: {
+    conservativeIncome: {
         label: "Passive Income",
         color: "#60a5fa",
     },
@@ -27,7 +27,7 @@ export function IncomeChart({ chartData }: { chartData: ChartData }) {
 
     return (
         <ChartContainer config={chartConfig} className="min-h-[200px] w-half">
-        <BarChart accessibilityLayer data={chartData}>
+          <ComposedChart data={chartData}>
             <CartesianGrid vertical={false} />
             <XAxis
                 dataKey="year"
@@ -35,11 +35,34 @@ export function IncomeChart({ chartData }: { chartData: ChartData }) {
                 tickMargin={10}
                 axisLine={false}
                 />
+            <YAxis 
+                yAxisId="left" 
+                label={{ value: 'Balance ($)', angle: -90, position: 'insideLeft', offset: 0, dy: 0, }} 
+                tickFormatter={(value) => `$${value.toLocaleString()}`}
+            />
+            <YAxis 
+                yAxisId="right" 
+                orientation="right" 
+                label={{ value: 'Passive Income ($)', angle: 90, position: 'insideRight', dy: 0, }} 
+                tickFormatter={(value) => `$${value.toLocaleString()}`}
+            />
             <ChartTooltip content={<ChartTooltipContent />} />
             <ChartLegend content={<ChartLegendContent />} />
-            <Bar dataKey="balance" fill="var(--color-balance)" radius={4} />
-            <Bar dataKey="conservativeIncome" fill="var(--color-income)" radius={4} />
-        </BarChart>
+            <Line 
+                    type="monotone" 
+                    dataKey="balance" 
+                    stroke="var(--color-balance)"
+                    strokeWidth={2} 
+                    yAxisId="left" 
+                    dot={false}
+                />
+                <Bar 
+                    dataKey="conservativeIncome" 
+                    fill="var(--color-conservativeIncome)" 
+                    radius={4} 
+                    yAxisId="right" 
+                />
+          </ComposedChart>
         </ChartContainer>
     )
 }
