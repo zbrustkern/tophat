@@ -1,7 +1,7 @@
 "use client"
 
 import { ChartData } from '@/types/chart';
-import { useState, useEffect } from "react"
+import { useState, useEffect, useCallback } from "react"
 import { IncomeChart } from "@/components/IncomeChart"
 import { Button, } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -29,28 +29,15 @@ export default function Home() {
   const [formData, setFormData] = useState(newForm);
   const [chartData, setChartData] = useState<ChartData>([]);
 
-  const handleChange = (evt: React.ChangeEvent<HTMLInputElement>) => {
-    if ((evt.target.name === "raiseRate") || (evt.target.name === "saveRate") || (evt.target.name === "taxRate") || (evt.target.name === "returnRate")) {
-        setFormData({...formData, [evt.target.name]: parseFloat(evt.target.value) * 0.01 })
-    }
-    else {
-    setFormData({...formData, [evt.target.name]: evt.target.value })
-    }
-    console.log(formData)
-  }
-  useEffect(() => {
-    const newChartData = generateFinancialData(
-      formData.income,
-      formData.raiseRate,
-      formData.saveRate,
-      formData.taxRate,
-      formData.returnRate,
-      formData.balance
-    );
-    setChartData(newChartData);
-  }, [formData]);
-
-  function generateFinancialData(initialIncome: number, initialRaise: number, initialSavingsRate: number, taxRate: number, portfolioReturn: number, initialBalance: number, years = 25) {
+  const generateFinancialData = useCallback((
+    initialIncome: number, 
+    initialRaise: number, 
+    initialSavingsRate: number, 
+    taxRate: number, 
+    portfolioReturn: number, 
+    initialBalance: number, 
+    years = 25
+  ) => {
     const data = [];
     let currentIncome = initialIncome;
     let currentRaise = initialRaise;
@@ -86,11 +73,37 @@ export default function Home() {
     }
   
     return data;
+  }, []);
+
+  const calculateChartData = useCallback(() => {
+    const newChartData = generateFinancialData(
+      formData.income,
+      formData.raiseRate,
+      formData.saveRate,
+      formData.taxRate,
+      formData.returnRate,
+      formData.balance
+    );
+    setChartData(newChartData);
+  }, [formData, generateFinancialData]);
+
+  useEffect(() => {
+    calculateChartData();
+  }, [calculateChartData]);
+
+  const handleChange = (evt: React.ChangeEvent<HTMLInputElement>) => {
+    if ((evt.target.name === "raiseRate") || (evt.target.name === "saveRate") || (evt.target.name === "taxRate") || (evt.target.name === "returnRate")) {
+        setFormData({...formData, [evt.target.name]: parseFloat(evt.target.value) * 0.01 })
+    }
+    else {
+    setFormData({...formData, [evt.target.name]: evt.target.value })
+    }
+    console.log(formData)
   }
 
   return (
     <main className="flex flex-col">
-      <div className="mb-4 mr-4 ml-4">
+      <div className="m-4">
         <Card>
           <CardHeader className="flex gap-3">
             <CardTitle>Savings Planner</CardTitle>
@@ -98,8 +111,8 @@ export default function Home() {
           </CardHeader>
           <CardContent className="flex flex-col gap-4">
             <p>Enter your details here...</p>
-            <div className="flex w-full flex-wrap md:flex-nowrap mb-6 md:mb-0 gap-4">
-            <div className="grid w-full max-w-sm items-center gap-1.5 mb-4">
+            <div className="flex w-full flex-wrap md:flex-nowrap md:mb-0 gap-4">
+            <div className="grid w-full max-w-sm items-center gap-1.5">
               <Label htmlFor="income">Income in $/year</Label>
               <Input
                 required
@@ -109,7 +122,7 @@ export default function Home() {
                 onChange={handleChange}
                 />
             </div>
-            <div className="grid w-full max-w-sm items-center gap-1.5 mb-4">
+            <div className="grid w-full max-w-sm items-center gap-1.5">
               <Label htmlFor="income">Starting Balance $</Label>
               <Input
                 required
@@ -119,7 +132,7 @@ export default function Home() {
                 onChange={handleChange}
                 />
             </div>
-            <div className="grid w-full max-w-sm items-center gap-1.5 mb-4">
+            <div className="grid w-full max-w-sm items-center gap-1.5">
               <Label htmlFor="income">Estimated Long Term Average Portfolio Return (%)</Label>
               <Input
                 required
@@ -130,7 +143,7 @@ export default function Home() {
                 />
             </div>
             </div>
-            <div className="flex w-full flex-wrap md:flex-nowrap mb-6 md:mb-0 gap-4">
+            <div className="flex w-full flex-wrap md:flex-nowrap md:mb-0 gap-4">
             <div className="grid w-full max-w-sm items-center gap-1.5">
               <Label htmlFor="income">Estimated Annual Raise (%)</Label>
               <Input
@@ -162,7 +175,7 @@ export default function Home() {
                 />
             </div>
             </div>
-            <p><Button>Show me my $$</Button></p>
+            <p><Button onClick={calculateChartData}>Show me my $$</Button></p>
           </CardContent>
           <CardFooter>
             <div className="flex w-100 justify-between">
