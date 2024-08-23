@@ -175,11 +175,12 @@ export default function Home() {
                 />
             </div>
             </div>
-            <p><Button onClick={calculateChartData}>Show me my $$</Button></p>
           </CardContent>
           <CardFooter>
-            <div className="flex w-100 justify-between">
-            <p>Last Card Footer</p>
+            <div className="flex w-full justify-start">
+              <div>
+              <Button onClick={calculateChartData}>Show me my $$</Button>
+              </div>
             </div>
           </CardFooter>
         </Card>
@@ -194,8 +195,10 @@ export default function Home() {
             <IncomeChart chartData={chartData}/>
           </CardContent>
           <CardFooter>
-            <div className="flex w-100 justify-between">
-            <p>Income and Balance by Year</p>
+          <div className="flex w-full justify-start">
+              <div>
+              <Button>Save my plan (coming soon)</Button>
+              </div>
             </div>
           </CardFooter>
         </Card>
