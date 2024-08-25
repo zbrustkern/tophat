@@ -1,208 +1,49 @@
-"use client"
+// import { ArrowRightIcon } from '@heroicons/react/24/outline';
+import Link from 'next/link';
+import styles from '@/app/ui/home.module.css';
+import Image from 'next/image';
+import TophatLogo from '@/components/ui/tophat-logo';
 
-import { ChartData } from '@/types/chart';
-import { useState, useEffect, useCallback } from "react"
-import { IncomeChart } from "@/components/IncomeChart"
-import { Button, } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card"
-
-export default function Home() {
-  
-  const newForm = {
-    income: 100000,
-    raiseRate: .03,
-    saveRate: .20,
-    balance: 100000,
-    taxRate: .40,
-    returnRate: .08,
-}
-
-  const [formData, setFormData] = useState(newForm);
-  const [chartData, setChartData] = useState<ChartData>([]);
-
-  const generateFinancialData = useCallback((
-    initialIncome: number, 
-    initialRaise: number, 
-    initialSavingsRate: number, 
-    taxRate: number, 
-    portfolioReturn: number, 
-    initialBalance: number, 
-    years = 25
-  ) => {
-    const data = [];
-    let currentIncome = initialIncome;
-    let currentRaise = initialRaise;
-    let currentSavingsRate = initialSavingsRate;
-    let currentBalance = initialBalance;
-  
-    for (let year = 2024; year < 2024 + years; year++) {
-      const takeHome = (currentIncome * (1 - currentSavingsRate)) * (1 - taxRate);
-      const netContribution = currentSavingsRate * currentIncome;
-      const portfolioGrowth = currentBalance * portfolioReturn;
-      currentBalance = currentBalance * (1 + portfolioReturn) + netContribution;
-      const capitalIncome = currentBalance * portfolioReturn;
-      const conservativeIncome = currentBalance * .04; // Conservative income at 4%
-  
-      data.push({
-        year: year,
-        income: Math.round(currentIncome),
-        takeHome: Math.round(takeHome),
-        raiseRate: currentRaise,
-        saveRate: currentSavingsRate,
-        taxRate: taxRate,
-        netContribution: Math.round(netContribution),
-        portfolioReturn: portfolioReturn,
-        balance: Math.round(currentBalance),
-        capitalIncome: Math.round(capitalIncome),
-        conservativeIncome: Math.round(conservativeIncome)
-      });
-  
-      // Update for next year
-      currentIncome *= (1 + currentRaise);
-      currentSavingsRate = Math.min(currentSavingsRate + 0.01, 1); // Cap at 100%
-      // currentRaise = Math.max(currentRaise - 0.001, 0); // Decrease raise by 0.1% each year, minimum 0%
-    }
-  
-    return data;
-  }, []);
-
-  const calculateChartData = useCallback(() => {
-    const newChartData = generateFinancialData(
-      formData.income,
-      formData.raiseRate,
-      formData.saveRate,
-      formData.taxRate,
-      formData.returnRate,
-      formData.balance
-    );
-    setChartData(newChartData);
-  }, [formData, generateFinancialData]);
-
-  useEffect(() => {
-    calculateChartData();
-  }, [calculateChartData]);
-
-  const handleChange = (evt: React.ChangeEvent<HTMLInputElement>) => {
-    if ((evt.target.name === "raiseRate") || (evt.target.name === "saveRate") || (evt.target.name === "taxRate") || (evt.target.name === "returnRate")) {
-        setFormData({...formData, [evt.target.name]: parseFloat(evt.target.value) * 0.01 })
-    }
-    else {
-    setFormData({...formData, [evt.target.name]: evt.target.value })
-    }
-    console.log(formData)
-  }
-
+export default function Page() {
   return (
-    <main className="flex flex-col">
-      <div className="m-4">
-        <Card>
-          <CardHeader className="flex gap-3">
-            <CardTitle>Savings Planner</CardTitle>
-            <CardDescription>How are you preparing currently?</CardDescription>
-          </CardHeader>
-          <CardContent className="flex flex-col gap-4">
-            <p>Enter your details here...</p>
-            <div className="flex w-full flex-wrap md:flex-nowrap md:mb-0 gap-4">
-            <div className="grid w-full max-w-sm items-center gap-1.5">
-              <Label htmlFor="income">Income in $/year</Label>
-              <Input
-                required
-                type="number"
-                name="income"
-                placeholder="100,000"
-                onChange={handleChange}
-                />
-            </div>
-            <div className="grid w-full max-w-sm items-center gap-1.5">
-              <Label htmlFor="income">Starting Balance $</Label>
-              <Input
-                required
-                type="number"
-                name="balance"
-                placeholder="25,000"
-                onChange={handleChange}
-                />
-            </div>
-            <div className="grid w-full max-w-sm items-center gap-1.5">
-              <Label htmlFor="income">Estimated Long Term Average Portfolio Return (%)</Label>
-              <Input
-                required
-                type="number"
-                name="returnRate"
-                placeholder="8%"
-                onChange={handleChange}
-                />
-            </div>
-            </div>
-            <div className="flex w-full flex-wrap md:flex-nowrap md:mb-0 gap-4">
-            <div className="grid w-full max-w-sm items-center gap-1.5">
-              <Label htmlFor="income">Estimated Annual Raise (%)</Label>
-              <Input
-                required
-                type="number"
-                name="raiseRate"
-                placeholder="3%"
-                onChange={handleChange}
-                />
-            </div>
-            <div className="grid w-full max-w-sm items-center gap-1.5">
-              <Label htmlFor="income">Annual Savings Rate (%)</Label>
-              <Input
-                required
-                type="number"
-                name="saveRate"
-                placeholder="20%"
-                onChange={handleChange}
-                />
-            </div>
-            <div className="grid w-full max-w-sm items-center gap-1.5">
-              <Label htmlFor="income">Blended Total Tax Rate (%)</Label>
-              <Input
-                required
-                type="number"
-                name="taxRate"
-                placeholder="40%"
-                onChange={handleChange}
-                />
-            </div>
-            </div>
-          </CardContent>
-          <CardFooter>
-            <div className="flex w-full justify-start">
-              <div>
-              <Button onClick={calculateChartData}>Show me my $$</Button>
-              </div>
-            </div>
-          </CardFooter>
-        </Card>
+    <main className="flex min-h-screen flex-col p-6">
+      <div className="flex h-20 shrink-0 items-end rounded-lg bg-blue-500 p-4 h-52 justify-start">
+          <TophatLogo />
       </div>
-      <div className="mb-4 mr-4 ml-4">
-      <Card>
-          <CardHeader className="flex gap-3">
-            <CardTitle>Income Expectations</CardTitle>
-            <CardDescription>How much passive income are you set to earn?</CardDescription>
-          </CardHeader>
-          <CardContent className="flex flex-col gap-3">
-            <IncomeChart chartData={chartData}/>
-          </CardContent>
-          <CardFooter>
-          <div className="flex w-full justify-start">
-              <div>
-              <Button>Save my plan (coming soon)</Button>
-              </div>
-            </div>
-          </CardFooter>
-        </Card>
+      <div>
+        
+      </div>
+      <div className="mt-4 flex grow flex-col gap-4 md:flex-row">
+        <div className="flex flex-col justify-center gap-6 rounded-lg bg-gray-50 px-6 py-10 md:w-2/5 md:px-20">
+          <p className={`text-xl text-gray-800 md:text-3xl md:leading-normal`}>
+            <strong>Welcome to Tophat Financial,</strong> a financial planning and literacy app. Brought to you by notZeke.
+          </p>
+          <Link
+            href="/dashboard"
+            className="flex items-center gap-5 self-start rounded-lg bg-blue-500 px-6 py-3 text-sm font-medium text-white transition-colors hover:bg-blue-400 md:text-base"
+          >
+            <span>Get Started</span> 
+            {/* <ArrowRightIcon className="w-5 md:w-6" /> */}
+          </Link>
+        </div>
+        <div className="flex items-center justify-center p-6 md:w-3/5 md:px-28 md:py-12">
+          {/* Add Hero Images Here */}
+          <Image
+            src="/hero-desktop.png"
+            width={500}
+            height={500}
+            className="hidden md:block"
+            alt="Screenshots of tophat financial showing desktop version"
+          />
+          <Image
+          src='/hero-desktop.png'
+          width={560}
+          height={620}
+          className="block md:hidden"
+          alt="Screenshot of tophat financial showing mobile versions"
+          />
+        </div>
       </div>
     </main>
-);
+  );
 }
