@@ -8,7 +8,7 @@ const links = [
   { name: 'Income Planner', href: '/dashboard', icon: '$' },
   {
     name: 'Savings Planner',
-    href: '/dashboard/',
+    href: '/dashboard/savings',
     icon: '$',
   }
 ];
