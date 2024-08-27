@@ -1,3 +1,5 @@
+'use client';
+
 import Link from 'next/link';
 import NavLinks from '@/components/ui/nav-links';
 import TophatLogo from './ui/tophat-logo';
