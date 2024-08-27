@@ -90,7 +90,7 @@ export default function SavingsPlanner() {
 
   return (
     <main className="flex flex-col">
-      <div className="m-4">
+      <div className="m-1">
         <Card>
           <CardHeader className="flex gap-3">
             <CardTitle>Savings Planner</CardTitle>
@@ -173,7 +173,7 @@ export default function SavingsPlanner() {
           </CardFooter>
         </Card>
       </div>
-      <div className="mb-4 mr-4 ml-4">
+      <div className="m-1">
         <Card>
           <CardHeader className="flex gap-3">
             <CardTitle>Savings Projections</CardTitle>

@@ -10,8 +10,8 @@ const fontSans = FontSans({
 })
 
 export const metadata: Metadata = {
-  title: "Tophat",
-  description: "A classy place",
+  title: "Tophat Financial",
+  description: "A classy place for money matters",
 };
 
 export default function RootLayout({

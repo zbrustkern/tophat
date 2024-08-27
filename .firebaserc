@@ -1,5 +1,8 @@
 {
   "projects": {
-    "default": "planner-cac2a"
-  }
+    "default": "planner-cac2a",
+    "planner-auth": "planner-cac2a"
+  },
+  "targets": {},
+  "etags": {}
 }
