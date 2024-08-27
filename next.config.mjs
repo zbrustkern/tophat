@@ -10,7 +10,10 @@ const nextConfig = {
       NEXT_PUBLIC_FIREBASE_APP_ID: process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
     },
     webpack: (config, { buildId, dev, isServer, defaultLoaders, webpack }) => {
-        console.log('Environment Variables:', process.env);
+        console.log('Webpack build environment variables:');
+        Object.keys(process.env).filter(key => key.startsWith('NEXT_PUBLIC_FIREBASE_')).forEach(key => {
+          console.log(`${key}: ${process.env[key] ? '***' : 'undefined'}`);
+        });
         return config;
       },
     }

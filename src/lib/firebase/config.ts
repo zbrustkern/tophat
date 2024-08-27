@@ -16,15 +16,18 @@ export const firebaseConfig: FirebaseConfig = {
   appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID!,
 };
 
-console.log('Firebase Config:', JSON.stringify(firebaseConfig, null, 2));
-console.log('NEXT_PUBLIC_FIREBASE_API_KEY:', process.env.NEXT_PUBLIC_FIREBASE_API_KEY);
+console.log('Firebase Config:', JSON.stringify({
+  ...firebaseConfig,
+  apiKey: firebaseConfig.apiKey ? '***' : undefined
+}, null, 2));
 
-Object.entries(firebaseConfig).forEach(([key, value]) => {
-  if (!value) {
-    console.error(`Firebase config is missing ${key}`);
+const missingKeys = Object.entries(firebaseConfig)
+  .filter(([_, value]) => !value)
+  .map(([key]) => key);
+
+if (missingKeys.length > 0) {
+  console.error(`Missing Firebase configuration keys: ${missingKeys.join(', ')}`);
+  if (typeof window === 'undefined') {
+    throw new Error('Firebase configuration is incomplete. Check your environment variables.');
   }
-});
-
-if (!firebaseConfig.apiKey) {
-  throw new Error('Firebase API Key is missing!');
 }
