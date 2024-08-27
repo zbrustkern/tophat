@@ -1,5 +1,7 @@
 "use client"
 
+import { useAuth } from '@/contexts/AuthContext';
+import { db, doc, setDoc } from '@/lib/firebase/firestore';
 import { SavingsChartData } from '@/types/savingsChart';
 import { useState, useEffect, useCallback } from "react"
 import { SavingsChart } from "@/components/SavingsChart"
@@ -16,18 +18,18 @@ import {
 } from "@/components/ui/card"
 
 export default function SavingsPlanner() {
-  const newForm = {
-    desiredIncome: 100000,
-    currentAge: 30,
-    retirementAge: 65,
-    currentBalance: 100000,
-    taxRate: 0.40,
-    returnRate: 0.08,
-  }
-
-  const [formData, setFormData] = useState(newForm);
-  const [chartData, setChartData] = useState<SavingsChartData>([]);
-  const [requiredSavings, setRequiredSavings] = useState(0);
+    const { user } = useAuth();
+    const [formData, setFormData] = useState({
+      desiredIncome: 100000,
+      currentAge: 30,
+      retirementAge: 65,
+      currentBalance: 100000,
+      taxRate: 0.40,
+      returnRate: 0.08,
+    });
+    const [chartData, setChartData] = useState<SavingsChartData>([]);
+    const [requiredSavings, setRequiredSavings] = useState(0);
+    const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle');
 
   const generateFinancialData = useCallback((
     desiredIncome: number,
@@ -87,6 +89,26 @@ export default function SavingsPlanner() {
       : evt.target.value;
     setFormData({...formData, [evt.target.name]: value });
   }
+
+  const handleSave = async () => {
+    if (!user) {
+      alert("Please sign in to save your plan");
+      return;
+    }
+
+    setSaveStatus('saving');
+    try {
+      await setDoc(doc(db, 'savingsPlans', user.uid), {
+        formData,
+        requiredSavings,
+        lastUpdated: new Date().toISOString()
+      });
+      setSaveStatus('saved');
+    } catch (error) {
+      console.error("Error saving savings plan:", error);
+      setSaveStatus('error');
+    }
+  };
 
   return (
     <main className="flex flex-col">

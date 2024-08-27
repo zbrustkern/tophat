@@ -1,6 +1,8 @@
 "use client"
 
 import { ChartData } from '@/types/chart';
+import { useAuth } from '@/contexts/AuthContext';
+import { db, doc, setDoc } from '@/lib/firebase/firestore';
 import { useState, useEffect, useCallback } from "react"
 import { IncomeChart } from "@/components/IncomeChart"
 import { Button, } from "@/components/ui/button"
@@ -16,18 +18,19 @@ import {
 } from "@/components/ui/card"
 
 export default function Home() {
-  
-  const newForm = {
-    income: 100000,
-    raiseRate: .03,
-    saveRate: .20,
-    balance: 100000,
-    taxRate: .40,
-    returnRate: .08,
-}
 
-  const [formData, setFormData] = useState(newForm);
+  const { user } = useAuth();
+  
+  const [formData, setFormData] = useState({
+    income: 100000,
+    raiseRate: 0.03,
+    saveRate: 0.20,
+    balance: 100000,
+    taxRate: 0.40,
+    returnRate: 0.08,
+  });
   const [chartData, setChartData] = useState<ChartData>([]);
+  const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle');
 
   const generateFinancialData = useCallback((
     initialIncome: number, 
@@ -100,6 +103,25 @@ export default function Home() {
     }
     console.log(formData)
   }
+
+  const handleSave = async () => {
+    if (!user) {
+      alert("Please sign in to save your plan");
+      return;
+    }
+
+    setSaveStatus('saving');
+    try {
+      await setDoc(doc(db, 'incomePlans', user.uid), {
+        formData,
+        lastUpdated: new Date().toISOString()
+      });
+      setSaveStatus('saved');
+    } catch (error) {
+      console.error("Error saving income plan:", error);
+      setSaveStatus('error');
+    }
+  };
 
   return (
     <main className="flex flex-col">
