@@ -7,7 +7,6 @@ import {
 
 import { auth } from "./clientApp";
 
-// Export the User type
 export type User = FirebaseUser;
 
 export function onAuthStateChanged(cb: (user: User | null) => void): () => void {

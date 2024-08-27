@@ -47,7 +47,7 @@ export default function SideNav() {
               onClick={handleSignIn}
               className="flex h-[48px] w-full items-center justify-center gap-2 rounded-md bg-gray-50 p-3 text-sm font-medium hover:bg-sky-100 hover:text-blue-600 md:justify-start md:p-2 md:px-3"
             >
-              <img src="/profile.svg" alt="A placeholder user image" className="w-6 h-6" />
+              <img src="/googlelogo.png" alt="A placeholder user image" className="w-6 h-6" />
               Sign In with Google
             </a>
           )}
