@@ -96,6 +96,12 @@ export default function SavingsPlanner() {
       return;
     }
 
+    if (!db) {
+        console.error("Firestore is not initialized");
+        alert("An error occurred. Please try again later.");
+        return;
+    }
+
     setSaveStatus('saving');
     try {
       await setDoc(doc(db, 'savingsPlans', user.uid), {
@@ -103,6 +109,7 @@ export default function SavingsPlanner() {
         requiredSavings,
         lastUpdated: new Date().toISOString()
       });
+      console.log('Plan saved successfully');
       setSaveStatus('saved');
     } catch (error) {
       console.error("Error saving savings plan:", error);

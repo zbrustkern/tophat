@@ -110,6 +110,11 @@ export default function Home() {
       return;
     }
 
+    if (!db) {
+      console.error("Firestore is not initialized");
+      alert("An error occurred. Please try again later.");
+      return;
+  }
     setSaveStatus('saving');
     try {
       await setDoc(doc(db, 'incomePlans', user.uid), {

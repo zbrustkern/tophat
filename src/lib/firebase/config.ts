@@ -23,3 +23,9 @@ Object.keys(firebaseConfig).forEach((key) => {
     firebaseConfig[key as keyof FirebaseConfig] = configValue.substring(1, configValue.length - 1);
   }
 });
+
+console.log('Firebase Config:', JSON.stringify(firebaseConfig, null, 2));
+
+if (!firebaseConfig.apiKey) {
+  console.error('Firebase API Key is missing!');
+}
