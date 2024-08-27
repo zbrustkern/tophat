@@ -9,6 +9,10 @@ const nextConfig = {
       NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
       NEXT_PUBLIC_FIREBASE_APP_ID: process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
     },
-  };
+    webpack: (config, { buildId, dev, isServer, defaultLoaders, webpack }) => {
+        console.log('Environment Variables:', process.env);
+        return config;
+      },
+    }
 
 export default nextConfig;

@@ -16,16 +16,15 @@ export const firebaseConfig: FirebaseConfig = {
   appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID!,
 };
 
-// When deployed, there are quotes that need to be stripped
-Object.keys(firebaseConfig).forEach((key) => {
-  const configValue = firebaseConfig[key as keyof FirebaseConfig] + "";
-  if (configValue.charAt(0) === '"') {
-    firebaseConfig[key as keyof FirebaseConfig] = configValue.substring(1, configValue.length - 1);
+console.log('Firebase Config:', JSON.stringify(firebaseConfig, null, 2));
+console.log('NEXT_PUBLIC_FIREBASE_API_KEY:', process.env.NEXT_PUBLIC_FIREBASE_API_KEY);
+
+Object.entries(firebaseConfig).forEach(([key, value]) => {
+  if (!value) {
+    console.error(`Firebase config is missing ${key}`);
   }
 });
 
-console.log('Firebase Config:', JSON.stringify(firebaseConfig, null, 2));
-
 if (!firebaseConfig.apiKey) {
-  console.error('Firebase API Key is missing!');
+  throw new Error('Firebase API Key is missing!');
 }
