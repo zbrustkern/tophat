@@ -1,5 +1,6 @@
 "use client"
 
+import { getFunctions, httpsCallable } from 'firebase/functions';
 import { ChartData } from '@/types/chart';
 import { useAuth } from '@/contexts/AuthContext';
 import { db, doc, setDoc } from '@/lib/firebase/firestore';
@@ -101,7 +102,6 @@ export default function Home() {
     else {
     setFormData({...formData, [evt.target.name]: evt.target.value })
     }
-    console.log(formData)
   }
 
   const handleSave = async () => {
@@ -109,22 +109,18 @@ export default function Home() {
       alert("Please sign in to save your plan");
       return;
     }
-
-    if (!db) {
-      console.error("Firestore is not initialized");
-      alert("An error occurred. Please try again later.");
-      return;
-  }
+  
     setSaveStatus('saving');
     try {
-      await setDoc(doc(db, 'incomePlans', user.uid), {
-        formData,
-        lastUpdated: new Date().toISOString()
-      });
+      const functions = getFunctions();
+      const saveIncomePlan = httpsCallable(functions, 'save_income_plan');
+      const result = await saveIncomePlan({ formData });
+      console.log(result.data);
       setSaveStatus('saved');
     } catch (error) {
       console.error("Error saving income plan:", error);
       setSaveStatus('error');
+      alert(`Error saving plan: ${error instanceof Error ? error.message : String(error)}`);
     }
   };
 
