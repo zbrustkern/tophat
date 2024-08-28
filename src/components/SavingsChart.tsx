@@ -49,12 +49,32 @@ export function SavingsChart({ chartData }: SavingsChartProps) {
       >
         <CartesianGrid vertical={false} />
         <XAxis dataKey="year" />
-        <YAxis />
+        <YAxis 
+            yAxisId="left" 
+            label={{ value: 'Balance ($)', angle: -90, position: 'insideLeft', offset: 0, dy: 0, }} 
+            tickFormatter={(value) => `$${value.toLocaleString()}`}
+        />
         <ChartTooltip content={<ChartTooltipContent />} />
         <ChartLegend content={<ChartLegendContent />} />
-        <Line type="monotone" dataKey="balance" stroke="#8884d8" activeDot={{ r: 8 }} />
-        <Line type="monotone" dataKey="totalSaved" stroke="#82ca9d" />
-        <Line type="monotone" dataKey="projectedIncome" stroke="#ffc658" />
+        <Line
+            type="monotone"
+            dataKey="balance"
+            stroke="#8884d8"
+            activeDot={{ r: 8 }}
+            yAxisId="left" 
+        />
+        <Line 
+            type="monotone"
+            dataKey="totalSaved"
+            stroke="#82ca9d"
+            yAxisId="left" 
+        />
+        <Line
+            type="monotone"
+            dataKey="projectedIncome"
+            stroke="#ffc658"
+            yAxisId="left" 
+        />
       </LineChart>
     </ChartContainer>
   );

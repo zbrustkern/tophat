@@ -48,20 +48,20 @@ export function IncomeChart({ chartData }: { chartData: ChartData }) {
             />
             <ChartTooltip content={<ChartTooltipContent />} />
             <ChartLegend content={<ChartLegendContent />} />
-            <Line 
-                    type="monotone" 
-                    dataKey="balance" 
-                    stroke="var(--color-balance)"
-                    strokeWidth={2} 
-                    yAxisId="left" 
-                    dot={false}
-                />
-                <Bar 
-                    dataKey="conservativeIncome" 
-                    fill="var(--color-conservativeIncome)" 
-                    radius={4} 
-                    yAxisId="right" 
-                />
+            <Line
+                type="monotone" 
+                dataKey="balance" 
+                stroke="var(--color-balance)"
+                strokeWidth={2} 
+                yAxisId="left" 
+                dot={false}
+            />
+            <Bar 
+                dataKey="conservativeIncome" 
+                fill="var(--color-conservativeIncome)" 
+                radius={4} 
+                yAxisId="right" 
+            />
           </ComposedChart>
         </ChartContainer>
     )

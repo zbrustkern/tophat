@@ -214,7 +214,7 @@ export default function SavingsPlanner() {
           <CardFooter>
             <div className="flex w-full justify-start">
               <div>
-                <Button>Save my plan (coming soon)</Button>
+                <Button onClick={handleSave}>Save my plan (coming soon)</Button>
               </div>
             </div>
           </CardFooter>
