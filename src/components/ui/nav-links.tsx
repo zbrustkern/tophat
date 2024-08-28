@@ -5,11 +5,12 @@ import { usePathname } from 'next/navigation';
 import clsx from 'clsx';
 
 const links = [
-  { name: 'Income Planner', href: '/dashboard', icon: '$' },
+  { name: 'Home', href: '/dashboard', icon: '#' },
+  { name: 'Income Planner', href: '/dashboard/income', icon: '$' },
   {
     name: 'Savings Planner',
     href: '/dashboard/savings',
-    icon: '$',
+    icon: '%',
   }
 ];
 

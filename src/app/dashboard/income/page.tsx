@@ -4,10 +4,10 @@ import { ChartData } from '@/types/chart';
 import { useAuth } from '@/contexts/AuthContext';
 import { db, doc, setDoc } from '@/lib/firebase/firestore';
 import { useState, useEffect, useCallback } from "react"
-import { SavingsChartData } from '@/types/savingsChart';
 import { IncomeChart } from "@/components/IncomeChart"
-import { SavingsChart } from "@/components/SavingsChart"
 import { Button, } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
 import {
   Card,
   CardContent,
@@ -30,9 +30,6 @@ export default function Home() {
     returnRate: 0.08,
   });
   const [chartData, setChartData] = useState<ChartData>([]);
-  const [savingsChartData, setSavingsChartData] = useState<SavingsChartData>([]);
-  const [requiredSavings, setRequiredSavings] = useState(0);
-
   const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle');
 
   const generateFinancialData = useCallback((
@@ -131,61 +128,89 @@ export default function Home() {
     }
   };
 
-  const generateSavingsFinancialData = useCallback((
-    desiredIncome: number,
-    currentAge: number,
-    retirementAge: number,
-    currentBalance: number,
-    taxRate: number,
-    returnRate: number,
-  ): SavingsChartData => {
-    const years = retirementAge - currentAge;
-    const data: SavingsChartData = [];
-    let currentSavings = 0;
-    let balance = currentBalance;
-
-    // Calculate required savings
-    const totalRequired = desiredIncome / (returnRate * (1 - taxRate));
-    const yearlySavings = (totalRequired - currentBalance * Math.pow(1 + returnRate, years)) / 
-                          ((Math.pow(1 + returnRate, years) - 1) / returnRate);
-
-    setRequiredSavings(yearlySavings);
-
-    for (let year = currentAge; year <= retirementAge; year++) {
-      balance = balance * (1 + returnRate) + yearlySavings;
-      currentSavings += yearlySavings;
-
-      data.push({
-        year: year,
-        balance: Math.round(balance),
-        savingsRate: Math.round(yearlySavings),
-        totalSaved: Math.round(currentSavings),
-        projectedIncome: Math.round(balance * returnRate * (1 - taxRate)),
-      });
-    }
-
-    return data;
-  }, []);
-
-  const calculateSavingsChartData = useCallback(() => {
-    const newSavingsChartData = generateSavingsFinancialData(
-      Number('150000'),
-      Number('30'),
-      Number('65'),
-      Number('100000'),
-      .4,
-      .08
-    );
-    setSavingsChartData(newSavingsChartData);
-  }, [generateSavingsFinancialData]);
-
-  useEffect(() => {
-    calculateSavingsChartData();
-  }, [calculateSavingsChartData]);
-
   return (
     <main className="flex flex-col">
       <div className="m-1">
+        <Card>
+          <CardHeader className="flex gap-3">
+            <CardTitle>Income Planner</CardTitle>
+            <CardDescription>How are you preparing currently?</CardDescription>
+          </CardHeader>
+          <CardContent className="flex flex-col gap-4">
+            <p>Enter your details here...</p>
+            <div className="flex w-full flex-wrap md:flex-nowrap md:mb-0 gap-4">
+            <div className="grid w-full max-w-sm items-center gap-1.5">
+              <Label htmlFor="income">Income in $/year</Label>
+              <Input
+                required
+                type="number"
+                name="income"
+                placeholder="100,000"
+                onChange={handleChange}
+                />
+            </div>
+            <div className="grid w-full max-w-sm items-center gap-1.5">
+              <Label htmlFor="income">Starting Balance $</Label>
+              <Input
+                required
+                type="number"
+                name="balance"
+                placeholder="25,000"
+                onChange={handleChange}
+                />
+            </div>
+            <div className="grid w-full max-w-sm items-center gap-1.5">
+              <Label htmlFor="income">Estimated Long Term Average Portfolio Return (%)</Label>
+              <Input
+                required
+                type="number"
+                name="returnRate"
+                placeholder="8%"
+                onChange={handleChange}
+                />
+            </div>
+            </div>
+            <div className="flex w-full flex-wrap md:flex-nowrap md:mb-0 gap-4">
+            <div className="grid w-full max-w-sm items-center gap-1.5">
+              <Label htmlFor="income">Estimated Annual Raise (%)</Label>
+              <Input
+                required
+                type="number"
+                name="raiseRate"
+                placeholder="3%"
+                onChange={handleChange}
+                />
+            </div>
+            <div className="grid w-full max-w-sm items-center gap-1.5">
+              <Label htmlFor="income">Annual Savings Rate (%)</Label>
+              <Input
+                required
+                type="number"
+                name="saveRate"
+                placeholder="20%"
+                onChange={handleChange}
+                />
+            </div>
+            <div className="grid w-full max-w-sm items-center gap-1.5">
+              <Label htmlFor="income">Blended Total Tax Rate (%)</Label>
+              <Input
+                required
+                type="number"
+                name="taxRate"
+                placeholder="40%"
+                onChange={handleChange}
+                />
+            </div>
+            </div>
+          </CardContent>
+          <CardFooter>
+            <div className="flex w-full justify-start">
+              <div>
+              <Button onClick={calculateChartData}>Show me my $$</Button>
+              </div>
+            </div>
+          </CardFooter>
+        </Card>
       </div>
       <div className="m-1">
       <Card>
@@ -197,24 +222,14 @@ export default function Home() {
             <IncomeChart chartData={chartData}/>
           </CardContent>
           <CardFooter>
+          <div className="flex w-full justify-start">
+              <div>
+              <Button>Save my plan (coming soon)</Button>
+              </div>
+            </div>
           </CardFooter>
         </Card>
       </div>
-
-      <div className="m-1">
-        <Card>
-          <CardHeader className="flex gap-3">
-            <CardTitle>Savings Projections</CardTitle>
-            <CardDescription>Your path to your desired retirement income</CardDescription>
-          </CardHeader>
-          <CardContent className="flex flex-col gap-3">
-            <SavingsChart chartData={savingsChartData}/>
-          </CardContent>
-          <CardFooter>
-          </CardFooter>
-        </Card>
-      </div>
-      
     </main>
 );
 }

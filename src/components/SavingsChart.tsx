@@ -1,5 +1,15 @@
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 
+
+import {
+    ChartConfig,
+    ChartContainer,
+    ChartTooltip,
+    ChartTooltipContent,
+    ChartLegend,
+    ChartLegendContent,
+ } from "@/components/ui/chart"
+
 interface SavingsChartProps {
   chartData: {
     year: number;
@@ -10,8 +20,24 @@ interface SavingsChartProps {
 }
 
 export function SavingsChart({ chartData }: SavingsChartProps) {
+
+    const chartConfig = {
+        balance: {
+            label: "Balance",
+            color: "#2563eb",
+        },
+        totalSaved: {
+            label: "Saved",
+            color: "#60a5fa",
+        },
+        projectedIncome: {
+            label: "Passive Income",
+            color: "#60a5fa",
+        },
+        } satisfies ChartConfig
+
   return (
-    <ResponsiveContainer width="100%" height={400}>
+    <ChartContainer config={chartConfig} className="min-h-[200px] w-half">
       <LineChart
         data={chartData}
         margin={{
@@ -21,15 +47,15 @@ export function SavingsChart({ chartData }: SavingsChartProps) {
           bottom: 5,
         }}
       >
-        <CartesianGrid strokeDasharray="3 3" />
+        <CartesianGrid vertical={false} />
         <XAxis dataKey="year" />
         <YAxis />
-        <Tooltip />
-        <Legend />
+        <ChartTooltip content={<ChartTooltipContent />} />
+        <ChartLegend content={<ChartLegendContent />} />
         <Line type="monotone" dataKey="balance" stroke="#8884d8" activeDot={{ r: 8 }} />
         <Line type="monotone" dataKey="totalSaved" stroke="#82ca9d" />
         <Line type="monotone" dataKey="projectedIncome" stroke="#ffc658" />
       </LineChart>
-    </ResponsiveContainer>
+    </ChartContainer>
   );
 }
