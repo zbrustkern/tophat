@@ -1,7 +1,7 @@
 "use client"
 
+import { getFunctions, httpsCallable } from 'firebase/functions';
 import { useAuth } from '@/contexts/AuthContext';
-import { db, doc, setDoc } from '@/lib/firebase/firestore';
 import { SavingsChartData } from '@/types/savingsChart';
 import { useState, useEffect, useCallback } from "react"
 import { SavingsChart } from "@/components/SavingsChart"
@@ -95,25 +95,21 @@ export default function SavingsPlanner() {
       alert("Please sign in to save your plan");
       return;
     }
-
-    if (!db) {
-        console.error("Firestore is not initialized");
-        alert("An error occurred. Please try again later.");
-        return;
-    }
-
+  
     setSaveStatus('saving');
     try {
-      await setDoc(doc(db, 'savingsPlans', user.uid), {
+      const functions = getFunctions();
+      const saveSavingsPlan = httpsCallable(functions, 'save_savings_plan');
+      const result = await saveSavingsPlan({ 
         formData,
-        requiredSavings,
-        lastUpdated: new Date().toISOString()
+        requiredSavings
       });
-      console.log('Plan saved successfully');
+      console.log(result.data);
       setSaveStatus('saved');
     } catch (error) {
       console.error("Error saving savings plan:", error);
       setSaveStatus('error');
+      alert(`Error saving plan: ${error instanceof Error ? error.message : String(error)}`);
     }
   };
 

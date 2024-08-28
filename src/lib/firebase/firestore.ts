@@ -26,8 +26,6 @@ export {
   getDocs,
   doc,
   getDoc,
-  setDoc,
-  updateDoc,
   orderBy,
   Timestamp,
   runTransaction,

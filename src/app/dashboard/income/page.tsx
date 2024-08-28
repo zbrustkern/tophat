@@ -3,7 +3,6 @@
 import { getFunctions, httpsCallable } from 'firebase/functions';
 import { ChartData } from '@/types/chart';
 import { useAuth } from '@/contexts/AuthContext';
-import { db, doc, setDoc } from '@/lib/firebase/firestore';
 import { useState, useEffect, useCallback } from "react"
 import { IncomeChart } from "@/components/IncomeChart"
 import { Button, } from "@/components/ui/button"

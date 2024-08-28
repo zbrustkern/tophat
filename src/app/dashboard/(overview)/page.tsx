@@ -2,7 +2,6 @@
 
 import { ChartData } from '@/types/chart';
 import { useAuth } from '@/contexts/AuthContext';
-import { db, doc, setDoc } from '@/lib/firebase/firestore';
 import { useState, useEffect, useCallback } from "react"
 import { SavingsChartData } from '@/types/savingsChart';
 import { IncomeChart } from "@/components/IncomeChart"
@@ -106,30 +105,6 @@ export default function Home() {
     }
     console.log(formData)
   }
-
-  const handleSave = async () => {
-    if (!user) {
-      alert("Please sign in to save your plan");
-      return;
-    }
-
-    if (!db) {
-      console.error("Firestore is not initialized");
-      alert("An error occurred. Please try again later.");
-      return;
-  }
-    setSaveStatus('saving');
-    try {
-      await setDoc(doc(db, 'incomePlans', user.uid), {
-        formData,
-        lastUpdated: new Date().toISOString()
-      });
-      setSaveStatus('saved');
-    } catch (error) {
-      console.error("Error saving income plan:", error);
-      setSaveStatus('error');
-    }
-  };
 
   const generateSavingsFinancialData = useCallback((
     desiredIncome: number,
