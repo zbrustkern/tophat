@@ -1,11 +1,12 @@
 "use client"
 
 import { getFunctions, httpsCallable } from 'firebase/functions';
-import { ChartData } from '@/types/chart';
+import { useRouter, useParams } from 'next/navigation'
+import { ChartData, IncomePlanFormData } from '@/types/chart';
 import { useAuth } from '@/contexts/AuthContext';
 import { useState, useEffect, useCallback } from "react"
 import { IncomeChart } from "@/components/IncomeChart"
-import { Button, } from "@/components/ui/button"
+import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import {
@@ -17,20 +18,62 @@ import {
   CardTitle,
 } from "@/components/ui/card"
 
-export default function Home() {
+const initialFormData = {
+  planName: '',
+  income: 100000,
+  raiseRate: 3,
+  saveRate: 20,
+  balance: 100000,
+  taxRate: 40,
+  returnRate: 8,
+}
 
-  const { user } = useAuth();
+export default function IncomePlannerPage() {
+  const router = useRouter()
+  const params = useParams()
+  const { user } = useAuth()
   
-  const [formData, setFormData] = useState({
-    income: 100000,
-    raiseRate: 0.03,
-    saveRate: 0.20,
-    balance: 100000,
-    taxRate: 0.40,
-    returnRate: 0.08,
-  });
+  const [formData, setFormData] = useState(initialFormData);
   const [chartData, setChartData] = useState<ChartData>([]);
+  const [isNewPlan, setIsNewPlan] = useState(true)
   const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle');
+  const [loading, setLoading] = useState(true);
+  const planId = params.id as string;
+
+  useEffect(() => {
+    if (planId && planId !== 'new') {
+      setIsNewPlan(false)
+      fetchPlanData()
+    } else {
+      setIsNewPlan(true)
+      setFormData(initialFormData)
+      setLoading(false)
+    }
+  }, [planId])
+
+  const fetchPlanData = async () => {
+    if (!user) return;
+
+    try {
+      const functions = getFunctions();
+      const readIncomePlan = httpsCallable(functions, 'read_income_plan');
+      const result = await readIncomePlan({ planId });
+      const planData = (result.data as any).plan;
+      setFormData({
+        ...planData,
+        raiseRate: planData.raiseRate * 100,
+        saveRate: planData.saveRate * 100,
+        taxRate: planData.taxRate * 100,
+        returnRate: planData.returnRate * 100
+      });
+      calculateChartData();
+    } catch (error) {
+      console.error("Error fetching plan data:", error);
+      alert("Failed to load plan data. Please try again.");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const generateFinancialData = useCallback((
     initialIncome: number, 
@@ -81,26 +124,31 @@ export default function Home() {
   const calculateChartData = useCallback(() => {
     const newChartData = generateFinancialData(
       formData.income,
-      formData.raiseRate,
-      formData.saveRate,
-      formData.taxRate,
-      formData.returnRate,
+      formData.raiseRate / 100,
+      formData.saveRate / 100,
+      formData.taxRate / 100,
+      formData.returnRate / 100,
       formData.balance
     );
     setChartData(newChartData);
   }, [formData, generateFinancialData]);
+
+  const handleCalculate = useCallback((event: React.MouseEvent<HTMLButtonElement>) => {
+    event.preventDefault();
+    calculateChartData();
+  }, [calculateChartData]);
+
 
   useEffect(() => {
     calculateChartData();
   }, [calculateChartData]);
 
   const handleChange = (evt: React.ChangeEvent<HTMLInputElement>) => {
-    if ((evt.target.name === "raiseRate") || (evt.target.name === "saveRate") || (evt.target.name === "taxRate") || (evt.target.name === "returnRate")) {
-        setFormData({...formData, [evt.target.name]: parseFloat(evt.target.value) * 0.01 })
-    }
-    else {
-    setFormData({...formData, [evt.target.name]: evt.target.value })
-    }
+    const { name, value } = evt.target;
+    setFormData(prev => ({
+      ...prev,
+      [name]: name === 'planName' ? value : Number(value)
+    }));
   }
 
   const handleSave = async () => {
@@ -112,10 +160,21 @@ export default function Home() {
     setSaveStatus('saving');
     try {
       const functions = getFunctions();
-      const saveIncomePlan = httpsCallable(functions, 'save_income_plan');
-      const result = await saveIncomePlan({ formData });
+      const savePlanFunction = isNewPlan ? 'create_income_plan' : 'update_income_plan';
+      const saveIncomePlan = httpsCallable(functions, savePlanFunction);
+      const result = await saveIncomePlan({
+        planId: isNewPlan ? null : planId,
+        ...formData,
+        raiseRate: formData.raiseRate / 100,
+        saveRate: formData.saveRate / 100,
+        taxRate: formData.taxRate / 100,
+        returnRate: formData.returnRate / 100
+      });
       console.log(result.data);
       setSaveStatus('saved');
+      if (isNewPlan) {
+        router.push(`/dashboard/income-planner/${(result.data as any).planId}`);
+      }
     } catch (error) {
       console.error("Error saving income plan:", error);
       setSaveStatus('error');
@@ -123,17 +182,38 @@ export default function Home() {
     }
   };
 
+  const handleReset = () => {
+    setFormData(initialFormData)
+    setChartData([])
+    setIsNewPlan(true)
+    router.push('/dashboard/income-planner/new')
+  }
+
+  if (loading) {
+    return <div>Loading plan data...</div>;
+  }
+
+
+  
   return (
     <main className="flex flex-col">
-      <div className="m-1">
-        <Card>
-          <CardHeader className="flex gap-3">
-            <CardTitle>Income Planner</CardTitle>
-            <CardDescription>How are you preparing currently?</CardDescription>
-          </CardHeader>
-          <CardContent className="flex flex-col gap-4">
-            <p>Enter your details here...</p>
-            <div className="flex w-full flex-wrap md:flex-nowrap md:mb-0 gap-4">
+      <Card>
+        <CardHeader>
+          <CardTitle>{isNewPlan ? 'Create New Income Plan' : 'Edit Income Plan'}</CardTitle>
+          <CardDescription>Plan your future income</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <form className="space-y-4">
+            <div className="grid w-full max-w-sm items-center gap-1.5">
+              <Label htmlFor="planName">Plan Name</Label>
+              <Input
+                required
+                type="text"
+                name="planName"
+                value={formData.planName}
+                onChange={handleChange}
+              />
+            </div>
             <div className="grid w-full max-w-sm items-center gap-1.5">
               <Label htmlFor="income">Income in $/year</Label>
               <Input
@@ -163,7 +243,6 @@ export default function Home() {
                 placeholder="8%"
                 onChange={handleChange}
                 />
-            </div>
             </div>
             <div className="flex w-full flex-wrap md:flex-nowrap md:mb-0 gap-4">
             <div className="grid w-full max-w-sm items-center gap-1.5">
@@ -197,34 +276,23 @@ export default function Home() {
                 />
             </div>
             </div>
-          </CardContent>
-          <CardFooter>
-            <div className="flex w-full justify-start">
-              <div>
-              <Button onClick={calculateChartData}>Show me my $$</Button>
-              </div>
-            </div>
-          </CardFooter>
-        </Card>
-      </div>
-      <div className="m-1">
-      <Card>
-          <CardHeader className="flex gap-3">
-            <CardTitle>Income Expectations</CardTitle>
-            <CardDescription>How much passive income are you set to earn?</CardDescription>
-          </CardHeader>
-          <CardContent className="flex flex-col gap-3">
-            <IncomeChart chartData={chartData}/>
-          </CardContent>
-          <CardFooter>
-          <div className="flex w-full justify-start">
-              <div>
-              <Button onClick={handleSave}>Save my plan (coming soon)</Button>
-              </div>
-            </div>
-          </CardFooter>
-        </Card>
-      </div>
+            </form>
+        </CardContent>
+        <CardFooter className="flex justify-between">
+        <Button onClick={handleCalculate}>Update Projection</Button>
+        <Button onClick={handleSave}>{isNewPlan ? 'Create Plan' : 'Update Plan'}</Button>
+        {!isNewPlan && <Button onClick={handleReset}>Create New Plan</Button>}
+      </CardFooter>
+      </Card>
+      <Card className="mt-4">
+        <CardHeader>
+          <CardTitle>Income Projection</CardTitle>
+          <CardDescription>Your projected income and savings over time</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <IncomeChart chartData={chartData}/>
+        </CardContent>
+      </Card>
     </main>
-);
+  );
 }

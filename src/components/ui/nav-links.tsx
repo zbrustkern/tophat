@@ -6,10 +6,10 @@ import clsx from 'clsx';
 
 const links = [
   { name: 'Home', href: '/dashboard', icon: '#' },
-  { name: 'Income Planner', href: '/dashboard/income', icon: '$' },
+  { name: 'Income Planner', href: '/dashboard/income-planner', icon: '$' },
   {
     name: 'Savings Planner',
-    href: '/dashboard/savings',
+    href: '/dashboard/savings-planner',
     icon: '%',
   }
 ];

@@ -1,6 +1,6 @@
 "use client"
  
-import { Bar, BarChart, CartesianGrid, XAxis, YAxis, Line, ComposedChart } from "recharts"
+import { Bar, BarChart, CartesianGrid, XAxis, YAxis, Line, ComposedChart, ResponsiveContainer } from "recharts"
 import { ChartData } from '@/types/chart';
 
 import {
@@ -12,57 +12,73 @@ import {
     ChartLegendContent,
  } from "@/components/ui/chart"
 
-export function IncomeChart({ chartData }: { chartData: ChartData }) {
-    
+interface IncomeChartProps {
+  chartData: ChartData;
+  isThumbnail?: boolean;
+}
+
+export function IncomeChart({ chartData, isThumbnail = false }: IncomeChartProps) {
     const chartConfig = {
-    balance: {
+      balance: {
         label: "Balance",
         color: "#2563eb",
-    },
-    conservativeIncome: {
+      },
+      conservativeIncome: {
         label: "Passive Income",
         color: "#60a5fa",
-    },
+      },
     } satisfies ChartConfig
 
+    // For thumbnails, we'll use a subset of the data
+    const thumbnailData = isThumbnail ? chartData.filter((_, index) => index % 5 === 0) : chartData;
+
     return (
-        <ChartContainer config={chartConfig} className="min-h-[200px] w-half">
-          <ComposedChart data={chartData}>
-            <CartesianGrid vertical={false} />
-            <XAxis
+        <ChartContainer config={chartConfig} className={isThumbnail ? "h-[100px] w-full" : "min-h-[200px] w-half"}>
+          <ResponsiveContainer width="100%" height="100%">
+            <ComposedChart data={thumbnailData}>
+              <CartesianGrid vertical={false} strokeDasharray="3 3" />
+              <XAxis
                 dataKey="year"
                 tickLine={false}
                 tickMargin={10}
                 axisLine={false}
-                />
-            <YAxis 
+                hide={isThumbnail}
+              />
+              <YAxis 
                 yAxisId="left" 
-                label={{ value: 'Balance ($)', angle: -90, position: 'insideLeft', offset: 0, dy: 0, }} 
+                label={isThumbnail ? undefined : { value: 'Balance ($)', angle: -90, position: 'insideLeft', offset: 0, dy: 0 }}
                 tickFormatter={(value) => `$${value.toLocaleString()}`}
-            />
-            <YAxis 
+                hide={isThumbnail}
+              />
+              <YAxis 
                 yAxisId="right" 
                 orientation="right" 
-                label={{ value: 'Passive Income ($)', angle: 90, position: 'insideRight', dy: 0, }} 
+                label={isThumbnail ? undefined : { value: 'Passive Income ($)', angle: 90, position: 'insideRight', dy: 0 }}
                 tickFormatter={(value) => `$${value.toLocaleString()}`}
-            />
-            <ChartTooltip content={<ChartTooltipContent />} />
-            <ChartLegend content={<ChartLegendContent />} />
-            <Line
+                hide={isThumbnail}
+              />
+              {!isThumbnail && (
+                <>
+                  <ChartTooltip content={<ChartTooltipContent />} />
+                  <ChartLegend content={<ChartLegendContent />} />
+                </>
+              )}
+              <Line
                 type="monotone" 
                 dataKey="balance" 
                 stroke="var(--color-balance)"
                 strokeWidth={2} 
                 yAxisId="left" 
                 dot={false}
-            />
-            <Bar 
+              />
+              <Bar 
                 dataKey="conservativeIncome" 
                 fill="var(--color-conservativeIncome)" 
                 radius={4} 
                 yAxisId="right" 
-            />
-          </ComposedChart>
+              />
+            </ComposedChart>
+          </ResponsiveContainer>
         </ChartContainer>
     )
 }
