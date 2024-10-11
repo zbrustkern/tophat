@@ -4,7 +4,7 @@ import { SavingsPlan } from '@/types/chart';
 import { usePlans } from '@/contexts/PlansContext';
 
 export function useSavingsPlan(initialPlanId: string | null = null) {
-    const { plans, refreshPlans } = usePlans();
+  const { plans, refreshPlans } = usePlans();
   const [plan, setPlan] = useState<SavingsPlan | null>(
     initialPlanId ? plans.find(p => p.id === initialPlanId) as SavingsPlan || null : null
   );
@@ -19,54 +19,52 @@ export function useSavingsPlan(initialPlanId: string | null = null) {
     const createPlanFunction = httpsCallable(functions, 'create_plan');
 
     try {
-        const result = await createPlanFunction({
-          planName: newPlan.planName,
-          planType: newPlan.planType,
-          details: newPlan.details
-        });
-        await refreshPlans();
-        const createdPlan: SavingsPlan = { 
-          ...newPlan, 
-          id: (result.data as any).planId,
-          lastUpdated: new Date()
-        };
-        setPlan(createdPlan);
-        return createdPlan;
-      } catch (error) {
-        console.error("Error creating plan:", error);
-        setError("Failed to create plan. Please try again.");
-        throw error;
-      } finally {
-        setLoading(false);
-      }
-    }, [refreshPlans]);
+      const result = await createPlanFunction({
+        planName: newPlan.planName,
+        planType: 'savings',
+        details: newPlan.details
+      });
+      await refreshPlans();
+      const createdPlan: SavingsPlan = { 
+        ...newPlan, 
+        id: (result.data as any).planId,
+        lastUpdated: new Date()
+      };
+      setPlan(createdPlan);
+      return createdPlan;
+    } catch (error) {
+      console.error("Error creating plan:", error);
+      setError("Failed to create plan. Please try again.");
+      throw error;
+    } finally {
+      setLoading(false);
+    }
+  }, [refreshPlans]);
 
-    const updatePlan = useCallback(async (planToUpdate: SavingsPlan) => {
-        setLoading(true);
-        setError(null);
-    
-        const functions = getFunctions();
-        const updatePlanFunction = httpsCallable(functions, 'update_plan');
-    
-        try {
-          await updatePlanFunction({
-            planId: planToUpdate.id,
-            planName: planToUpdate.planName,
-            planType: planToUpdate.planType,
-            details: planToUpdate.details,
-            lastUpdated: planToUpdate.lastUpdated.toISOString()
-          });
-          await refreshPlans(); 
-          const updatedPlan = { ...planToUpdate, lastUpdated: new Date() };
-          setPlan(updatedPlan);
-        } catch (error) {
-          console.error("Error updating plan:", error);
-          setError("Failed to update plan. Please try again.");
-          throw error;
-        } finally {
-          setLoading(false);
-        }
-      }, [refreshPlans]);
+  const updatePlan = useCallback(async (planToUpdate: SavingsPlan) => {
+    setLoading(true);
+    setError(null);
+
+    const functions = getFunctions();
+    const updatePlanFunction = httpsCallable(functions, 'update_plan');
+
+    try {
+      await updatePlanFunction({
+        planId: planToUpdate.id,
+        planName: planToUpdate.planName,
+        planType: 'savings',
+        details: planToUpdate.details
+      });
+      await refreshPlans();
+      setPlan(planToUpdate);
+    } catch (error) {
+      console.error("Error updating plan:", error);
+      setError("Failed to update plan. Please try again.");
+      throw error;
+    } finally {
+      setLoading(false);
+    }
+  }, [refreshPlans]);
 
   const updatePlanField = useCallback((name: string, value: string | number) => {
     setPlan(prev => {

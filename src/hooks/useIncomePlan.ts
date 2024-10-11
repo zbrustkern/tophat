@@ -21,7 +21,7 @@ export function useIncomePlan(initialPlanId: string | null = null) {
     try {
       const result = await createPlanFunction({
         planName: newPlan.planName,
-        planType: newPlan.planType,
+        planType: 'income',
         details: newPlan.details
       });
       await refreshPlans();
@@ -52,13 +52,11 @@ export function useIncomePlan(initialPlanId: string | null = null) {
       await updatePlanFunction({
         planId: planToUpdate.id,
         planName: planToUpdate.planName,
-        planType: planToUpdate.planType,
-        details: planToUpdate.details,
-        lastUpdated: planToUpdate.lastUpdated.toISOString()
+        planType: 'income',
+        details: planToUpdate.details
       });
-      await refreshPlans();  // Refresh the plans in context
-      const updatedPlan = { ...planToUpdate, lastUpdated: new Date() };
-      setPlan(updatedPlan);
+      await refreshPlans();
+      setPlan(planToUpdate);
     } catch (error) {
       console.error("Error updating plan:", error);
       setError("Failed to update plan. Please try again.");
