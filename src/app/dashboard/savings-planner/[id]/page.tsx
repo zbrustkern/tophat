@@ -1,18 +1,31 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
 import { useSavingsPlan } from '@/hooks/useSavingsPlan';
 import { useSavingsChart } from '@/hooks/useSavingsChart';
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { SavingsChart } from "@/components/SavingsChart"
+import { SavingsPlan } from '@/types/chart';
 
 export default function SavingsPlanPage() {
   const { id } = useParams();
-  const { plan, loading, error, updatePlan, updatePlanField } = useSavingsPlan(id as string);
+  const [plan, setPlan] = useState<SavingsPlan | null>(null);
+  const { loading, error, updatePlan, updatePlanField, readPlan } = useSavingsPlan();
   const { chartData, requiredSavings, calculateChartData } = useSavingsChart();
+
+  useEffect(() => {
+    const fetchPlan = async () => {
+      if (id) {
+        const fetchedPlan = await readPlan(id as string);
+        setPlan(fetchedPlan);
+      }
+    };
+    fetchPlan();
+  }, [id, readPlan]);
 
   useEffect(() => {
     if (plan) {
@@ -35,9 +48,11 @@ export default function SavingsPlanPage() {
     }
 
     updatePlanField(name, newValue);
+    setPlan(prev => prev ? {...prev, [name]: newValue} : null);
   };
 
   const handleSave = async () => {
+    if (!plan) return;
     try {
       await updatePlan(plan);
       calculateChartData(plan);
@@ -49,72 +64,46 @@ export default function SavingsPlanPage() {
   };
 
   return (
-    <main className="flex flex-col">
-      <h1>{plan.planName}</h1>
-      <div className="m-1">
-        <Label htmlFor="planName">Plan Name</Label>
-        <Input
-          id="planName"
-          name="planName"
-          value={plan.planName}
-          onChange={handleChange}
-        />
-        <Label htmlFor="desiredIncome">Desired Annual Income in Retirement ($)</Label>
-        <Input
-          id="desiredIncome"
-          name="desiredIncome"
-          type="number"
-          value={plan.details.desiredIncome}
-          onChange={handleChange}
-        />
-        <Label htmlFor="currentBalance">Current Savings Balance ($)</Label>
-        <Input
-          id="currentBalance"
-          name="currentBalance"
-          type="number"
-          value={plan.details.currentBalance}
-          onChange={handleChange}
-        />
-        <Label htmlFor="returnRate">Estimated Long Term Average Portfolio Return (%)</Label>
-        <Input
-          id="returnRate"
-          name="returnRate"
-          type="number"
-          value={plan.details.returnRate}
-          onChange={handleChange}
-        />
-        <Label htmlFor="currentAge">Current Age</Label>
-        <Input
-          id="currentAge"
-          name="currentAge"
-          type="number"
-          value={plan.details.currentAge}
-          onChange={handleChange}
-        />
-        <Label htmlFor="retirementAge">Desired Retirement Age</Label>
-        <Input
-          id="retirementAge"
-          name="retirementAge"
-          type="number"
-          value={plan.details.retirementAge}
-          onChange={handleChange}
-        />
-        <Label htmlFor="taxRate">Expected Tax Rate in Retirement (%)</Label>
-        <Input
-          id="taxRate"
-          name="taxRate"
-          type="number"
-          value={plan.details.taxRate}
-          onChange={handleChange}
-        />
-        <Button onClick={handleSave}>Save Changes</Button>
-      </div>
-      <div>
-        <p>Required Annual Savings: ${Math.round(requiredSavings).toLocaleString()}</p>
-      </div>
-      <div className="m-1">
-        <SavingsChart chartData={chartData} />
-      </div>
+    <main className="flex flex-col p-4">
+      <Card>
+        <CardHeader>
+          <CardTitle>{id === 'new' ? 'Create New Savings Plan' : 'Edit Savings Plan'}</CardTitle>
+          <CardDescription>Update your savings plan details</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <form className="space-y-4">
+            <div>
+              <Label htmlFor="planName">Plan Name</Label>
+              <Input id="planName" name="planName" value={plan.planName} onChange={handleChange} />
+            </div>
+            {Object.entries(plan.details).map(([key, value]) => (
+              <div key={key}>
+                <Label htmlFor={key}>{key.charAt(0).toUpperCase() + key.slice(1)}</Label>
+                <Input
+                  id={key}
+                  name={key}
+                  type="number"
+                  value={value}
+                  onChange={handleChange}
+                />
+              </div>
+            ))}
+          </form>
+        </CardContent>
+        <CardFooter className="flex justify-between">
+          <Button onClick={() => calculateChartData(plan)}>Update Projection</Button>
+          <Button onClick={handleSave}>{id === 'new' ? 'Create Plan' : 'Update Plan'}</Button>
+        </CardFooter>
+      </Card>
+      <Card className="mt-4">
+        <CardHeader>
+          <CardTitle>Savings Projection</CardTitle>
+          <CardDescription>Required Annual Savings: ${Math.round(requiredSavings).toLocaleString()}</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <SavingsChart chartData={chartData} />
+        </CardContent>
+      </Card>
     </main>
   );
 }
