@@ -40,41 +40,6 @@ export default function IncomePlannerPage() {
   const [loading, setLoading] = useState(true);
   const planId = params.id as string;
 
-  useEffect(() => {
-    if (planId && planId !== 'new') {
-      setIsNewPlan(false)
-      fetchPlanData()
-    } else {
-      setIsNewPlan(true)
-      setFormData(initialFormData)
-      setLoading(false)
-    }
-  }, [planId])
-
-  const fetchPlanData = async () => {
-    if (!user) return;
-
-    try {
-      const functions = getFunctions();
-      const readIncomePlan = httpsCallable(functions, 'read_income_plan');
-      const result = await readIncomePlan({ planId });
-      const planData = (result.data as any).plan;
-      setFormData({
-        ...planData,
-        raiseRate: planData.raiseRate * 100,
-        saveRate: planData.saveRate * 100,
-        taxRate: planData.taxRate * 100,
-        returnRate: planData.returnRate * 100
-      });
-      calculateChartData();
-    } catch (error) {
-      console.error("Error fetching plan data:", error);
-      alert("Failed to load plan data. Please try again.");
-    } finally {
-      setLoading(false);
-    }
-  };
-
   const generateFinancialData = useCallback((
     initialIncome: number, 
     initialRaise: number, 
@@ -142,6 +107,45 @@ export default function IncomePlannerPage() {
   useEffect(() => {
     calculateChartData();
   }, [calculateChartData]);
+
+  const fetchPlanData = useCallback(async () => {
+    if (!user) return;
+  
+    try {
+      const functions = getFunctions();
+      const readIncomePlan = httpsCallable(functions, 'read_income_plan');
+      const result = await readIncomePlan({ planId });
+      const planData = (result.data as any).plan;
+      setFormData({
+        ...planData,
+        raiseRate: planData.raiseRate * 100,
+        saveRate: planData.saveRate * 100,
+        taxRate: planData.taxRate * 100,
+        returnRate: planData.returnRate * 100
+      });
+      calculateChartData();
+    } catch (error) {
+      console.error("Error fetching plan data:", error);
+      alert("Failed to load plan data. Please try again.");
+    } finally {
+      setLoading(false);
+    }
+  }, [user, planId, calculateChartData]);
+
+  
+
+
+
+  useEffect(() => {
+    if (planId && planId !== 'new') {
+      setIsNewPlan(false)
+      fetchPlanData()
+    } else {
+      setIsNewPlan(true)
+      setFormData(initialFormData)
+      setLoading(false)
+    }
+  }, [planId, fetchPlanData])
 
   const handleChange = (evt: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = evt.target;
