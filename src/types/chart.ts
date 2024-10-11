@@ -1,4 +1,3 @@
-// chart.ts
 export type ChartDataPoint = {
   year: number;
   income: number;
@@ -15,7 +14,6 @@ export type ChartDataPoint = {
 
 export type ChartData = ChartDataPoint[];
 
-// savingsChart.ts
 export type SavingsChartDataPoint = {
   year: number;
   balance: number;
@@ -26,9 +24,16 @@ export type SavingsChartDataPoint = {
 
 export type SavingsChartData = SavingsChartDataPoint[];
 
-// Add this new type for form data
-export type IncomePlanFormData = {
+export type PlanType = 'income' | 'savings' | 'house' | 'car' | 'college' | 'debt';
+
+export type BasePlanData = {
+  id: string;
   planName: string;
+  planType: PlanType;
+  lastUpdated: Date; 
+};
+
+export type IncomePlanDetails = {
   income: number;
   raiseRate: number;
   saveRate: number;
@@ -36,3 +41,19 @@ export type IncomePlanFormData = {
   taxRate: number;
   returnRate: number;
 };
+
+export type SavingsPlanDetails = {
+  desiredIncome: number;
+  currentAge: number;
+  retirementAge: number;
+  currentBalance: number;
+  taxRate: number;
+  returnRate: number;
+};
+
+export type Plan<T extends IncomePlanDetails | SavingsPlanDetails> = BasePlanData & {
+  details: T;
+};
+
+export type IncomePlan = Plan<IncomePlanDetails>;
+export type SavingsPlan = Plan<SavingsPlanDetails>;

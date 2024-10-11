@@ -3,6 +3,7 @@ import { Inter as FontSans } from "next/font/google";
 import "./globals.css";
 import { cn } from "@/lib/utils"
 import { AuthProvider } from '@/contexts/AuthContext';
+import { PlansProvider } from '@/contexts/PlansContext';
 
 
 
@@ -31,7 +32,9 @@ export default function RootLayout({
             )}
             >
               <AuthProvider>
-              {children}
+                <PlansProvider>
+                  {children}
+                </PlansProvider>
               </AuthProvider>
             </body>
     </html>
