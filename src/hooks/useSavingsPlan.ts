@@ -66,6 +66,47 @@ export function useSavingsPlan(initialPlanId: string | null = null) {
     }
   }, [refreshPlans]);
 
+  const deletePlan = useCallback(async (planId: string) => {
+    setLoading(true);
+    setError(null);
+
+    const functions = getFunctions();
+    const deletePlanFunction = httpsCallable(functions, 'delete_plan');
+
+    try {
+      await deletePlanFunction({ planId });
+      await refreshPlans();
+      setPlan(null);
+    } catch (error) {
+      console.error("Error deleting plan:", error);
+      setError("Failed to delete plan. Please try again.");
+      throw error;
+    } finally {
+      setLoading(false);
+    }
+  }, [refreshPlans]);
+
+  const readPlan = useCallback(async (planId: string) => {
+    setLoading(true);
+    setError(null);
+
+    const functions = getFunctions();
+    const readPlanFunction = httpsCallable(functions, 'read_plan');
+
+    try {
+      const result = await readPlanFunction({ planId });
+      const planData = (result.data as any).plan as SavingsPlan;
+      setPlan(planData);
+      return planData;
+    } catch (error) {
+      console.error("Error reading plan:", error);
+      setError("Failed to read plan. Please try again.");
+      throw error;
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
   const updatePlanField = useCallback((name: string, value: string | number) => {
     setPlan(prev => {
       if (!prev) return null;
@@ -85,5 +126,5 @@ export function useSavingsPlan(initialPlanId: string | null = null) {
     });
   }, []);
 
-  return { plan, loading, error, createPlan, updatePlan, updatePlanField };
+  return { plan, loading, error, createPlan, updatePlan, deletePlan, readPlan, updatePlanField };
 }
