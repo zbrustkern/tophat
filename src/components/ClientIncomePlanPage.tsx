@@ -11,7 +11,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { IncomePlan } from '@/types/chart';
 import { usePlans } from '@/contexts/PlansContext';
 
-export default function ClientIncomePlanPage() {
+export default function ClientIncomePlanPage({ planId }: { planId?: string }) {
     const { plans } = usePlans();
     const [plan, setPlan] = useState<IncomePlan | null>(null);
     const { loading, error, updatePlan, createPlan } = useIncomePlan();
@@ -19,12 +19,19 @@ export default function ClientIncomePlanPage() {
 
     useEffect(() => {
         const incomePlans = plans.filter(p => p.planType === 'income') as IncomePlan[];
-        if (incomePlans.length > 0) {
+        if (planId && planId !== 'new') {
+            const selectedPlan = incomePlans.find(p => p.id === planId);
+            if (selectedPlan) {
+                setPlan(selectedPlan);
+            } else {
+                createNewPlan();
+            }
+        } else if (incomePlans.length > 0) {
             setPlan(incomePlans[0]);
         } else {
             createNewPlan();
         }
-    }, [plans]);
+    }, [plans, planId]);
 
     useEffect(() => {
         if (plan) {
@@ -52,6 +59,7 @@ export default function ClientIncomePlanPage() {
 
     if (loading) return <p>Loading...</p>;
     if (error) return <p>Error: {error}</p>;
+    if (!plan) return <p>No plan available</p>;
 
     const handleChange = (evt: React.ChangeEvent<HTMLInputElement>) => {
         const { name, value } = evt.target;
@@ -102,14 +110,12 @@ export default function ClientIncomePlanPage() {
                 ))}
             </select>
             <Button onClick={createNewPlan}>Create New Plan</Button>
-            {plan && (
-                <>
-                    <Card>
-                        <CardHeader>
-                            <CardTitle>{plan.id === 'new' ? 'Create New Income Plan' : 'Edit Income Plan'}</CardTitle>
-                            <CardDescription>Update your income plan details</CardDescription>
-                        </CardHeader>
-                        <CardContent>
+            <Card>
+                <CardHeader>
+                    <CardTitle>{plan.id === 'new' ? 'Create New Income Plan' : 'Edit Income Plan'}</CardTitle>
+                    <CardDescription>Update your income plan details</CardDescription>
+                </CardHeader>
+                <CardContent>
                         <form className="space-y-4">
                             <div>
                                 <Label htmlFor="planName">Plan Name</Label>
@@ -192,21 +198,19 @@ export default function ClientIncomePlanPage() {
                                 />
                             </div>
                             </form>
-                            </CardContent>
-                        <CardFooter>
-                            <Button onClick={handleSave}>{plan.id === 'new' ? 'Create Plan' : 'Update Plan'}</Button>
-                        </CardFooter>
-                    </Card>
-                    <Card className="mt-4">
-                        <CardHeader>
-                            <CardTitle>Income Projection</CardTitle>
-                        </CardHeader>
-                        <CardContent>
-                            <IncomeChart chartData={chartData} />
-                        </CardContent>
-                    </Card>
-                </>
-            )}
+                </CardContent>
+                <CardFooter>
+                    <Button onClick={handleSave}>{plan.id === 'new' ? 'Create Plan' : 'Update Plan'}</Button>
+                </CardFooter>
+            </Card>
+            <Card className="mt-4">
+                <CardHeader>
+                    <CardTitle>Income Projection</CardTitle>
+                </CardHeader>
+                <CardContent>
+                    <IncomeChart chartData={chartData} />
+                </CardContent>
+            </Card>
         </main>
     );
 }

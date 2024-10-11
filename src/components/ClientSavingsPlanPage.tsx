@@ -11,7 +11,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { SavingsPlan } from '@/types/chart';
 import { usePlans } from '@/contexts/PlansContext';
 
-export default function ClientSavingsPlanPage() {
+export default function ClientSavingsPlanPage({ planId }: { planId?: string }) {
     const { plans } = usePlans();
     const [plan, setPlan] = useState<SavingsPlan | null>(null);
     const { loading, error, updatePlan, createPlan } = useSavingsPlan();
@@ -19,12 +19,19 @@ export default function ClientSavingsPlanPage() {
 
     useEffect(() => {
         const savingsPlans = plans.filter(p => p.planType === 'savings') as SavingsPlan[];
-        if (savingsPlans.length > 0) {
-            setPlan(savingsPlans[0]);
-        } else {
-            createNewPlan();
-        }
-    }, [plans]);
+        if (planId && planId !== 'new') {
+          const selectedPlan = savingsPlans.find(p => p.id === planId);
+          if (selectedPlan) {
+              setPlan(selectedPlan);
+          } else {
+              createNewPlan();
+          }
+      } else if (savingsPlans.length > 0) {
+          setPlan(savingsPlans[0]);
+      } else {
+          createNewPlan();
+      }
+  }, [plans, planId]);
 
     useEffect(() => {
         if (plan) {
@@ -52,6 +59,7 @@ export default function ClientSavingsPlanPage() {
 
     if (loading) return <p>Loading...</p>;
     if (error) return <p>Error: {error}</p>;
+    if (!plan) return <p>No plan available</p>;
 
     const handleChange = (evt: React.ChangeEvent<HTMLInputElement>) => {
         const { name, value } = evt.target;
