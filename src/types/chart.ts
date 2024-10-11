@@ -1,3 +1,5 @@
+// chart.ts
+
 export type ChartDataPoint = {
   year: number;
   income: number;
