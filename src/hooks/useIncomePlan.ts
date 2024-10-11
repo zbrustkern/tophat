@@ -41,22 +41,24 @@ export function useIncomePlan(initialPlanId: string | null = null) {
     }
   }, [refreshPlans]);
 
-  const updatePlan = useCallback(async (planToUpdate: IncomePlan) => {
+  
+const updatePlan = useCallback(async (planToUpdate: IncomePlan ) => {
     setLoading(true);
     setError(null);
-
+  
     const functions = getFunctions();
     const updatePlanFunction = httpsCallable(functions, 'update_plan');
-
+  
     try {
       await updatePlanFunction({
         planId: planToUpdate.id,
         planName: planToUpdate.planName,
-        planType: 'income',
+        planType: planToUpdate.planType,
         details: planToUpdate.details
       });
       await refreshPlans();
       setPlan(planToUpdate);
+      return planToUpdate;  // Explicitly return the updated plan
     } catch (error) {
       console.error("Error updating plan:", error);
       setError("Failed to update plan. Please try again.");
