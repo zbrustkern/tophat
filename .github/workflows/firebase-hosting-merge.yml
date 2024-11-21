@@ -4,14 +4,16 @@ on:
   push:
     branches:
       - staging-workflow
+      - main
   pull_request:
     branches:
       - staging-workflow
+      - main
 
 jobs:
   build_and_deploy:
     runs-on: ubuntu-latest
-    environment: staging
+    environment: ${{ github.ref == 'refs/heads/main' && 'production' || 'staging' }}
     steps:
       - uses: actions/checkout@v4
       
@@ -24,11 +26,6 @@ jobs:
       - name: Install Dependencies
         run: npm ci
         
-      - name: Clear Next.js Cache
-        run: |
-          rm -rf .next
-          rm -rf node_modules/.cache
-        
       - name: Build
         env:
           NEXT_PUBLIC_FIREBASE_API_KEY: ${{ secrets.NEXT_PUBLIC_FIREBASE_API_KEY }}
@@ -37,15 +34,9 @@ jobs:
           NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID: ${{ secrets.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID }}
           NEXT_PUBLIC_FIREBASE_PROJECT_ID: ${{ secrets.NEXT_PUBLIC_FIREBASE_PROJECT_ID }}
           NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET: ${{ secrets.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET }}
-          NEXT_PUBLIC_FIREBASE_ENVIRONMENT: 'staging'
+          NEXT_PUBLIC_FIREBASE_ENVIRONMENT: ${{ github.ref == 'refs/heads/main' && 'production' || 'staging' }}
         run: npm run build
 
-      - name: List src directory structure
-        if: failure()
-        run: |
-          echo "Project Structure:"
-          ls -R src/
-        
       - name: Deploy to Firebase
         uses: FirebaseExtended/action-hosting-deploy@v0
         with:
