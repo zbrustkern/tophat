@@ -32,7 +32,7 @@ export function SavingsChart({ chartData, isThumbnail = false }: SavingsChartPro
             color: "#60a5fa",
         },
         projectedIncome: {
-            label: "Passive Income",
+            label: "Passive Income $",
             color: "#ffc658",
         },
     } satisfies ChartConfig
