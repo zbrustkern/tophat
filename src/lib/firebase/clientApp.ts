@@ -4,7 +4,7 @@ import { initializeApp, getApps, FirebaseApp } from "firebase/app";
 import { getAuth, Auth } from "firebase/auth";
 import { getFirestore, Firestore } from "firebase/firestore";
 import { getStorage, FirebaseStorage } from "firebase/storage";
-import { firebaseConfig } from "./config";
+import { getFirebaseConfig } from "./config";
 
 let firebaseApp: FirebaseApp | undefined;
 let auth: Auth | undefined;
@@ -13,8 +13,8 @@ let storage: FirebaseStorage | undefined;
 
 try {
     if (typeof window !== "undefined" && !getApps().length) {
-      console.log('Initializing Firebase with config:', JSON.stringify(firebaseConfig, null, 2));
-      firebaseApp = initializeApp(firebaseConfig);
+      console.log('Initializing Firebase with config:', JSON.stringify(getFirebaseConfig(), null, 2));
+      firebaseApp = initializeApp(getFirebaseConfig());
       auth = getAuth(firebaseApp);
       db = getFirestore(firebaseApp);
       storage = getStorage(firebaseApp);
