@@ -2,7 +2,7 @@
 
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import { Button } from "@/components/ui/button"
+import Image from "next/image"
 
 export function SideNav() {
   const pathname = usePathname()
@@ -11,39 +11,58 @@ export function SideNav() {
     {
       href: "/",
       label: "Dashboard",
-      active: pathname === "/",
+      icon: "📊"
     },
     {
       href: "/income",
       label: "Income Planner",
-      active: pathname === "/income",
+      icon: "$"
     },
     {
       href: "/savings",
       label: "Savings Planner",
-      active: pathname === "/savings",
+      icon: "%"
     }
   ]
 
   return (
-    <div className="flex h-full w-64 flex-col border-r bg-muted px-3 py-4">
-      <div className="flex h-14 items-center px-3">
-        <Link href="/" className="flex items-center space-x-2 font-semibold">
-          <span>Financial Planner</span>
-        </Link>
+    <div className="sticky top-0 h-screen w-64 border-r bg-background py-4 flex flex-col">
+      {/* Logo Section */}
+      <div className="flex flex-col items-center py-6 border-b">
+        <Image
+          src="/tophat_logo.png"
+          width={160}
+          height={160}
+          alt="Tophat logo"
+          className="mb-2"
+        />
+        <span className="text-xl font-semibold text-orange-300">
+          Tophat Financial
+        </span>
       </div>
-      <div className="flex-1 space-y-1 py-4">
-        {routes.map((route) => (
-          <Button
-            key={route.href}
-            variant={route.active ? "secondary" : "ghost"}
-            className="w-full justify-start"
-            asChild
-          >
-            <Link href={route.href}>{route.label}</Link>
-          </Button>
-        ))}
-      </div>
+
+      {/* Navigation Links */}
+      <nav className="flex-1 space-y-2 p-4">
+        {routes.map((route) => {
+          const isActive = pathname === route.href;
+          return (
+            <Link
+              key={route.href}
+              href={route.href}
+              className={`flex h-12 items-center justify-start gap-3 rounded-md px-4 text-sm font-medium transition-colors
+                ${isActive 
+                  ? 'bg-sky-100 text-blue-600' 
+                  : 'hover:bg-sky-100 hover:text-blue-600'
+                }`}
+            >
+              <span className="flex h-6 w-6 items-center justify-center text-lg">
+                {route.icon}
+              </span>
+              <span>{route.label}</span>
+            </Link>
+          )
+        })}
+      </nav>
     </div>
   )
 }
