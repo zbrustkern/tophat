@@ -1,7 +1,8 @@
-'use client'
+'use client';
 
 import Link from "next/link"
 import { usePathname } from "next/navigation"
+import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 
 export function SideNav() {
@@ -10,24 +11,25 @@ export function SideNav() {
   const routes = [
     {
       href: "/",
-      label: "Income Planner",
+      label: "Dashboard",
       active: pathname === "/",
+    },
+    {
+      href: "/income",
+      label: "Income Planner",
+      active: pathname === "/income",
     },
     {
       href: "/savings",
       label: "Savings Planner",
       active: pathname === "/savings",
-    },
-    // Add more routes as needed
+    }
   ]
 
   return (
     <div className="flex h-full w-64 flex-col border-r bg-muted px-3 py-4">
       <div className="flex h-14 items-center px-3">
-        <Link 
-          href="/" 
-          className="flex items-center space-x-2 font-semibold"
-        >
+        <Link href="/" className="flex items-center space-x-2 font-semibold">
           <span>Financial Planner</span>
         </Link>
       </div>
@@ -39,9 +41,7 @@ export function SideNav() {
             className="w-full justify-start"
             asChild
           >
-            <Link href={route.href}>
-              {route.label}
-            </Link>
+            <Link href={route.href}>{route.label}</Link>
           </Button>
         ))}
       </div>
