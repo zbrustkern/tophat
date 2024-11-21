@@ -12,8 +12,9 @@ on:
 
 jobs:
  build:
-   runs-on: ubuntu-latest
-   steps:
+  if: github.event_name == 'pull_request' || github.ref == 'refs/heads/main' || github.ref == 'refs/heads/staging'
+  runs-on: ubuntu-latest
+  steps:
      - uses: actions/checkout@v4
      
      - name: Setup Node.js
@@ -56,13 +57,13 @@ jobs:
          path: .next/
          
  deploy_staging:
-   needs: build
-   if: github.ref == 'refs/heads/staging'
-   runs-on: ubuntu-latest
-   environment:
+  needs: build
+  if: github.ref == 'refs/heads/staging' && github.event_name == 'push'
+  runs-on: ubuntu-latest
+  environment:
      name: staging
      url: ${{ steps.deploy-to-firebase.outputs.url }}
-   steps:
+  steps:
      - uses: actions/checkout@v4
      
      - name: Download Build Artifact
@@ -82,7 +83,7 @@ jobs:
          
  deploy_production:
    needs: build
-   if: github.ref == 'refs/heads/main'
+   if: github.ref == 'refs/heads/main' && github.event_name == 'push'
    runs-on: ubuntu-latest
    environment:
      name: production
