@@ -11,7 +11,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { SavingsPlan } from '@/types/chart';
 import { usePlans } from '@/contexts/PlansContext';
 
-export default function ClientSavingsPlanPage({ planId }: { planId?: string }) {
+export default function SavingsPlanner({ planId }: { planId?: string }) {
     const { plans } = usePlans();
     const [plan, setPlan] = useState<SavingsPlan | null>(null);
     const { loading, error, updatePlan, createPlan } = useSavingsPlan();

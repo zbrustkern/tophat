@@ -1,42 +1,30 @@
-import type { Metadata } from "next";
-import { Inter as FontSans } from "next/font/google";
-import "./globals.css";
+import { Inter } from "next/font/google"
 import { cn } from "@/lib/utils"
-import { AuthProvider } from '@/contexts/AuthContext';
-import { PlansProvider } from '@/contexts/PlansContext';
+import { SideNav } from "@/components/sidenav"
+import { Providers } from "@/components/providers"
 
-
-
-const fontSans = FontSans({
-  subsets: ["latin"],
-  variable: "--font-sans",
-})
-
-export const metadata: Metadata = {
-  title: "Tophat Financial",
-  description: "A classy place for money matters",
-};
+const inter = Inter({ subsets: ["latin"] })
 
 export default function RootLayout({
   children,
-}: Readonly<{
-  children: React.ReactNode;
-}>) {
+}: {
+  children: React.ReactNode
+}) {
   return (
-    <html lang="en">
-      <head />
-            <body
-            className={cn(
-              "min-h-screen bg-background font-sans antialiased",
-              fontSans.variable
-            )}
-            >
-              <AuthProvider>
-                <PlansProvider>
-                  {children}
-                </PlansProvider>
-              </AuthProvider>
-            </body>
+    <html lang="en" suppressHydrationWarning>
+      <body className={cn(
+        "min-h-screen bg-background font-sans antialiased",
+        inter.className
+      )}>
+        <Providers>
+          <div className="flex h-screen">
+            <SideNav />
+            <main className="flex-1 overflow-y-auto p-4">
+              {children}
+            </main>
+          </div>
+        </Providers>
+      </body>
     </html>
-  );
+  )
 }
