@@ -38,7 +38,12 @@ jobs:
        uses: actions/upload-artifact@v4
        with:
          name: build
-         path: .next
+         path: |
+           .next/
+           package.json
+           package-lock.json
+           next.config.js
+           public/
          if-no-files-found: error
          
  deploy_staging:
@@ -56,12 +61,12 @@ jobs:
        with:
          name: build
          path: .next
-         
+     
      - name: Deploy to Firebase Staging
        id: deploy-to-firebase
        uses: FirebaseExtended/action-hosting-deploy@v0
        with:
          repoToken: '${{ secrets.GITHUB_TOKEN }}'
-         firebaseServiceAccount: '${{ secrets.FIREBASE_SERVICE_ACCOUNT }}'
-         projectId: ${{ secrets.FIREBASE_PROJECT_ID }}
+         firebaseServiceAccount: '${{ fromJSON(secrets.FIREBASE_SERVICE_ACCOUNT) }}'
+         projectId: '${{ fromJSON(secrets.FIREBASE_SERVICE_ACCOUNT).project_id }}'
          channelId: live
