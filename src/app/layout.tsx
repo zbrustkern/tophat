@@ -1,7 +1,7 @@
 import { Inter } from "next/font/google"
 import { cn } from "@/lib/utils"
-import { SideNav } from "@/components/SideNav"
 import { Providers } from "@/components/providers"
+import SideNav from "@/components/SideNav"
 
 const inter = Inter({ subsets: ["latin"] })
 
