@@ -1,7 +1,10 @@
-// File: /app/dashboard/savings-planner/page.tsx
+import dynamic from 'next/dynamic'
 
-import ClientSavingsPlanPage from '@/components/ClientSavingsPlanPage';
+const SavingsPlanner = dynamic(
+  () => import('@/components/SavingsPlanner'),
+  { ssr: false } // Disable server-side rendering
+)
 
-export default function SavingsPlanPage() {
-  return <ClientSavingsPlanPage />;
+export default function SavingsPlannerPage() {
+  return <SavingsPlanner />
 }

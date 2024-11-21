@@ -11,7 +11,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { IncomePlan } from '@/types/chart';
 import { usePlans } from '@/contexts/PlansContext';
 
-export default function ClientIncomePlanPage({ planId }: { planId?: string }) {
+export default function IncomePlanner({ planId }: { planId?: string }) {
     const { plans } = usePlans();
     const [plan, setPlan] = useState<IncomePlan | null>(null);
     const { loading, error, updatePlan, createPlan } = useIncomePlan();

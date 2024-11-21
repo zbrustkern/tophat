@@ -1,5 +1,10 @@
-import ClientIncomePlanPage from '@/components/ClientIncomePlanPage';
+import dynamic from 'next/dynamic'
 
-export default function IncomePlanPage() {
-  return <ClientIncomePlanPage />;
+const IncomePlanner = dynamic(
+  () => import('@/components/IncomePlanner'),
+  { ssr: false } // Disable server-side rendering
+)
+
+export default function IncomePlannerPage() {
+  return <IncomePlanner />
 }
