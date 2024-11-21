@@ -38,7 +38,12 @@ jobs:
        uses: actions/upload-artifact@v4
        with:
          name: build
-         path: .next
+         path: |
+           .next/
+           package.json
+           package-lock.json
+           next.config.js
+           public/
          if-no-files-found: error
          
  deploy_staging:
