@@ -2,7 +2,6 @@
 
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import Image from "next/image"
 
 export function SideNav() {
   const pathname = usePathname()
@@ -29,7 +28,7 @@ export function SideNav() {
     <div className="sticky top-0 h-screen w-64 border-r bg-background py-4 flex flex-col">
       {/* Logo Section */}
       <div className="flex flex-col items-center py-6 border-b">
-        <Image
+        <img
           src="/tophat_logo.png"
           width={160}
           height={160}
