@@ -24,6 +24,11 @@ jobs:
       - name: Install Dependencies
         run: npm ci
         
+      - name: Clear Next.js Cache
+        run: |
+          rm -rf .next
+          rm -rf node_modules/.cache
+        
       - name: Build
         env:
           NEXT_PUBLIC_FIREBASE_API_KEY: ${{ secrets.NEXT_PUBLIC_FIREBASE_API_KEY }}
@@ -35,6 +40,12 @@ jobs:
           NEXT_PUBLIC_FIREBASE_ENVIRONMENT: 'staging'
         run: npm run build
 
+      - name: List src directory structure
+        if: failure()
+        run: |
+          echo "Project Structure:"
+          ls -R src/
+        
       - name: Deploy to Firebase
         uses: FirebaseExtended/action-hosting-deploy@v0
         with:
