@@ -43,7 +43,7 @@ jobs:
          
  deploy_staging:
    needs: build
-   if: github.ref == 'refs/heads/staging'
+   if: github.ref == 'refs/heads/staging-workflow'
    runs-on: ubuntu-latest
    environment:
      name: staging
