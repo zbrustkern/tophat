@@ -1,7 +1,6 @@
 "use client"
 
 import { getFunctions, httpsCallable } from 'firebase/functions';
-import { CardWrapper } from '@/components/CardWrapper';
 import { ChartData } from '@/types/chart';
 import { useAuth } from '@/contexts/AuthContext';
 import { useState, useEffect, useCallback } from "react"
@@ -126,19 +125,15 @@ export default function Home() {
 
   return (
     <main className="flex flex-col">
-    <div className="m-1">
-      <CardWrapper
-        title="Income Planner"
-        description="How are you preparing currently?"
-        footer={
-          <div className="flex w-full justify-start">
-            <Button onClick={calculateChartData}>Show me my $$</Button>
-          </div>
-        }
-      >
-        <div className="flex flex-col gap-4">
-          <p>Enter your details here...</p>
-          <div className="flex w-full flex-wrap md:flex-nowrap md:mb-0 gap-4">
+      <div className="m-1">
+        <Card>
+          <CardHeader className="flex gap-3">
+            <CardTitle>Income Planner</CardTitle>
+            <CardDescription>How are you preparing currently?</CardDescription>
+          </CardHeader>
+          <CardContent className="flex flex-col gap-4">
+            <p>Enter your details here...</p>
+            <div className="flex w-full flex-wrap md:flex-nowrap md:mb-0 gap-4">
             <div className="grid w-full max-w-sm items-center gap-1.5">
               <Label htmlFor="income">Income in $/year</Label>
               <Input
@@ -202,8 +197,15 @@ export default function Home() {
                 />
             </div>
             </div>
+          </CardContent>
+          <CardFooter>
+            <div className="flex w-full justify-start">
+              <div>
+              <Button onClick={calculateChartData}>Show me my $$</Button>
+              </div>
             </div>
-          </CardWrapper>
+          </CardFooter>
+        </Card>
       </div>
       <div className="m-1">
       <Card>
