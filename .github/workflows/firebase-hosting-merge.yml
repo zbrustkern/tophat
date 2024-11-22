@@ -3,8 +3,8 @@ name: Firebase Deploy
 on:
   push:
     branches:
-      - staging-workflow
       - main
+      - staging-workflow
   pull_request:
     branches:
       - staging-workflow
@@ -14,6 +14,8 @@ jobs:
   build_and_deploy:
     runs-on: ubuntu-latest
     environment: ${{ github.ref == 'refs/heads/main' && 'production' || 'staging' }}
+    env:
+      PROJECT_ID: ${{ github.ref == 'refs/heads/main' && 'tophat-financial' || 'planner-cac2a' }}
     steps:
       - uses: actions/checkout@v4
       
@@ -42,7 +44,7 @@ jobs:
         with:
           repoToken: '${{ secrets.GITHUB_TOKEN }}'
           firebaseServiceAccount: '${{ secrets.FIREBASE_SERVICE_ACCOUNT }}'
-          projectId: '${{ secrets.FIREBASE_PROJECT_ID }}'
+          projectId: ${{ env.PROJECT_ID }}
           channelId: live
         env:
           FIREBASE_CLI_EXPERIMENTS: webframeworks
