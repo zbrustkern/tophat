@@ -198,11 +198,9 @@ export default function Home() {
             </div>
             </div>
           </CardContent>
-          <CardFooter className="bg-white border-t">
-            <div className="flex w-full">
-              <div>
+          <CardFooter className="bg-white border-t py-4">
+            <div className="flex w-full items-center">
               <Button onClick={calculateChartData}>Show me my $$</Button>
-              </div>
             </div>
           </CardFooter>
         </Card>
@@ -216,12 +214,8 @@ export default function Home() {
           <CardContent className="bg-gray-50/50">
             <IncomeChart chartData={chartData}/>
           </CardContent>
-          <CardFooter className="bg-white border-t">
-          <div className="flex w-full">
-              <div>
-              <Button onClick={handleSave}>Save my plan (coming soon)</Button>
-              </div>
-            </div>
+          <CardFooter className="bg-white border-t py-4">
+            <Button onClick={handleSave}>Save my plan (coming soon)</Button>
           </CardFooter>
         </Card>
       </div>
