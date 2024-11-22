@@ -199,7 +199,7 @@ export default function Home() {
             </div>
           </CardContent>
           <CardFooter className="bg-white border-t">
-            <div className="flex w-full justify-start">
+            <div className="flex w-full">
               <div>
               <Button onClick={calculateChartData}>Show me my $$</Button>
               </div>
@@ -217,7 +217,7 @@ export default function Home() {
             <IncomeChart chartData={chartData}/>
           </CardContent>
           <CardFooter className="bg-white border-t">
-          <div className="flex w-full justify-start">
+          <div className="flex w-full">
               <div>
               <Button onClick={handleSave}>Save my plan (coming soon)</Button>
               </div>

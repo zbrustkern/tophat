@@ -6,6 +6,9 @@ import { getFirestore, Firestore } from "firebase/firestore";
 import { getStorage, FirebaseStorage } from "firebase/storage";
 import { getFirebaseConfig } from "./config";
 
+console.log('Config:', getFirebaseConfig()); // Add this temporarily to debug
+
+
 let firebaseApp: FirebaseApp | undefined;
 let auth: Auth | undefined;
 let db: Firestore | undefined;
