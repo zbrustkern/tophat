@@ -126,12 +126,12 @@ export default function Home() {
   return (
     <main className="flex flex-col">
       <div className="m-1">
-        <Card>
-          <CardHeader className="flex gap-3">
-            <CardTitle>Income Planner</CardTitle>
-            <CardDescription>How are you preparing currently?</CardDescription>
+      <Card className="bg-white shadow-lg hover:shadow-xl transition-all duration-200 border-none">
+          <CardHeader className="space-y-1 pb-4">
+            <CardTitle className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-blue-400 bg-clip-text text-transparent">Income Planner</CardTitle>
+            <CardDescription className="text-gray-500 font-medium">How are you preparing currently?</CardDescription>
           </CardHeader>
-          <CardContent className="flex flex-col gap-4">
+          <CardContent className="bg-gray-50/50">
             <p>Enter your details here...</p>
             <div className="flex w-full flex-wrap md:flex-nowrap md:mb-0 gap-4">
             <div className="grid w-full max-w-sm items-center gap-1.5">
@@ -198,7 +198,7 @@ export default function Home() {
             </div>
             </div>
           </CardContent>
-          <CardFooter>
+          <CardFooter className="bg-white border-t">
             <div className="flex w-full justify-start">
               <div>
               <Button onClick={calculateChartData}>Show me my $$</Button>
@@ -208,15 +208,15 @@ export default function Home() {
         </Card>
       </div>
       <div className="m-1">
-      <Card>
+      <Card className="bg-white shadow-lg hover:shadow-xl transition-all duration-200 border-none">
           <CardHeader className="flex gap-3">
-            <CardTitle>Income Expectations</CardTitle>
-            <CardDescription>How much passive income are you set to earn?</CardDescription>
+            <CardTitle className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-blue-400 bg-clip-text text-transparent">Income Expectations</CardTitle>
+            <CardDescription className="text-gray-500 font-medium">How much passive income are you set to earn?</CardDescription>
           </CardHeader>
-          <CardContent className="flex flex-col gap-3">
+          <CardContent className="bg-gray-50/50">
             <IncomeChart chartData={chartData}/>
           </CardContent>
-          <CardFooter>
+          <CardFooter className="bg-white border-t">
           <div className="flex w-full justify-start">
               <div>
               <Button onClick={handleSave}>Save my plan (coming soon)</Button>
