@@ -1,5 +1,3 @@
-'use client';
-
 import { initializeApp, getApps, FirebaseApp } from "firebase/app";
 import { getAuth, Auth } from "firebase/auth";
 import { getFirestore, Firestore } from "firebase/firestore";
@@ -13,11 +11,22 @@ let storage: FirebaseStorage | undefined;
 
 if (typeof window !== "undefined") {
   try {
-    if (!getApps().length) {
-      firebaseApp = initializeApp(getFirebaseConfig());
-      auth = getAuth(firebaseApp);
-      db = getFirestore(firebaseApp);
-      storage = getStorage(firebaseApp);
+    const config = getFirebaseConfig();
+    // Check if all required fields have values
+    if (config.apiKey && config.authDomain && config.projectId) {
+      if (!getApps().length) {
+        firebaseApp = initializeApp(config);
+        auth = getAuth(firebaseApp);
+        db = getFirestore(firebaseApp);
+        storage = getStorage(firebaseApp);
+      } else {
+        firebaseApp = getApps()[0];
+        auth = getAuth(firebaseApp);
+        db = getFirestore(firebaseApp);
+        storage = getStorage(firebaseApp);
+      }
+    } else {
+      console.warn('Incomplete Firebase configuration');
     }
   } catch (error) {
     console.error('Error initializing Firebase:', error);
