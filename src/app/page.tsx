@@ -16,12 +16,18 @@ import {
   CardTitle,
 } from "@/components/ui/card"
 
+// More specific type for the timestamp
+type FirebaseTimestamp = {
+  seconds: number;
+  nanoseconds: number;
+};
+
 interface APIplan {
   id: string;
   planName: string;
   planType: PlanType;
   formData: any;
-  lastUpdated: string | null; // Backend now sends ISO string or null
+  lastUpdated: string | FirebaseTimestamp | null;
 }
 
 interface APIResponse {
@@ -35,6 +41,33 @@ export default function Home() {
   const [plans, setPlans] = useState<Plan[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+
+  const parseTimestamp = (timestamp: string | FirebaseTimestamp | null): Date => {
+    try {
+      if (!timestamp) {
+        console.log('No timestamp provided, using current date');
+        return new Date();
+      }
+
+      // If it's a string (ISO format)
+      if (typeof timestamp === 'string') {
+        console.log('Parsing string timestamp:', timestamp);
+        return new Date(timestamp);
+      }
+
+      // If it's a Firebase timestamp object
+      if ('seconds' in timestamp) {
+        console.log('Converting Firebase timestamp:', timestamp);
+        return new Date(timestamp.seconds * 1000);
+      }
+
+      console.log('Unknown timestamp format:', timestamp);
+      return new Date();
+    } catch (err) {
+      console.error('Error parsing timestamp:', err);
+      return new Date();
+    }
+  };
 
   useEffect(() => {
     const loadPlans = async () => {
@@ -51,23 +84,14 @@ export default function Home() {
         const data = result.data as APIResponse;
         
         if (data.success) {
-          const transformedPlans = data.plans.map(apiPlan => {
-            let lastUpdated: Date;
-            
-            // Handle the lastUpdated field with better error checking
-            try {
-              if (!apiPlan.lastUpdated) {
-                // If no lastUpdated provided, use current date
-                lastUpdated = new Date();
-              } else {
-                // Since we're now sending ISO string from backend
-                lastUpdated = new Date(apiPlan.lastUpdated);
-              }
-            } catch (err) {
-              console.error('Error parsing date:', err);
-              lastUpdated = new Date(); // Fallback to current date if parsing fails
-            }
+          console.log('Raw plans data:', data.plans);
           
+          const transformedPlans = data.plans.map(apiPlan => {
+            console.log('Processing plan:', apiPlan.id, 'lastUpdated:', apiPlan.lastUpdated);
+            
+            const lastUpdated = parseTimestamp(apiPlan.lastUpdated);
+            console.log('Parsed lastUpdated:', lastUpdated);
+
             return {
               id: apiPlan.id,
               planName: apiPlan.planName,
@@ -76,6 +100,8 @@ export default function Home() {
               details: apiPlan.formData
             } as Plan;
           });
+
+          console.log('Transformed plans:', transformedPlans);
           setPlans(transformedPlans);
         }
       } catch (err) {
@@ -88,8 +114,6 @@ export default function Home() {
 
     loadPlans();
   }, [user]);
-
-  // Rest of the component stays the same...
 
   return (
     <main className="container mx-auto p-4">
@@ -116,7 +140,13 @@ export default function Home() {
         </Card>
       )}
 
-      {plans.length === 0 ? (
+      {loading ? (
+        <Card>
+          <CardHeader>
+            <CardTitle>Loading...</CardTitle>
+          </CardHeader>
+        </Card>
+      ) : plans.length === 0 ? (
         <Card>
           <CardHeader>
             <CardTitle>No Plans Yet</CardTitle>
