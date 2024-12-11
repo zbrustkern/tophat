@@ -49,13 +49,11 @@ export default function Home() {
         return new Date();
       }
 
-      // If it's a string (ISO format)
       if (typeof timestamp === 'string') {
         console.log('Parsing string timestamp:', timestamp);
         return new Date(timestamp);
       }
 
-      // If it's a Firebase timestamp object
       if ('seconds' in timestamp) {
         console.log('Converting Firebase timestamp:', timestamp);
         return new Date(timestamp.seconds * 1000);
@@ -84,24 +82,14 @@ export default function Home() {
         const data = result.data as APIResponse;
         
         if (data.success) {
-          console.log('Raw plans data:', data.plans);
-          
-          const transformedPlans = data.plans.map(apiPlan => {
-            console.log('Processing plan:', apiPlan.id, 'lastUpdated:', apiPlan.lastUpdated);
-            
-            const lastUpdated = parseTimestamp(apiPlan.lastUpdated);
-            console.log('Parsed lastUpdated:', lastUpdated);
+          const transformedPlans = data.plans.map(apiPlan => ({
+            id: apiPlan.id,
+            planName: apiPlan.planName,
+            planType: apiPlan.planType,
+            lastUpdated: parseTimestamp(apiPlan.lastUpdated),
+            details: apiPlan.formData
+          } as Plan));
 
-            return {
-              id: apiPlan.id,
-              planName: apiPlan.planName,
-              planType: apiPlan.planType,
-              lastUpdated,
-              details: apiPlan.formData
-            } as Plan;
-          });
-
-          console.log('Transformed plans:', transformedPlans);
           setPlans(transformedPlans);
         }
       } catch (err) {
@@ -116,23 +104,31 @@ export default function Home() {
   }, [user]);
 
   return (
-    <main className="container mx-auto p-4">
-      <div className="flex justify-between items-center mb-6">
+    <main className="container mx-auto px-4 py-6 max-w-7xl">
+      {/* Header Section - Made responsive */}
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
         <h1 className="text-2xl font-bold">Your Financial Plans</h1>
-        <div className="flex gap-2">
-          <Button onClick={() => router.push('/income')}>
+        <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
+          <Button 
+            onClick={() => router.push('/income')}
+            className="w-full sm:w-auto justify-center"
+          >
             <PlusCircle className="mr-2 h-4 w-4" />
             New Income Plan
           </Button>
-          <Button onClick={() => router.push('/savings')}>
+          <Button 
+            onClick={() => router.push('/savings')}
+            className="w-full sm:w-auto justify-center"
+          >
             <PlusCircle className="mr-2 h-4 w-4" />
             New Savings Plan
           </Button>
         </div>
       </div>
 
+      {/* Error Card - Made responsive */}
       {error && (
-        <Card className="mb-6 border-red-200 bg-red-50">
+        <Card className="mb-6 border-red-200 bg-red-50 w-full">
           <CardHeader>
             <CardTitle className="text-red-700">Error</CardTitle>
             <CardDescription className="text-red-600">{error}</CardDescription>
@@ -140,14 +136,15 @@ export default function Home() {
         </Card>
       )}
 
+      {/* Loading and Empty States - Made responsive */}
       {loading ? (
-        <Card>
+        <Card className="w-full">
           <CardHeader>
             <CardTitle>Loading...</CardTitle>
           </CardHeader>
         </Card>
       ) : plans.length === 0 ? (
-        <Card>
+        <Card className="w-full">
           <CardHeader>
             <CardTitle>No Plans Yet</CardTitle>
             <CardDescription>
@@ -156,9 +153,12 @@ export default function Home() {
           </CardHeader>
         </Card>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        // Grid Layout - Improved responsive design
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 auto-rows-fr">
           {plans.map((plan) => (
-            <PlanPreview key={plan.id} plan={plan} />
+            <div key={plan.id} className="h-full">
+              <PlanPreview plan={plan} />
+            </div>
           ))}
         </div>
       )}
