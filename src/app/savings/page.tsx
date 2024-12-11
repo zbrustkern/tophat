@@ -3,7 +3,7 @@
 import { getFunctions, httpsCallable } from 'firebase/functions';
 import { useAuth } from '@/contexts/AuthContext';
 import { SavingsChartData } from '@/types/chart';
-import { useState, useEffect, useCallback } from "react"
+import { useState, useEffect, useCallback, Suspense } from "react"
 import { useRouter } from 'next/navigation';
 import { useSearchParams } from 'next/navigation';
 import { SavingsChart } from "@/components/SavingsChart"
@@ -173,6 +173,7 @@ export default function SavingsPlanner() {
   };
   
     return (
+      <Suspense fallback={<div>Loading...</div>}>
       <main className="flex flex-col">
         <div className="m-1">
           <Card>
@@ -276,5 +277,6 @@ export default function SavingsPlanner() {
           </Card>
         </div>
       </main>
+      </Suspense>
     )
 };

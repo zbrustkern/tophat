@@ -3,7 +3,7 @@
 import { getFunctions, httpsCallable } from 'firebase/functions';
 import { ChartData } from '@/types/chart';
 import { useAuth } from '@/contexts/AuthContext';
-import { useState, useEffect, useCallback } from "react"
+import { useState, useEffect, useCallback, Suspense } from "react"
 import { useRouter } from 'next/navigation';
 import { useSearchParams } from 'next/navigation';
 import { IncomeChart } from "@/components/IncomeChart"
@@ -179,6 +179,7 @@ export default function IncomePlanner() {
   };
 
   return (
+    <Suspense fallback={<div>Loading...</div>}>
     <main className="flex flex-col">
       <div className="m-1">
         <Card className="bg-white shadow-lg hover:shadow-xl transition-all duration-200 border-none">
@@ -298,5 +299,6 @@ export default function IncomePlanner() {
         </Card>
       </div>
     </main>
+    </Suspense>
   );
 }
