@@ -1,7 +1,7 @@
 "use client"
  
 import { Bar, BarChart, CartesianGrid, XAxis, YAxis, Line, ComposedChart, ResponsiveContainer } from "recharts"
-import { ChartData } from '@/types/chart';
+import { IncomeChartData } from '@/types/chart';
 
 import {
     ChartConfig,
@@ -13,7 +13,7 @@ import {
  } from "@/components/ui/chart"
 
 interface IncomeChartProps {
-  chartData: ChartData;
+  chartData: IncomeChartData[];
   isThumbnail?: boolean;
 }
 
