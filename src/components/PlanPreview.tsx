@@ -26,9 +26,9 @@ const PlanPreview = ({ plan }: PlanPreviewProps) => {
     }).format(amount);
   };
 
-  const formatDate = (timestamp: any) => {
-    if (!timestamp) return 'Never';
-    const date = timestamp.toDate();
+  const formatDate = (date: Date | null) => {
+    if (!date) return 'Never';
+    
     return new Intl.DateTimeFormat('en-US', {
       month: 'short',
       day: 'numeric',

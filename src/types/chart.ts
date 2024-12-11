@@ -1,13 +1,30 @@
+// types/chart.ts
+
+// Plan Types
 export type PlanType = 'income' | 'savings' | 'house' | 'car' | 'college' | 'debt';
 
-export type BasePlan = {
+export interface BasePlan {
   id: string;
   planName: string;
   planType: PlanType;
-  lastUpdated: Date;
-};
+  lastUpdated: Date;  // Explicitly typed as Date
+}
 
-// Income Types
+// Income Plan Types
+export interface IncomeDetails {
+  income: number;
+  raiseRate: number;
+  saveRate: number;
+  balance: number;
+  taxRate: number;
+  returnRate: number;
+}
+
+export interface IncomePlan extends BasePlan {
+  planType: 'income';
+  details: IncomeDetails;
+}
+
 export type IncomeChartData = {
   year: number;
   income: number;
@@ -22,21 +39,21 @@ export type IncomeChartData = {
   conservativeIncome: number;
 };
 
-export type IncomePlanDetails = {
-  income: number;
-  raiseRate: number;
-  saveRate: number;
-  balance: number;
+// Savings Plan Types
+export interface SavingsDetails {
+  desiredIncome: number;
+  currentAge: number;
+  retirementAge: number;
+  currentBalance: number;
   taxRate: number;
   returnRate: number;
-};
-
-export interface IncomePlan extends BasePlan {
-  planType: 'income';
-  details: IncomePlanDetails;
 }
 
-// Savings Types
+export interface SavingsPlan extends BasePlan {
+  planType: 'savings';
+  details: SavingsDetails;
+}
+
 export type SavingsChartData = {
   year: number;
   balance: number;
@@ -45,19 +62,9 @@ export type SavingsChartData = {
   projectedIncome: number;
 };
 
-export type SavingsPlanDetails = {
-  desiredIncome: number;
-  currentAge: number;
-  retirementAge: number;
-  currentBalance: number;
-  taxRate: number;
-  returnRate: number;
-};
-
-export interface SavingsPlan extends BasePlan {
-  planType: 'savings';
-  details: SavingsPlanDetails;
-}
-
 // Union type for all plans
 export type Plan = IncomePlan | SavingsPlan;
+
+// Optional: You might want to add these helper types for future use
+export type PlanDetails = IncomeDetails | SavingsDetails;
+export type ChartData = IncomeChartData | SavingsChartData;

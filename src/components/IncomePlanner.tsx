@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
-import { IncomePlan } from '@/types/plans';
+import { IncomePlan } from '@/types/chart';
 import { IncomeChartData } from '@/types/chart';
 import { useIncomeCalculations } from '@/hooks/usePlanCalculations';
 import { usePlanManagement } from '@/hooks/usePlanManagement';

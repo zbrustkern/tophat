@@ -1,6 +1,6 @@
 import { useState, useCallback } from 'react';
 import { getFunctions, httpsCallable } from 'firebase/functions';
-import { Plan } from '@/types/plans';
+import { Plan } from '@/types/chart';
 
 export function usePlanManagement<T extends Plan>() {
   const [loading, setLoading] = useState(false);

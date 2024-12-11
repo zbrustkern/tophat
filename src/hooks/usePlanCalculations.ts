@@ -1,5 +1,5 @@
 import { useCallback } from 'react';
-import { IncomePlan, SavingsPlan } from '@/types/plans';
+import { IncomePlan, SavingsPlan } from '@/types/chart';
 
 export function useIncomeCalculations() {
   const calculateIncomeData = useCallback((plan: IncomePlan) => {

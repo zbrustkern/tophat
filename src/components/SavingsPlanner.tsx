@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
-import { SavingsPlan } from '@/types/plans';
+import { SavingsPlan } from '@/types/chart';
 import { SavingsChartData } from '@/types/chart';
 import { useSavingsCalculations } from '@/hooks/usePlanCalculations';
 import { usePlanManagement } from '@/hooks/usePlanManagement';
