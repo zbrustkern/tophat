@@ -1,219 +1,190 @@
-'use client';
-
-import { useEffect, useState } from "react"
-import { SavingsChart } from "@/components/SavingsChart"
-import { useSavingsPlan } from '@/hooks/useSavingsPlan';
-import { useSavingsChart } from '@/hooks/useSavingsChart';
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
+import { useState, useEffect } from "react";
+import { useRouter } from 'next/navigation';
+import { useAuth } from '@/contexts/AuthContext';
 import { SavingsPlan } from '@/types/chart';
-import { usePlans } from '@/contexts/PlansContext';
+import { SavingsChartData } from '@/types/chart';
+import { useSavingsCalculations } from '@/hooks/usePlanCalculations';
+import { usePlanManagement } from '@/hooks/usePlanManagement';
+import { SavingsChart } from "@/components/SavingsChart";
+import { Button } from "@/components/ui/button";
+import { FormField, PlanNameField } from "@/components/PlanFormElements";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 
-export default function SavingsPlanner({ planId }: { planId?: string }) {
-    const { plans } = usePlans();
-    const [plan, setPlan] = useState<SavingsPlan | null>(null);
-    const { loading, error, updatePlan, createPlan } = useSavingsPlan();
-    const { chartData, requiredSavings, calculateChartData } = useSavingsChart();
+const defaultPlan: SavingsPlan = {
+  id: 'new',
+  planName: 'New Savings Plan',
+  planType: 'savings',
+  lastUpdated: new Date(),
+  details: {
+    desiredIncome: 100000,
+    currentAge: 30,
+    retirementAge: 65,
+    currentBalance: 100000,
+    taxRate: 0.40,
+    returnRate: 0.08,
+  }
+};
 
-    useEffect(() => {
-        const savingsPlans = plans.filter(p => p.planType === 'savings') as SavingsPlan[];
-        if (planId && planId !== 'new') {
-          const selectedPlan = savingsPlans.find(p => p.id === planId);
-          if (selectedPlan) {
-              setPlan(selectedPlan);
-          } else {
-              createNewPlan();
-          }
-      } else if (savingsPlans.length > 0) {
-          setPlan(savingsPlans[0]);
-      } else {
-          createNewPlan();
-      }
-  }, [plans, planId]);
+export default function SavingsPlanner({ planId }: { planId: string | null }) {
+  const { user } = useAuth();
+  const router = useRouter();
+  const [plan, setPlan] = useState<SavingsPlan>(defaultPlan);
+  const [chartData, setChartData] = useState<SavingsChartData[]>([]);
+  const [requiredSavings, setRequiredSavings] = useState(0);
+  const { calculateSavingsData } = useSavingsCalculations();
+  const { loading, error, savePlan } = usePlanManagement<SavingsPlan>();
+  const [isDirty, setIsDirty] = useState(false);
 
-    useEffect(() => {
-        if (plan) {
-            calculateChartData(plan);
-        }
-    }, [plan, calculateChartData]);
+  const handleChange = (evt: React.ChangeEvent<HTMLInputElement>) => {
+    setIsDirty(true);
+    const { name, value } = evt.target;
+    let newValue: string | number = value;
 
-    const createNewPlan = () => {
-        const newPlan: SavingsPlan = {
-            id: 'new',
-            planName: 'New Savings Plan',
-            planType: 'savings',
-            lastUpdated: new Date(),
-            details: {
-                desiredIncome: 0,
-                currentAge: 30,
-                retirementAge: 65,
-                currentBalance: 0,
-                taxRate: 0,
-                returnRate: 0
-            }
-        };
-        setPlan(newPlan);
-    };
+    // Handle percentage fields
+    if (["taxRate", "returnRate"].includes(name)) {
+      newValue = parseFloat(value) / 100; // Convert from percentage to decimal
+    } else if (name !== "planName") {
+      newValue = Number(value);
+    }
 
-    if (loading) return <p>Loading...</p>;
-    if (error) return <p>Error: {error}</p>;
-    if (!plan) return <p>No plan available</p>;
-
-    const handleChange = (evt: React.ChangeEvent<HTMLInputElement>) => {
-        const { name, value } = evt.target;
-        let newValue: string | number = value;
-
-        if (name === "taxRate" || name === "returnRate") {
-            newValue = parseFloat(value);
-        } else if (name !== "planName") {
-            newValue = Number(value);
-        }
-
-        setPlan(prev => {
-            if (!prev) return null;
-            if (name === "planName") {
-                return { ...prev, planName: value as string };
-            } else {
-                return {
-                    ...prev,
-                    details: { ...prev.details, [name]: newValue as number }
-                };
-            }
-        });
-    };
-
-    const handleSave = async () => {
-      if (!plan) return;
-      try {
-          const savedPlan = plan.id === 'new' ? await createPlan(plan) : await updatePlan(plan);
-          setPlan(savedPlan);
-          calculateChartData(savedPlan);
-          // Optionally, show a success message
-      } catch (error) {
-          console.error("Error saving plan:", error);
-          // Optionally, show an error message
-      }
+    setPlan(prev => ({
+      ...prev,
+      ...(name === "planName" 
+        ? { planName: value }
+        : { details: { ...prev.details, [name]: newValue } }
+      )
+    }));
   };
 
-  const savingsPlans = plans.filter(p => p.planType === 'savings') as SavingsPlan[];
+  const updateChart = () => {
+    setIsDirty(false)
+    const { chartData: newChartData, requiredSavings: newRequiredSavings } = calculateSavingsData(plan);
+    setChartData(newChartData);
+    setRequiredSavings(newRequiredSavings);
+  };
+
+  const handleSave = async () => {
+    if (!user) {
+      alert("Please sign in to save your plan");
+      return;
+    }
+
+    try {
+      const savedPlan = await savePlan(plan);
+      setPlan(savedPlan);
+      if (plan.id === 'new') {
+        router.push(`/savings?plan=${savedPlan.id}`);
+      }
+    } catch (error) {
+      console.error("Error saving plan:", error);
+    }
+  };
+
+  if (loading) return <div>Loading...</div>;
+  if (error) return <div>Error: {error}</div>;
 
   return (
-    <main className="flex flex-col p-4">
-    <select onChange={(e) => {
-        const selectedPlan = savingsPlans.find(p => p.id === e.target.value);
-        if (selectedPlan) setPlan(selectedPlan);
-    }}>
-        {savingsPlans.map(p => (
-            <option key={p.id} value={p.id}>{p.planName}</option>
-        ))}
-    </select>
-    <Button onClick={createNewPlan}>Create New Plan</Button>
-    {plan && (
-        <>
-          <Card>
-              <CardHeader>
-                  <CardTitle>{plan.id === 'new' ? 'Create New Savings Plan' : 'Edit Savings Plan'}</CardTitle>
-                  <CardDescription>Update your savings plan details</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <form className="space-y-4">
-                    <div>
-                        <Label htmlFor="planName">Plan Name</Label>
-                        <Input
-                            id="planName"
-                            name="planName"
-                            value={plan.planName}
-                            onChange={handleChange}
-                            placeholder="Enter plan name"
-                        />
-                    </div>
-                    <div>
-                        <Label htmlFor="desiredIncome">Desired Annual Income in Retirement ($)</Label>
-                        <Input
-                            id="desiredIncome"
-                            name="desiredIncome"
-                            type="number"
-                            value={plan.details.desiredIncome}
-                            onChange={handleChange}
-                            placeholder="e.g., 80000"
-                        />
-                    </div>
-                    <div>
-                        <Label htmlFor="currentAge">Current Age</Label>
-                        <Input
-                            id="currentAge"
-                            name="currentAge"
-                            type="number"
-                            value={plan.details.currentAge}
-                            onChange={handleChange}
-                            placeholder="e.g., 30"
-                        />
-                    </div>
-                    <div>
-                        <Label htmlFor="retirementAge">Desired Retirement Age</Label>
-                        <Input
-                            id="retirementAge"
-                            name="retirementAge"
-                            type="number"
-                            value={plan.details.retirementAge}
-                            onChange={handleChange}
-                            placeholder="e.g., 65"
-                        />
-                    </div>
-                    <div>
-                        <Label htmlFor="currentBalance">Current Savings Balance ($)</Label>
-                        <Input
-                            id="currentBalance"
-                            name="currentBalance"
-                            type="number"
-                            value={plan.details.currentBalance}
-                            onChange={handleChange}
-                            placeholder="e.g., 50000"
-                        />
-                    </div>
-                    <div>
-                        <Label htmlFor="taxRate">Expected Tax Rate in Retirement (%)</Label>
-                        <Input
-                            id="taxRate"
-                            name="taxRate"
-                            type="number"
-                            value={plan.details.taxRate}
-                            onChange={handleChange}
-                            placeholder="e.g., 20"
-                            step="0.1"
-                        />
-                    </div>
-                    <div>
-                        <Label htmlFor="returnRate">Expected Investment Return Rate (%)</Label>
-                        <Input
-                            id="returnRate"
-                            name="returnRate"
-                            type="number"
-                            value={plan.details.returnRate}
-                            onChange={handleChange}
-                            placeholder="e.g., 7"
-                            step="0.1"
-                        />
-                    </div>
-                </form>
-                </CardContent>
-                <CardFooter>
-                    <Button onClick={handleSave}>{plan.id === 'new' ? 'Create Plan' : 'Update Plan'}</Button>
-                </CardFooter>
-              </Card>
-              <Card className="mt-4">
-                  <CardHeader>
-                      <CardTitle>Savings Projection</CardTitle>
-                      <CardDescription>Required Annual Savings: ${Math.round(requiredSavings).toLocaleString()}</CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                      <SavingsChart chartData={chartData} />
-                  </CardContent>
-            </Card>
-      </>
-      )}
+    <main className="flex flex-col">
+      <div className="m-1">
+        <Card className="bg-white shadow-lg hover:shadow-xl transition-all duration-200 border-none">
+          <CardHeader className="space-y-1 pb-4">
+            <CardTitle className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-blue-400 bg-clip-text text-transparent">
+              Savings Planner
+            </CardTitle>
+            <CardDescription className="text-gray-500 font-medium">
+              Plan your path to retirement
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="bg-gray-50/50">
+            <PlanNameField value={plan.planName} onChange={handleChange} />
+            <div className="grid md:grid-cols-3 gap-4">
+              <FormField
+                label="Desired Annual Income ($)"
+                name="desiredIncome"
+                value={plan.details.desiredIncome}
+                onChange={handleChange}
+                placeholder="100,000"
+              />
+              <FormField
+                label="Current Balance ($)"
+                name="currentBalance"
+                value={plan.details.currentBalance}
+                onChange={handleChange}
+                placeholder="25,000"
+              />
+              <FormField
+                label="Estimated Portfolio Return (%)"
+                name="returnRate"
+                value={plan.details.returnRate}
+                onChange={handleChange}
+                placeholder="8"
+                isPercentage
+              />
+              <FormField
+                label="Current Age"
+                name="currentAge"
+                value={plan.details.currentAge}
+                onChange={handleChange}
+                placeholder="30"
+              />
+              <FormField
+                label="Retirement Age"
+                name="retirementAge"
+                value={plan.details.retirementAge}
+                onChange={handleChange}
+                placeholder="65"
+              />
+              <FormField
+                label="Expected Tax Rate (%)"
+                name="taxRate"
+                value={plan.details.taxRate}
+                onChange={handleChange}
+                placeholder="40"
+                isPercentage
+              />
+            </div>
+          </CardContent>
+          <CardFooter className="bg-white border-t py-4">
+            <div className="flex w-full items-center justify-between">
+            <Button 
+                onClick={updateChart} 
+                variant={isDirty ? "default" : "secondary"}
+                >
+                {isDirty ? "Recalculate" : "Calculate"}
+            </Button>
+              <div className="text-lg font-semibold">
+                Required Annual Savings: ${Math.round(requiredSavings).toLocaleString()}
+              </div>
+              <Button onClick={handleSave} disabled={loading}>
+                {plan.id === 'new' ? 'Save Plan' : 'Update Plan'}
+              </Button>
+            </div>
+          </CardFooter>
+        </Card>
+      </div>
+
+      <div className="m-1">
+        <Card className="bg-white shadow-lg hover:shadow-xl transition-all duration-200 border-none">
+          <CardHeader className="flex gap-3">
+            <CardTitle className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-blue-400 bg-clip-text text-transparent">
+              Savings Expectations
+            </CardTitle>
+            <CardDescription className="text-gray-500 font-medium">
+              How much do you need to save to reach your income goals?
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="bg-gray-50/50">
+            <SavingsChart chartData={chartData} />
+          </CardContent>
+        </Card>
+      </div>
     </main>
   );
 }

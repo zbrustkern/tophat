@@ -3,10 +3,10 @@
 import React, { createContext, useState, useEffect, useContext, useCallback } from 'react';
 import { useAuth } from './AuthContext';
 import { getFunctions, httpsCallable } from 'firebase/functions';
-import { BasePlanData } from '@/types/chart';
+import { Plan, BasePlan } from '@/types/chart';
 
 interface PlansContextType {
-  plans: BasePlanData[];
+  plans: Plan[];
   loading: boolean;
   error: string | null;
   refreshPlans: () => Promise<void>;
@@ -16,7 +16,7 @@ const PlansContext = createContext<PlansContextType | undefined>(undefined);
 
 export const PlansProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { user } = useAuth();
-  const [plans, setPlans] = useState<BasePlanData[]>([]);
+  const [plans, setPlans] = useState<Plan[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -31,8 +31,17 @@ export const PlansProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 
     try {
       const result = await listPlans();
-      const plansData = (result.data as any).plans as BasePlanData[];
-      setPlans(plansData);
+      const response = result.data as { success: boolean; plans: any[] };
+      if (response.success) {
+        const transformedPlans = response.plans.map(apiPlan => ({
+          id: apiPlan.id,
+          planName: apiPlan.planName,
+          planType: apiPlan.planType,
+          lastUpdated: apiPlan.lastUpdated ? new Date(apiPlan.lastUpdated) : new Date(),
+          details: apiPlan.formData
+        })) as Plan[];
+        setPlans(transformedPlans);
+      }
     } catch (error) {
       console.error("Error fetching plans:", error);
       setError("Failed to load plans. Please try again.");
