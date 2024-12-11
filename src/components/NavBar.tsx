@@ -1,7 +1,6 @@
-'use client'
-
 import Link from "next/link"
 import { usePathname } from "next/navigation"
+import SignInButton from "./SignInButton"
 
 export function NavBar() {
   const pathname = usePathname()
@@ -62,6 +61,10 @@ export function NavBar() {
             )
           })}
         </nav>
+
+        <div className="p-4 border-t">
+          <SignInButton />
+        </div>
       </div>
 
       {/* Mobile Bottom Navigation */}
@@ -85,6 +88,11 @@ export function NavBar() {
             )
           })}
         </nav>
+
+        {/* Mobile Sign In Button */}
+        <div className="absolute top-0 right-0 transform -translate-y-full bg-background p-2 border-l border-b rounded-bl-md">
+          <SignInButton />
+        </div>
       </div>
     </>
   )
