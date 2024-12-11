@@ -4,6 +4,8 @@ import { getFunctions, httpsCallable } from 'firebase/functions';
 import { useAuth } from '@/contexts/AuthContext';
 import { SavingsChartData } from '@/types/chart';
 import { useState, useEffect, useCallback } from "react"
+import { useRouter } from 'next/navigation';
+import { useSearchParams } from 'next/navigation';
 import { SavingsChart } from "@/components/SavingsChart"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -17,30 +19,49 @@ import {
   CardTitle,
 } from "@/components/ui/card"
 
-export default function SavingsPlanner() {
-    const { user } = useAuth();
-    const [formData, setFormData] = useState({
-      desiredIncome: 100000,
-      currentAge: 30,
-      retirementAge: 65,
-      currentBalance: 100000,
-      taxRate: 0.40,
-      returnRate: 0.08,
-    });
-    const [chartData, setChartData] = useState<SavingsChartData>([]);
-    const [requiredSavings, setRequiredSavings] = useState(0);
-    const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle');
+interface FormData {
+  planName: string;
+  desiredIncome: number;
+  currentAge: number;
+  retirementAge: number;
+  currentBalance: number;
+  taxRate: number;
+  returnRate: number;
+}
 
-  const generateFinancialData = useCallback((
-    desiredIncome: number,
-    currentAge: number,
-    retirementAge: number,
-    currentBalance: number,
-    taxRate: number,
-    returnRate: number,
-  ): SavingsChartData => {
+const initialFormData: FormData = {
+  planName: 'Untitled Plan',
+  desiredIncome: 100000,
+  currentAge: 30,
+  retirementAge: 65,
+  currentBalance: 100000,
+  taxRate: 0.40,
+  returnRate: 0.08,
+};
+
+export default function SavingsPlanner() {
+  const { user } = useAuth();
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const planId = searchParams.get('plan');
+  
+  const [formData, setFormData] = useState<FormData>(initialFormData);
+  const [chartData, setChartData] = useState<SavingsChartData>([]);
+  const [requiredSavings, setRequiredSavings] = useState(0);
+  const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle');
+
+  const generateFinancialData = useCallback((data: FormData): SavingsChartData => {
+    const {
+      desiredIncome,
+      currentAge,
+      retirementAge,
+      currentBalance,
+      taxRate,
+      returnRate
+    } = data;
+
     const years = retirementAge - currentAge;
-    const data: SavingsChartData = [];
+    const chartData: SavingsChartData = [];
     let currentSavings = 0;
     let balance = currentBalance;
 
@@ -55,7 +76,7 @@ export default function SavingsPlanner() {
       balance = balance * (1 + returnRate) + yearlySavings;
       currentSavings += yearlySavings;
 
-      data.push({
+      chartData.push({
         year: year,
         balance: Math.round(balance),
         savingsRate: Math.round(yearlySavings),
@@ -64,54 +85,92 @@ export default function SavingsPlanner() {
       });
     }
 
-    return data;
+    return chartData;
   }, []);
 
-  const calculateChartData = useCallback(() => {
-    const newChartData = generateFinancialData(
-      Number(formData.desiredIncome),
-      Number(formData.currentAge),
-      Number(formData.retirementAge),
-      Number(formData.currentBalance),
-      formData.taxRate,
-      formData.returnRate
-    );
+  const calculateChartData = useCallback((data: FormData = formData) => {
+    const newChartData = generateFinancialData(data);
     setChartData(newChartData);
   }, [formData, generateFinancialData]);
+
+  useEffect(() => {
+    const loadPlan = async () => {
+      if (!user || !planId) return;
+
+      try {
+        const functions = getFunctions();
+        const readPlan = httpsCallable(functions, 'read_plan');
+        const result = await readPlan({ planId });
+        const data = result.data as { success: boolean; plan: { formData: FormData } };
+        
+        if (data.success && data.plan.formData) {
+          setFormData(data.plan.formData);
+          calculateChartData(data.plan.formData);
+        }
+      } catch (error) {
+        console.error('Error loading plan:', error);
+        alert('Failed to load plan. Please try again.');
+      }
+    };
+
+    loadPlan();
+  }, [user, planId, calculateChartData]);
 
   useEffect(() => {
     calculateChartData();
   }, [calculateChartData]);
 
   const handleChange = (evt: React.ChangeEvent<HTMLInputElement>) => {
-    const value = evt.target.name === "taxRate" || evt.target.name === "returnRate"
-      ? parseFloat(evt.target.value) * 0.01
-      : evt.target.value;
-    setFormData({...formData, [evt.target.name]: value });
-  }
+    const { name, value } = evt.target;
+    let newValue: string | number;
+    
+    if (name === "taxRate" || name === "returnRate") {
+      newValue = parseFloat(value) * 0.01;
+    } else if (name === "planName") {
+      newValue = value;
+    } else {
+      newValue = Number(value);
+    }
+    
+    setFormData(prev => ({...prev, [name]: newValue }));
+  };
 
   const handleSave = async () => {
     if (!user) {
       alert("Please sign in to save your plan");
       return;
     }
-
+  
     setSaveStatus('saving');
     try {
-        const functions = getFunctions();
-        const saveSavingsPlan = httpsCallable(functions, 'save_savings_plan');
-        const result = await saveSavingsPlan({ 
-          formData,
-          requiredSavings
-        });
-        console.log(result.data);
+      const functions = getFunctions();
+      const saveFn = planId ? 'update_plan' : 'create_plan';
+      const saveFunction = httpsCallable(functions, saveFn);
+      
+      const planData = {
+        planId,
+        planName: formData.planName || 'Untitled Savings Plan',
+        planType: 'savings',
+        formData: formData,
+        requiredSavings
+      };
+
+      const result = await saveFunction(planData);
+      const data = result.data as { success: boolean; planId?: string };
+      
+      if (data.success) {
         setSaveStatus('saved');
-      } catch (error) {
-        console.error("Error saving savings plan:", error);
-        setSaveStatus('error');
-        alert(`Error saving plan: ${error instanceof Error ? error.message : String(error)}`);
+        if (!planId && data.planId) {
+          // If this was a new plan, update URL with the new plan ID
+          router.push(`/savings?plan=${data.planId}`);
+        }
       }
-    };
+    } catch (error) {
+      console.error("Error saving savings plan:", error);
+      setSaveStatus('error');
+      alert(`Error saving plan: ${error instanceof Error ? error.message : String(error)}`);
+    }
+  };
   
     return (
       <main className="flex flex-col">
@@ -190,8 +249,8 @@ export default function SavingsPlanner() {
             </CardContent>
             <CardFooter>
               <div className="flex w-full justify-between items-center">
-                <Button onClick={calculateChartData}>Calculate Required Savings</Button>
-                <div>
+                <Button onClick={() => calculateChartData()}>Calculate Required Savings</Button>
+              <div>
                   <p>Required Annual Savings: ${Math.round(requiredSavings).toLocaleString()}</p>
                 </div>
               </div>

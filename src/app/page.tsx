@@ -1,36 +1,128 @@
-"use client"
+'use client'
 
-import Link from "next/link"
+import { useAuth } from '@/contexts/AuthContext';
+import { useEffect, useState } from 'react';
+import { getFunctions, httpsCallable } from 'firebase/functions';
+import { Button } from "@/components/ui/button"
+import { PlusCircle } from 'lucide-react';
+import PlanPreview from '@/components/PlanPreview';
+import { useRouter } from 'next/navigation';
 import {
   Card,
+  CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card"
 
+interface Plan {
+  id: string;
+  planName: string;
+  planType: string;
+  formData: any;
+  lastUpdated: any;
+}
+
 export default function Home() {
-  return (
-    <main className="flex flex-col p-4">
-      <h1 className="text-3xl font-bold">Welcome to Tophat Financial</h1>
-      <p className="mt-4">Choose a planning tool to get started:</p>
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-8">
-        <Link href="/income">
-          <Card>
-            <CardHeader>
-              <CardTitle>Income Planner</CardTitle>
-              <CardDescription>Plan your income and savings strategy by projecting your expected income in retirement from your income and savings today.</CardDescription>
-            </CardHeader>
-          </Card>
-        </Link>
-        <Link href="/savings">
-          <Card>
-            <CardHeader>
-              <CardTitle>Savings Planner</CardTitle>
-              <CardDescription>Work backwards from your desired income to give you guidance on how much you need to save today to reach your goals.</CardDescription>
-            </CardHeader>
-          </Card>
-        </Link>
+  const { user } = useAuth();
+  const router = useRouter();
+  const [plans, setPlans] = useState<Plan[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const loadPlans = async () => {
+      if (!user) {
+        setPlans([]);
+        setLoading(false);
+        return;
+      }
+
+      try {
+        const functions = getFunctions();
+        const listPlans = httpsCallable(functions, 'list_plans');
+        const result = await listPlans();
+        const data = result.data as { success: boolean; plans: Plan[] };
+        
+        if (data.success) {
+          setPlans(data.plans);
+        }
+      } catch (err) {
+        console.error('Error loading plans:', err);
+        setError('Failed to load plans. Please try again later.');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadPlans();
+  }, [user]);
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <p>Loading your financial plans...</p>
       </div>
+    );
+  }
+
+  if (!user) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-[60vh] gap-4">
+        <h1 className="text-2xl font-bold">Welcome to Financial Planner</h1>
+        <p className="text-muted-foreground">Please sign in to view and manage your plans.</p>
+      </div>
+    );
+  }
+
+  return (
+    <main className="container mx-auto p-4">
+      <div className="flex justify-between items-center mb-6">
+        <h1 className="text-2xl font-bold">Your Financial Plans</h1>
+        <div className="flex gap-2">
+          <Button onClick={() => router.push('/income')}>
+            <PlusCircle className="mr-2 h-4 w-4" />
+            New Income Plan
+          </Button>
+          <Button onClick={() => router.push('/savings')}>
+            <PlusCircle className="mr-2 h-4 w-4" />
+            New Savings Plan
+          </Button>
+        </div>
+      </div>
+
+      {error && (
+        <Card className="mb-6 border-red-200 bg-red-50">
+          <CardHeader>
+            <CardTitle className="text-red-700">Error</CardTitle>
+            <CardDescription className="text-red-600">{error}</CardDescription>
+          </CardHeader>
+        </Card>
+      )}
+
+      {plans.length === 0 ? (
+        <Card>
+          <CardHeader>
+            <CardTitle>No Plans Yet</CardTitle>
+            <CardDescription>
+              Create your first financial plan by clicking one of the buttons above.
+            </CardDescription>
+          </CardHeader>
+        </Card>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {plans.map((plan) => (
+            <PlanPreview
+              key={plan.id}
+              id={plan.id}
+              planName={plan.planName}
+              planType={plan.planType}
+              formData={plan.formData}
+              lastUpdated={plan.lastUpdated}
+            />
+          ))}
+        </div>
+      )}
     </main>
-  )
+  );
 }
