@@ -1,15 +1,24 @@
-import { useState, useCallback } from 'react';
+import { useCallback, useState } from 'react';
 import { SavingsChartData, SavingsPlan } from '@/types/chart';
 
 export function useSavingsChart() {
-  const [chartData, setChartData] = useState<SavingsChartData>([]);
+  const [chartData, setChartData] = useState<SavingsChartData[]>([]);
   const [requiredSavings, setRequiredSavings] = useState(0);
 
   const calculateChartData = useCallback((plan: SavingsPlan) => {
-    const { desiredIncome, currentAge, retirementAge, currentBalance, taxRate, returnRate } = plan.details;
+    const {
+      desiredIncome,
+      currentAge,
+      retirementAge,
+      currentBalance,
+      taxRate,
+      returnRate
+    } = plan.details;
+
     const years = retirementAge - currentAge;
-    const data: SavingsChartData = [];
+    const data: SavingsChartData[] = [];
     let balance = currentBalance;
+    let currentSavings = 0;
 
     // Calculate required savings
     const totalRequired = desiredIncome / (returnRate * (1 - taxRate));
@@ -18,7 +27,6 @@ export function useSavingsChart() {
 
     setRequiredSavings(yearlySavings);
 
-    let currentSavings = 0;
     for (let year = currentAge; year <= retirementAge; year++) {
       balance = balance * (1 + returnRate) + yearlySavings;
       currentSavings += yearlySavings;
@@ -28,11 +36,12 @@ export function useSavingsChart() {
         balance: Math.round(balance),
         savingsRate: Math.round(yearlySavings),
         totalSaved: Math.round(currentSavings),
-        projectedIncome: Math.round(balance * returnRate * (1 - taxRate)),
+        projectedIncome: Math.round(balance * returnRate * (1 - taxRate))
       });
     }
 
     setChartData(data);
+    return { chartData: data, requiredSavings: yearlySavings };
   }, []);
 
   return { chartData, requiredSavings, calculateChartData };
