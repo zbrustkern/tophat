@@ -16,13 +16,12 @@ import {
   CardTitle,
 } from "@/components/ui/card"
 
-// Interface for the API response
 interface APIplan {
   id: string;
   planName: string;
   planType: PlanType;
   formData: any;
-  lastUpdated: string | { seconds: number; nanoseconds: number };
+  lastUpdated: string | null; // Backend now sends ISO string or null
 }
 
 interface APIResponse {
@@ -53,12 +52,22 @@ export default function Home() {
         
         if (data.success) {
           const transformedPlans = data.plans.map(apiPlan => {
-            // Convert Firebase Timestamp or string to Date
-            const lastUpdated = typeof apiPlan.lastUpdated === 'string' 
-              ? new Date(apiPlan.lastUpdated)
-              : new Date(apiPlan.lastUpdated.seconds * 1000);
-
-            // Transform API plan to our Plan type
+            let lastUpdated: Date;
+            
+            // Handle the lastUpdated field with better error checking
+            try {
+              if (!apiPlan.lastUpdated) {
+                // If no lastUpdated provided, use current date
+                lastUpdated = new Date();
+              } else {
+                // Since we're now sending ISO string from backend
+                lastUpdated = new Date(apiPlan.lastUpdated);
+              }
+            } catch (err) {
+              console.error('Error parsing date:', err);
+              lastUpdated = new Date(); // Fallback to current date if parsing fails
+            }
+          
             return {
               id: apiPlan.id,
               planName: apiPlan.planName,
