@@ -16,7 +16,6 @@ import {
   CardTitle,
 } from "@/components/ui/card"
 
-// More specific type for the timestamp
 type FirebaseTimestamp = {
   seconds: number;
   nanoseconds: number;
@@ -104,64 +103,68 @@ export default function Home() {
   }, [user]);
 
   return (
-    <main className="container mx-auto px-4 py-6 max-w-7xl">
-      {/* Header Section - Made responsive */}
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
-        <h1 className="text-2xl font-bold">Your Financial Plans</h1>
-        <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
-          <Button 
-            onClick={() => router.push('/income')}
-            className="w-full sm:w-auto justify-center"
-          >
-            <PlusCircle className="mr-2 h-4 w-4" />
-            New Income Plan
-          </Button>
-          <Button 
-            onClick={() => router.push('/savings')}
-            className="w-full sm:w-auto justify-center"
-          >
-            <PlusCircle className="mr-2 h-4 w-4" />
-            New Savings Plan
-          </Button>
+    // Main content area shifted right to account for sidebar
+    <main className="md:ml-64 min-h-screen">
+      {/* Content container with proper padding and max width */}
+      <div className="max-w-6xl mx-auto p-4 md:py-6 md:px-8">
+        {/* Header Section */}
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
+          <h1 className="text-2xl font-bold">Your Financial Plans</h1>
+          <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
+            <Button 
+              onClick={() => router.push('/income')}
+              className="w-full sm:w-auto justify-center"
+            >
+              <PlusCircle className="mr-2 h-4 w-4" />
+              New Income Plan
+            </Button>
+            <Button 
+              onClick={() => router.push('/savings')}
+              className="w-full sm:w-auto justify-center"
+            >
+              <PlusCircle className="mr-2 h-4 w-4" />
+              New Savings Plan
+            </Button>
+          </div>
         </div>
+
+        {/* Error Card */}
+        {error && (
+          <Card className="mb-6 border-red-200 bg-red-50">
+            <CardHeader>
+              <CardTitle className="text-red-700">Error</CardTitle>
+              <CardDescription className="text-red-600">{error}</CardDescription>
+            </CardHeader>
+          </Card>
+        )}
+
+        {/* Loading and Empty States */}
+        {loading ? (
+          <Card>
+            <CardHeader>
+              <CardTitle>Loading...</CardTitle>
+            </CardHeader>
+          </Card>
+        ) : plans.length === 0 ? (
+          <Card>
+            <CardHeader>
+              <CardTitle>No Plans Yet</CardTitle>
+              <CardDescription>
+                Create your first financial plan by clicking one of the buttons above.
+              </CardDescription>
+            </CardHeader>
+          </Card>
+        ) : (
+          // Responsive grid with proper spacing
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {plans.map((plan) => (
+              <div key={plan.id} className="h-full">
+                <PlanPreview plan={plan} />
+              </div>
+            ))}
+          </div>
+        )}
       </div>
-
-      {/* Error Card - Made responsive */}
-      {error && (
-        <Card className="mb-6 border-red-200 bg-red-50 w-full">
-          <CardHeader>
-            <CardTitle className="text-red-700">Error</CardTitle>
-            <CardDescription className="text-red-600">{error}</CardDescription>
-          </CardHeader>
-        </Card>
-      )}
-
-      {/* Loading and Empty States - Made responsive */}
-      {loading ? (
-        <Card className="w-full">
-          <CardHeader>
-            <CardTitle>Loading...</CardTitle>
-          </CardHeader>
-        </Card>
-      ) : plans.length === 0 ? (
-        <Card className="w-full">
-          <CardHeader>
-            <CardTitle>No Plans Yet</CardTitle>
-            <CardDescription>
-              Create your first financial plan by clicking one of the buttons above.
-            </CardDescription>
-          </CardHeader>
-        </Card>
-      ) : (
-        // Grid Layout - Improved responsive design
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 auto-rows-fr">
-          {plans.map((plan) => (
-            <div key={plan.id} className="h-full">
-              <PlanPreview plan={plan} />
-            </div>
-          ))}
-        </div>
-      )}
     </main>
   );
 }
