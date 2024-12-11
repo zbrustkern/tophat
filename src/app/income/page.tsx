@@ -5,7 +5,7 @@ import { ChartData } from '@/types/chart';
 import { useAuth } from '@/contexts/AuthContext';
 import { useState, useEffect, useCallback } from "react"
 import { IncomeChart } from "@/components/IncomeChart"
-import { Button, } from "@/components/ui/button"
+import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import {
@@ -18,9 +18,8 @@ import {
 } from "@/components/ui/card"
 
 export default function Home() {
-
   const { user } = useAuth();
-
+  
   const [formData, setFormData] = useState({
     income: 100000,
     raiseRate: 0.03,
@@ -31,6 +30,7 @@ export default function Home() {
   });
   const [chartData, setChartData] = useState<ChartData>([]);
   const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle');
+  const [planId, setPlanId] = useState<string | null>(null);
 
   const generateFinancialData = useCallback((
     initialIncome: number, 
@@ -108,14 +108,23 @@ export default function Home() {
       alert("Please sign in to save your plan");
       return;
     }
-
+  
     setSaveStatus('saving');
     try {
       const functions = getFunctions();
-      const saveIncomePlan = httpsCallable(functions, 'save_income_plan');
-      const result = await saveIncomePlan({ formData });
-      console.log(result.data);
-      setSaveStatus('saved');
+      const createPlan = httpsCallable(functions, 'create_plan');
+      
+      const result = await createPlan({
+        planName: 'Income Plan',
+        planType: 'income',
+        formData: formData,
+      });
+      
+      const data = result.data as { success: boolean; planId: string };
+      if (data.success) {
+        setPlanId(data.planId);
+        setSaveStatus('saved');
+      }
     } catch (error) {
       console.error("Error saving income plan:", error);
       setSaveStatus('error');
