@@ -1,6 +1,14 @@
-// chart.ts
+export type PlanType = 'income' | 'savings' | 'house' | 'car' | 'college' | 'debt';
 
-export type ChartDataPoint = {
+export type BasePlan = {
+  id: string;
+  planName: string;
+  planType: PlanType;
+  lastUpdated: Date;
+};
+
+// Income Types
+export type IncomeChartData = {
   year: number;
   income: number;
   takeHome: number;
@@ -14,27 +22,6 @@ export type ChartDataPoint = {
   conservativeIncome: number;
 };
 
-export type ChartData = ChartDataPoint[];
-
-export type SavingsChartDataPoint = {
-  year: number;
-  balance: number;
-  savingsRate: number;
-  totalSaved: number;
-  projectedIncome: number;
-};
-
-export type SavingsChartData = SavingsChartDataPoint[];
-
-export type PlanType = 'income' | 'savings' | 'house' | 'car' | 'college' | 'debt';
-
-export type BasePlanData = {
-  id: string;
-  planName: string;
-  planType: PlanType;
-  lastUpdated: Date; 
-};
-
 export type IncomePlanDetails = {
   income: number;
   raiseRate: number;
@@ -42,6 +29,20 @@ export type IncomePlanDetails = {
   balance: number;
   taxRate: number;
   returnRate: number;
+};
+
+export interface IncomePlan extends BasePlan {
+  planType: 'income';
+  details: IncomePlanDetails;
+}
+
+// Savings Types
+export type SavingsChartData = {
+  year: number;
+  balance: number;
+  savingsRate: number;
+  totalSaved: number;
+  projectedIncome: number;
 };
 
 export type SavingsPlanDetails = {
@@ -53,9 +54,10 @@ export type SavingsPlanDetails = {
   returnRate: number;
 };
 
-export type Plan<T extends IncomePlanDetails | SavingsPlanDetails> = BasePlanData & {
-  details: T;
-};
+export interface SavingsPlan extends BasePlan {
+  planType: 'savings';
+  details: SavingsPlanDetails;
+}
 
-export type IncomePlan = Plan<IncomePlanDetails>;
-export type SavingsPlan = Plan<SavingsPlanDetails>;
+// Union type for all plans
+export type Plan = IncomePlan | SavingsPlan;
