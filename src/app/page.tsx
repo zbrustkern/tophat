@@ -103,10 +103,7 @@ export default function Home() {
   }, [user]);
 
   return (
-    // Main content area shifted right to account for sidebar
-    <main className="md:ml-64 min-h-screen">
-      {/* Content container with proper padding and max width */}
-      <div className="max-w-6xl mx-auto p-4 md:py-6 md:px-8">
+      <main>
         {/* Header Section */}
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
           <h1 className="text-2xl font-bold">Your Financial Plans</h1>
@@ -164,7 +161,6 @@ export default function Home() {
             ))}
           </div>
         )}
-      </div>
     </main>
   );
 }
