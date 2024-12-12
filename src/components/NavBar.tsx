@@ -3,8 +3,8 @@
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import SignInButton from "./SignInButton"
-import { LayoutDashboard, DollarSign, PiggyBank, Menu } from 'lucide-react'
 import { useState } from 'react'
+import { Menu, LayoutDashboard, DollarSign, PiggyBank } from 'lucide-react'
 
 export function NavBar() {
   const pathname = usePathname()
@@ -31,7 +31,7 @@ export function NavBar() {
   return (
     <>
       {/* Desktop Sidebar */}
-      <div className="hidden md:flex fixed left-0 top-0 h-screen w-64 border-r bg-background flex-col">
+      <div className="hidden md:flex fixed left-0 top-0 h-screen w-64 border-r bg-background flex-col z-30">
         <div className="flex flex-col items-center py-6 border-b">
           <img
             src="/tophat_logo.png"
@@ -70,9 +70,9 @@ export function NavBar() {
         </div>
       </div>
 
-      {/* Mobile Top Navigation */}
-      <div className="md:hidden fixed top-0 left-0 right-0 border-b bg-background z-50">
-        <div className="flex items-center justify-between px-4 h-14">
+      {/* Mobile Header */}
+      <div className="md:hidden fixed top-0 left-0 right-0 h-14 border-b bg-background z-30">
+        <div className="flex items-center justify-between px-4 h-full">
           <div className="flex items-center gap-3">
             <button 
               onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)} 
@@ -111,9 +111,6 @@ export function NavBar() {
           </div>
         )}
       </div>
-
-      {/* Add padding to main content area on mobile */}
-      <div className="md:hidden h-14" />
     </>
   )
 }
