@@ -10,3 +10,5 @@ Work backwards from where you want to land for take home income and see what you
 
 This project was built in Next.js and React. It's hosted Google Firebase with a serverless backend powered by Google Cloud functions.
 
+Updated 2/22 for package rebuild.
+
