@@ -18,10 +18,16 @@ export default function RootLayout({
         inter.className
       )}>
         <Providers>
-          <div className="flex h-screen">
+          <div className="flex min-h-screen">
             <NavBar />
-            <div className="flex-1 overflow-y-auto pb-16 md:pb-0">
-              {children}
+            {/* Main content wrapper with proper offset and padding */}
+            <div className="flex-1 md:ml-64">
+              {/* Mobile header offset */}
+              <div className="h-14 md:h-0" />
+              {/* Content container */}
+              <div className="max-w-6xl mx-auto p-4 md:py-6 md:px-8">
+                {children}
+              </div>
             </div>
           </div>
         </Providers>
