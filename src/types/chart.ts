@@ -62,9 +62,32 @@ export type SavingsChartData = {
   projectedIncome: number;
 };
 
+// College Plan Types
+export interface CollegeDetails {
+  calculationMode: 'goal' | 'contribution';
+  childAge: number;
+  collegeAge: number;
+  currentBalance: number;
+  returnRate: number;
+  targetAmount: number;
+  monthlyContribution: number;
+}
+
+export interface CollegePlan extends BasePlan {
+  planType: 'college';
+  details: CollegeDetails;
+}
+
+export type CollegeChartData = {
+  age: number;
+  balance: number;
+  totalContributions: number;
+  projectedCost: number;
+};
+
 // Union type for all plans
-export type Plan = IncomePlan | SavingsPlan;
+export type Plan = IncomePlan | SavingsPlan | CollegePlan;
 
 // Optional: You might want to add these helper types for future use
-export type PlanDetails = IncomeDetails | SavingsDetails;
-export type ChartData = IncomeChartData | SavingsChartData;
+export type PlanDetails = IncomeDetails | SavingsDetails | CollegeDetails;
+export type ChartData = IncomeChartData | SavingsChartData | CollegeChartData;

@@ -4,7 +4,7 @@ import Link from "next/link"
 import { usePathname } from "next/navigation"
 import SignInButton from "./SignInButton"
 import { useState } from 'react'
-import { Menu, LayoutDashboard, DollarSign, PiggyBank } from 'lucide-react'
+import { Menu, LayoutDashboard, DollarSign, PiggyBank, GraduationCap } from 'lucide-react'
 
 export function NavBar() {
   const pathname = usePathname()
@@ -25,6 +25,11 @@ export function NavBar() {
       href: "/savings",
       label: "Savings",
       icon: <PiggyBank className="h-5 w-5" />
+    },
+    {
+      href: "/college",
+      label: "College (529)",
+      icon: <GraduationCap className="h-5 w-5" />
     }
   ]
 

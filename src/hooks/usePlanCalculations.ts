@@ -1,5 +1,5 @@
 import { useCallback } from 'react';
-import { IncomePlan, SavingsPlan } from '@/types/chart';
+import { IncomePlan, SavingsPlan, CollegePlan, CollegeChartData } from '@/types/chart';
 
 export function useIncomeCalculations() {
   const calculateIncomeData = useCallback((plan: IncomePlan) => {
@@ -88,4 +88,78 @@ export function useSavingsCalculations() {
   }, []);
 
   return { calculateSavingsData };
+}
+
+export function useCollegeCalculations() {
+  const calculateCollegeData = useCallback((plan: CollegePlan) => {
+    const {
+      calculationMode,
+      childAge,
+      collegeAge,
+      currentBalance,
+      returnRate,
+      targetAmount,
+      monthlyContribution
+    } = plan.details;
+
+    const years = collegeAge - childAge;
+    const data: CollegeChartData[] = [];
+    let balance = currentBalance;
+    let totalSaved = currentBalance;
+    
+    // We do yearly loop, but contributions are monthly
+    const annualReturnRate = returnRate;
+    const monthlyReturnRate = Math.pow(1 + annualReturnRate, 1/12) - 1;
+
+    let calculatedMonthlyContribution = monthlyContribution;
+    let finalTargetAmount = targetAmount;
+
+    if (years <= 0) {
+      return { chartData: [], calculatedMonthlyContribution: 0, finalTargetAmount: balance };
+    }
+
+    if (calculationMode === 'contribution') {
+      // Solve for monthly contribution required to hit targetAmount
+      // FV = PV * (1 + r)^n + PMT * [((1 + r)^n - 1) / r]
+      const totalMonths = years * 12;
+      const fvPv = currentBalance * Math.pow(1 + monthlyReturnRate, totalMonths);
+      
+      if (monthlyReturnRate > 0) {
+        calculatedMonthlyContribution = (targetAmount - fvPv) * monthlyReturnRate / (Math.pow(1 + monthlyReturnRate, totalMonths) - 1);
+      } else {
+        calculatedMonthlyContribution = (targetAmount - fvPv) / totalMonths;
+      }
+      calculatedMonthlyContribution = Math.max(0, calculatedMonthlyContribution);
+    }
+
+    // Now generate chart data year by year
+    for (let age = childAge; age <= collegeAge; age++) {
+      if (age > childAge) {
+        // Apply 12 months of growth and contributions
+        for (let m = 0; m < 12; m++) {
+          balance = balance * (1 + monthlyReturnRate) + calculatedMonthlyContribution;
+          totalSaved += calculatedMonthlyContribution;
+        }
+      }
+
+      data.push({
+        age,
+        balance: Math.round(balance),
+        totalContributions: Math.round(totalSaved),
+        projectedCost: calculationMode === 'contribution' ? targetAmount : Math.round(balance)
+      });
+    }
+
+    if (calculationMode === 'goal') {
+      finalTargetAmount = Math.round(balance);
+    }
+
+    return { 
+      chartData: data, 
+      calculatedMonthlyContribution: Math.round(calculatedMonthlyContribution),
+      finalTargetAmount: Math.round(finalTargetAmount)
+    };
+  }, []);
+
+  return { calculateCollegeData };
 }
