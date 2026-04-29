@@ -115,7 +115,7 @@ export default function CollegePlanner({ planId }: { planId: string | null }) {
               College Savings Planner (529)
             </CardTitle>
             <CardDescription className="text-gray-500 font-medium">
-              Plan for your child's education
+              Plan for your child&apos;s education
             </CardDescription>
           </CardHeader>
           <CardContent className="bg-gray-50/50">
