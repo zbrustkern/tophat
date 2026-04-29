@@ -5,18 +5,19 @@ import { useRouter } from 'next/navigation'
 import { ChevronRight } from 'lucide-react';
 import { IncomeChart } from '@/components/IncomeChart';
 import { SavingsChart } from '@/components/SavingsChart';
-import { useIncomeCalculations } from '@/hooks/usePlanCalculations';
-import { useSavingsCalculations } from '@/hooks/usePlanCalculations';
-import { IncomePlan, SavingsPlan } from '@/types/chart';
+import { CollegeChart } from '@/components/CollegeChart';
+import { useIncomeCalculations, useSavingsCalculations, useCollegeCalculations } from '@/hooks/usePlanCalculations';
+import { Plan, IncomePlan, SavingsPlan, CollegePlan } from '@/types/chart';
 
 interface PlanPreviewProps {
-  plan: IncomePlan | SavingsPlan;
+  plan: Plan;
 }
 
 const PlanPreview = ({ plan }: PlanPreviewProps) => {
   const router = useRouter();
   const { calculateIncomeData } = useIncomeCalculations();
   const { calculateSavingsData } = useSavingsCalculations();
+  const { calculateCollegeData } = useCollegeCalculations();
   
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('en-US', {
@@ -36,7 +37,7 @@ const PlanPreview = ({ plan }: PlanPreviewProps) => {
     }).format(date);
   };
 
-  const planPath = plan.planType === 'income' ? '/income' : '/savings';
+  const planPath = plan.planType === 'income' ? '/income' : plan.planType === 'savings' ? '/savings' : '/college';
   
   // Calculate preview data
   const getPreviewData = () => {
@@ -49,7 +50,7 @@ const PlanPreview = ({ plan }: PlanPreviewProps) => {
         secondaryValue: `${(plan.details.saveRate * 100).toFixed(0)}%`,
         secondaryLabel: 'Savings Rate'
       };
-    } else {
+    } else if (plan.planType === 'savings') {
       const { chartData } = calculateSavingsData(plan as SavingsPlan);
       return {
         chart: <SavingsChart chartData={chartData} isThumbnail={true} />,
@@ -57,6 +58,15 @@ const PlanPreview = ({ plan }: PlanPreviewProps) => {
         mainLabel: 'Target Income',
         secondaryValue: plan.details.retirementAge,
         secondaryLabel: 'Retirement Age'
+      };
+    } else {
+      const { chartData, finalTargetAmount, calculatedMonthlyContribution } = calculateCollegeData(plan as CollegePlan);
+      return {
+        chart: <CollegeChart chartData={chartData} isThumbnail={true} />,
+        mainValue: formatCurrency(plan.details.calculationMode === 'goal' ? finalTargetAmount : calculatedMonthlyContribution),
+        mainLabel: plan.details.calculationMode === 'goal' ? 'Projected Balance' : 'Required Monthly',
+        secondaryValue: plan.details.collegeAge,
+        secondaryLabel: 'College Age'
       };
     }
   };

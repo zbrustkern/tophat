@@ -122,6 +122,13 @@ export default function Home() {
               <PlusCircle className="mr-2 h-4 w-4" />
               New Savings Plan
             </Button>
+            <Button 
+              onClick={() => router.push('/college')}
+              className="w-full sm:w-auto justify-center"
+            >
+              <PlusCircle className="mr-2 h-4 w-4" />
+              New College Plan
+            </Button>
           </div>
         </div>
 
