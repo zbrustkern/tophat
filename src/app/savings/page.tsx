@@ -7,7 +7,9 @@ import SavingsPlanner from '@/components/SavingsPlanner';
 function SavingsContent() {
   const searchParams = useSearchParams();
   const planId = searchParams.get('plan');
-  return <SavingsPlanner planId={planId} />;
+  const balance = searchParams.get('balance') ? Number(searchParams.get('balance')) : undefined;
+  const returnRate = searchParams.get('returnRate') ? Number(searchParams.get('returnRate')) : undefined;
+  return <SavingsPlanner planId={planId} initialBalance={balance} initialReturnRate={returnRate} />;
 }
 
 export default function SavingsPage() {

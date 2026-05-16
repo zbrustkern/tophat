@@ -37,7 +37,7 @@ const PlanPreview = ({ plan }: PlanPreviewProps) => {
     }).format(date);
   };
 
-  const planPath = plan.planType === 'income' ? '/income' : plan.planType === 'savings' ? '/savings' : '/college';
+  const planPath = plan.planType === 'income' ? '/income' : plan.planType === 'savings' ? '/savings' : plan.planType === 'rebalance' ? '/tactical-allocation' : '/college';
   
   // Calculate preview data
   const getPreviewData = () => {
@@ -59,14 +59,25 @@ const PlanPreview = ({ plan }: PlanPreviewProps) => {
         secondaryValue: plan.details.retirementAge,
         secondaryLabel: 'Retirement Age'
       };
-    } else {
+    } else if (plan.planType === 'college') {
       const { chartData, finalTargetAmount, calculatedMonthlyContribution } = calculateCollegeData(plan as CollegePlan);
+      const collegeDetails = plan.details as import('@/types/chart').CollegeDetails;
       return {
         chart: <CollegeChart chartData={chartData} isThumbnail={true} />,
-        mainValue: formatCurrency(plan.details.calculationMode === 'goal' ? finalTargetAmount : calculatedMonthlyContribution),
-        mainLabel: plan.details.calculationMode === 'goal' ? 'Projected Balance' : 'Required Monthly',
-        secondaryValue: plan.details.collegeAge,
+        mainValue: formatCurrency(collegeDetails.calculationMode === 'goal' ? finalTargetAmount : calculatedMonthlyContribution),
+        mainLabel: collegeDetails.calculationMode === 'goal' ? 'Projected Balance' : 'Required Monthly',
+        secondaryValue: collegeDetails.collegeAge,
         secondaryLabel: 'College Age'
+      };
+    } else {
+      // RebalancePlan
+      const rebalanceDetails = plan.details as import('@/types/chart').RebalanceDetails;
+      return {
+        chart: <div className="flex items-center justify-center h-full bg-slate-100 rounded text-slate-400 text-xs">Tactical Model</div>,
+        mainValue: formatCurrency(rebalanceDetails.currentCash + rebalanceDetails.currentEquity),
+        mainLabel: 'Portfolio Value',
+        secondaryValue: `${(rebalanceDetails.targetAnnualReturn * 100).toFixed(1)}%`,
+        secondaryLabel: 'Target Return'
       };
     }
   };

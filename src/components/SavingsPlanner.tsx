@@ -32,10 +32,30 @@ const defaultPlan: SavingsPlan = {
   }
 };
 
-export default function SavingsPlanner({ planId }: { planId: string | null }) {
+export default function SavingsPlanner({ 
+  planId, 
+  initialBalance, 
+  initialReturnRate 
+}: { 
+  planId: string | null;
+  initialBalance?: number;
+  initialReturnRate?: number;
+}) {
   const { user } = useAuth();
   const router = useRouter();
-  const [plan, setPlan] = useState<SavingsPlan>(defaultPlan);
+  const [plan, setPlan] = useState<SavingsPlan>(() => {
+    if (initialBalance !== undefined || initialReturnRate !== undefined) {
+      return {
+        ...defaultPlan,
+        details: {
+          ...defaultPlan.details,
+          currentBalance: initialBalance ?? defaultPlan.details.currentBalance,
+          returnRate: initialReturnRate ?? defaultPlan.details.returnRate,
+        }
+      }
+    }
+    return defaultPlan;
+  });
   const [chartData, setChartData] = useState<SavingsChartData[]>([]);
   const [requiredSavings, setRequiredSavings] = useState(0);
   const { calculateSavingsData } = useSavingsCalculations();

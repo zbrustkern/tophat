@@ -1,7 +1,7 @@
 // types/chart.ts
 
 // Plan Types
-export type PlanType = 'income' | 'savings' | 'house' | 'car' | 'college' | 'debt';
+export type PlanType = 'income' | 'savings' | 'house' | 'car' | 'college' | 'debt' | 'rebalance';
 
 export interface BasePlan {
   id: string;
@@ -85,9 +85,35 @@ export type CollegeChartData = {
   projectedCost: number;
 };
 
+export interface Asset {
+  id: string;
+  symbol: string;
+  type: 'cash' | 'equity';
+  price: number;
+  shares: number;
+}
+
+// Rebalance Plan Types
+export interface RebalanceDetails {
+  currentCash: number;
+  currentEquity: number;
+  targetAnnualReturn: number;
+  initialPrincipal: number;
+  monthlyContribution: number;
+  mockVix: number;
+  monthsElapsed: number; // Keep for backward compatibility/fallback
+  startDate?: string;    // YYYY-MM-DD
+  assets?: Asset[];
+}
+
+export interface RebalancePlan extends BasePlan {
+  planType: 'rebalance';
+  details: RebalanceDetails;
+}
+
 // Union type for all plans
-export type Plan = IncomePlan | SavingsPlan | CollegePlan;
+export type Plan = IncomePlan | SavingsPlan | CollegePlan | RebalancePlan;
 
 // Optional: You might want to add these helper types for future use
-export type PlanDetails = IncomeDetails | SavingsDetails | CollegeDetails;
+export type PlanDetails = IncomeDetails | SavingsDetails | CollegeDetails | RebalanceDetails;
 export type ChartData = IncomeChartData | SavingsChartData | CollegeChartData;

@@ -129,6 +129,13 @@ export default function Home() {
               <PlusCircle className="mr-2 h-4 w-4" />
               New College Plan
             </Button>
+            <Button 
+              onClick={() => router.push('/tactical-allocation')}
+              className="w-full sm:w-auto justify-center"
+            >
+              <PlusCircle className="mr-2 h-4 w-4" />
+              New Tactical Allocation
+            </Button>
           </div>
         </div>
 

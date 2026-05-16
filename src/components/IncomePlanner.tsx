@@ -32,11 +32,31 @@ const defaultPlan: IncomePlan = {
   }
 };
 
-export default function IncomePlanner({ planId }: { planId: string | null }) {
+export default function IncomePlanner({ 
+  planId, 
+  initialBalance, 
+  initialReturnRate 
+}: { 
+  planId: string | null;
+  initialBalance?: number;
+  initialReturnRate?: number;
+}) {
   const [isDirty, setIsDirty] = useState(false)
   const { user } = useAuth();
   const router = useRouter();
-  const [plan, setPlan] = useState<IncomePlan>(defaultPlan);
+  const [plan, setPlan] = useState<IncomePlan>(() => {
+    if (initialBalance !== undefined || initialReturnRate !== undefined) {
+      return {
+        ...defaultPlan,
+        details: {
+          ...defaultPlan.details,
+          balance: initialBalance ?? defaultPlan.details.balance,
+          returnRate: initialReturnRate ?? defaultPlan.details.returnRate,
+        }
+      }
+    }
+    return defaultPlan;
+  });
   const [chartData, setChartData] = useState<IncomeChartData[]>([]);
   const { calculateIncomeData } = useIncomeCalculations();
   const { loading, error, savePlan } = usePlanManagement<IncomePlan>();
