@@ -185,7 +185,7 @@ export default function IncomePlanner({
             
             <div className="mt-8 p-4 bg-white rounded-lg border border-gray-100 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-4">
               <div className="space-y-1">
-                <Label className="text-base font-semibold text-gray-800">Auto-Escalate Savings ("Save Your Raise")</Label>
+                <Label className="text-base font-semibold text-gray-800">Auto-Escalate Savings (&quot;Save Your Raise&quot;)</Label>
                 <p className="text-sm text-gray-500">Automatically increase your savings rate every year as your income grows.</p>
               </div>
               <div className="flex items-center gap-6">
