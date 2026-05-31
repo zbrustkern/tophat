@@ -67,18 +67,20 @@ export default function SavingsPlanner({
   const { calculateSavingsData } = useSavingsCalculations();
   const { loading, error, savePlan } = usePlanManagement<SavingsPlan>();
   const [isDirty, setIsDirty] = useState(false);
+  const [hydratedPlanId, setHydratedPlanId] = useState<string | null>(null);
 
   useEffect(() => {
-    if (planId && plans.length > 0) {
+    if (planId && planId !== hydratedPlanId && plans.length > 0) {
       const existing = plans.find(p => p.id === planId);
       if (existing && existing.planType === 'savings') {
         setPlan(existing as SavingsPlan);
         const { chartData: newChartData, requiredSavings: newRequiredSavings } = calculateSavingsData(existing as SavingsPlan);
         setChartData(newChartData);
         setRequiredSavings(newRequiredSavings);
+        setHydratedPlanId(planId);
       }
     }
-  }, [planId, plans, calculateSavingsData]);
+  }, [planId, plans, calculateSavingsData, hydratedPlanId]);
 
   const handleChange = (evt: React.ChangeEvent<HTMLInputElement>) => {
     setIsDirty(true);

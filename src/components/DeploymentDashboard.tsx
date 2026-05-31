@@ -54,16 +54,18 @@ export default function DeploymentDashboard({ planId }: { planId?: string | null
   const { calculateRebalanceData } = usePortfolioLogic();
   const [isDirty, setIsDirty] = useState(false);
   const [results, setResults] = useState(calculateRebalanceData(plan));
+  const [hydratedPlanId, setHydratedPlanId] = useState<string | null>(null);
 
   useEffect(() => {
-    if (planId && plans.length > 0) {
+    if (planId && planId !== hydratedPlanId && plans.length > 0) {
       const existing = plans.find(p => p.id === planId);
       if (existing && existing.planType === 'rebalance') {
         setPlan(existing as RebalancePlan);
         setResults(calculateRebalanceData(existing as RebalancePlan));
+        setHydratedPlanId(planId);
       }
     }
-  }, [planId, plans, calculateRebalanceData]);
+  }, [planId, plans, calculateRebalanceData, hydratedPlanId]);
 
   const handleChange = (evt: React.ChangeEvent<HTMLInputElement>) => {
     setIsDirty(true);
