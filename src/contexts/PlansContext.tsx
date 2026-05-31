@@ -38,7 +38,7 @@ export const PlansProvider: React.FC<{ children: React.ReactNode }> = ({ childre
           planName: apiPlan.planName,
           planType: apiPlan.planType,
           lastUpdated: apiPlan.lastUpdated ? new Date(apiPlan.lastUpdated) : new Date(),
-          details: apiPlan.details
+          details: apiPlan.details || apiPlan.formData || {}
         })) as Plan[];
         setPlans(transformedPlans);
       }

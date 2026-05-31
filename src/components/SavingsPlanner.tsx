@@ -5,6 +5,7 @@ import { SavingsPlan } from '@/types/chart';
 import { SavingsChartData } from '@/types/chart';
 import { useSavingsCalculations } from '@/hooks/usePlanCalculations';
 import { usePlanManagement } from '@/hooks/usePlanManagement';
+import { usePlans } from '@/contexts/PlansContext';
 import { SavingsChart } from "@/components/SavingsChart";
 import { Button } from "@/components/ui/button";
 import { FormField, PlanNameField } from "@/components/PlanFormElements";
