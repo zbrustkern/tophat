@@ -25,7 +25,8 @@ interface APIplan {
   id: string;
   planName: string;
   planType: PlanType;
-  formData: any;
+  formData?: any;
+  details?: any;
   lastUpdated: string | FirebaseTimestamp | null;
 }
 
