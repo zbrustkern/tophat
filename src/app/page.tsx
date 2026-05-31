@@ -8,6 +8,7 @@ import { PlusCircle } from 'lucide-react';
 import PlanPreview from '@/components/PlanPreview';
 import { useRouter } from 'next/navigation';
 import { Plan, PlanType } from '@/types/chart';
+import { usePlanManagement } from '@/hooks/usePlanManagement';
 import {
   Card,
   CardContent,
@@ -41,6 +42,17 @@ export default function Home() {
   const [plans, setPlans] = useState<Plan[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const { deletePlan } = usePlanManagement<Plan>();
+
+  const handleDelete = async (planId: string) => {
+    try {
+      await deletePlan(planId);
+      setPlans(currentPlans => currentPlans.filter(p => p.id !== planId));
+    } catch (err) {
+      console.error('Failed to delete plan:', err);
+      // Optional: Add a toast notification here if desired
+    }
+  };
 
   const parseTimestamp = (timestamp: string | FirebaseTimestamp | null): Date => {
     try {
@@ -167,11 +179,10 @@ export default function Home() {
             </CardHeader>
           </Card>
         ) : (
-          // Responsive grid with proper spacing
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             {plans.map((plan) => (
               <div key={plan.id} className="h-full">
-                <PlanPreview plan={plan} />
+                <PlanPreview plan={plan} onDelete={handleDelete} />
               </div>
             ))}
           </div>

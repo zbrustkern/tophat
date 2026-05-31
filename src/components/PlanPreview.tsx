@@ -2,22 +2,25 @@ import React from 'react';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { useRouter } from 'next/navigation'
-import { ChevronRight } from 'lucide-react';
+import { ChevronRight, Trash2 } from 'lucide-react';
 import { IncomeChart } from '@/components/IncomeChart';
 import { SavingsChart } from '@/components/SavingsChart';
 import { CollegeChart } from '@/components/CollegeChart';
 import { useIncomeCalculations, useSavingsCalculations, useCollegeCalculations } from '@/hooks/usePlanCalculations';
-import { Plan, IncomePlan, SavingsPlan, CollegePlan } from '@/types/chart';
+import { usePortfolioLogic } from '@/hooks/usePortfolioLogic';
+import { Plan, IncomePlan, SavingsPlan, CollegePlan, RebalancePlan } from '@/types/chart';
 
 interface PlanPreviewProps {
   plan: Plan;
+  onDelete?: (planId: string) => void;
 }
 
-const PlanPreview = ({ plan }: PlanPreviewProps) => {
+const PlanPreview = ({ plan, onDelete }: PlanPreviewProps) => {
   const router = useRouter();
   const { calculateIncomeData } = useIncomeCalculations();
   const { calculateSavingsData } = useSavingsCalculations();
   const { calculateCollegeData } = useCollegeCalculations();
+  const { calculateRebalanceData } = usePortfolioLogic();
   
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('en-US', {
@@ -71,12 +74,40 @@ const PlanPreview = ({ plan }: PlanPreviewProps) => {
       };
     } else {
       // RebalancePlan
-      const rebalanceDetails = plan.details as import('@/types/chart').RebalanceDetails;
+      const rebalancePlan = plan as RebalancePlan;
+      const { targetValue, investmentGap, recommendation, computedCash, computedEquity } = calculateRebalanceData(rebalancePlan);
+      const isAhead = investmentGap >= 0;
+
       return {
-        chart: <div className="flex items-center justify-center h-full bg-slate-100 rounded text-slate-400 text-xs">Tactical Model</div>,
-        mainValue: formatCurrency(rebalanceDetails.currentCash + rebalanceDetails.currentEquity),
+        chart: (
+          <div className="flex flex-col justify-center h-full bg-slate-50 rounded-lg border p-4 space-y-3">
+            <div className="flex justify-between items-end">
+              <div>
+                <p className="text-xs font-medium text-slate-500 uppercase tracking-wider">Gap to Target</p>
+                <p className={`text-xl font-bold ${isAhead ? 'text-green-600' : 'text-red-600'}`}>
+                  {isAhead ? '+' : ''}{formatCurrency(investmentGap)}
+                </p>
+              </div>
+              <div className="text-right">
+                <p className="text-xs font-medium text-slate-500 uppercase tracking-wider">Target</p>
+                <p className="text-sm font-semibold text-slate-700">{formatCurrency(targetValue)}</p>
+              </div>
+            </div>
+            <div className="w-full bg-slate-200 rounded-full h-2 mt-2">
+              <div 
+                className={`h-2 rounded-full ${isAhead ? 'bg-green-500' : 'bg-blue-500'}`} 
+                style={{ width: `${Math.min(100, Math.max(5, ((computedCash + computedEquity) / targetValue) * 100))}%` }}
+              ></div>
+            </div>
+            <div className="pt-1 flex items-center justify-between text-xs font-medium text-slate-600">
+              <span>Action Needed:</span>
+              <span className="bg-slate-200 px-2 py-1 rounded">{recommendation.action}</span>
+            </div>
+          </div>
+        ),
+        mainValue: formatCurrency(computedCash + computedEquity),
         mainLabel: 'Portfolio Value',
-        secondaryValue: `${(rebalanceDetails.targetAnnualReturn * 100).toFixed(1)}%`,
+        secondaryValue: `${((rebalancePlan.details.targetAnnualReturn || 0) * 100).toFixed(1)}%`,
         secondaryLabel: 'Target Return'
       };
     }
@@ -84,8 +115,29 @@ const PlanPreview = ({ plan }: PlanPreviewProps) => {
 
   const preview = getPreviewData();
 
+  const handleDelete = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (window.confirm(`Are you sure you want to delete "${plan.planName}"? This action cannot be undone.`)) {
+      if (onDelete) {
+        onDelete(plan.id);
+      }
+    }
+  };
+
   return (
-    <Card className="w-full hover:shadow-lg transition-shadow">
+    <Card 
+      className="w-full hover:shadow-lg transition-shadow cursor-pointer relative group"
+      onClick={() => router.push(`${planPath}?plan=${plan.id}`)}
+    >
+      {onDelete && (
+        <button
+          onClick={handleDelete}
+          className="absolute top-4 right-12 p-2 text-slate-300 hover:text-red-500 hover:bg-red-50 rounded-full transition-colors opacity-0 group-hover:opacity-100 z-10"
+          title="Delete Plan"
+        >
+          <Trash2 size={18} />
+        </button>
+      )}
       <CardHeader className="pb-2">
         <div className="flex justify-between items-center">
           <div>

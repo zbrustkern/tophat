@@ -39,9 +39,31 @@ export function usePlanManagement<T extends Plan>() {
     }
   }, []);
 
+  const deletePlan = useCallback(async (planId: string): Promise<void> => {
+    setLoading(true);
+    setError(null);
+
+    try {
+      const functions = getFunctions();
+      const deleteFunction = httpsCallable(functions, 'delete_plan');
+      
+      const result = await deleteFunction({ planId });
+      const data = result.data as { success: boolean };
+      
+      if (!data.success) throw new Error('Failed to delete plan');
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Failed to delete plan';
+      setError(message);
+      throw err;
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
   return {
     loading,
     error,
-    savePlan
+    savePlan,
+    deletePlan
   };
 }
