@@ -9,7 +9,9 @@ export function useIncomeCalculations() {
       saveRate: initialSavingsRate,
       taxRate,
       returnRate: portfolioReturn,
-      balance: initialBalance
+      balance: initialBalance,
+      autoEscalateSavings = true,
+      escalationRate = 0.01
     } = plan.details;
 
     const years = 25;
@@ -41,7 +43,9 @@ export function useIncomeCalculations() {
       });
 
       currentIncome *= (1 + currentRaise);
-      currentSavingsRate = Math.min(currentSavingsRate + 0.01, 1);
+      if (autoEscalateSavings) {
+        currentSavingsRate = Math.min(currentSavingsRate + escalationRate, 1);
+      }
     }
 
     return data;

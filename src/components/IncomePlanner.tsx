@@ -17,6 +17,8 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { Switch } from "@/components/ui/switch";
+import { Label } from "@/components/ui/label";
 
 const defaultPlan: IncomePlan = {
   id: 'new',
@@ -30,6 +32,8 @@ const defaultPlan: IncomePlan = {
     balance: 100000,
     taxRate: 0.40,
     returnRate: 0.08,
+    autoEscalateSavings: true,
+    escalationRate: 0.01,
   }
 };
 
@@ -73,7 +77,7 @@ export default function IncomePlanner({
     let newValue: string | number = value;
 
     // Handle percentage fields
-    if (["raiseRate", "saveRate", "taxRate", "returnRate"].includes(name)) {
+    if (["raiseRate", "saveRate", "taxRate", "returnRate", "escalationRate"].includes(name)) {
       newValue = parseFloat(value) / 100; // Convert from percentage to decimal
     } else if (name !== "planName") {
       newValue = Number(value);
@@ -177,6 +181,36 @@ export default function IncomePlanner({
                 placeholder="40"
                 isPercentage
               />
+            </div>
+            
+            <div className="mt-8 p-4 bg-white rounded-lg border border-gray-100 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+              <div className="space-y-1">
+                <Label className="text-base font-semibold text-gray-800">Auto-Escalate Savings ("Save Your Raise")</Label>
+                <p className="text-sm text-gray-500">Automatically increase your savings rate every year as your income grows.</p>
+              </div>
+              <div className="flex items-center gap-6">
+                {(plan.details.autoEscalateSavings ?? true) && (
+                  <div className="flex items-center gap-2">
+                    <Label htmlFor="escalationRate" className="text-sm font-medium text-gray-700">Increase by</Label>
+                    <div className="relative w-24">
+                      <input
+                        id="escalationRate"
+                        name="escalationRate"
+                        type="number"
+                        className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 pr-8"
+                        value={((plan.details.escalationRate ?? 0.01) * 100).toFixed(1)}
+                        onChange={handleChange}
+                        step="0.5"
+                      />
+                      <span className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 text-sm">%</span>
+                    </div>
+                  </div>
+                )}
+                <Switch 
+                  checked={plan.details.autoEscalateSavings ?? true} 
+                  onCheckedChange={handleToggleChange} 
+                />
+              </div>
             </div>
           </CardContent>
           <CardFooter className="bg-white border-t py-4">

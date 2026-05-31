@@ -37,6 +37,8 @@ export type IncomeChartData = {
   balance: number;
   capitalIncome: number;
   conservativeIncome: number;
+  autoEscalateSavings?: boolean;
+  escalationRate?: number;
 };
 
 // Savings Plan Types
