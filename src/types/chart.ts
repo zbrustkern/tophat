@@ -18,6 +18,8 @@ export interface IncomeDetails {
   balance: number;
   taxRate: number;
   returnRate: number;
+  autoEscalateSavings?: boolean;
+  escalationRate?: number;
 }
 
 export interface IncomePlan extends BasePlan {
@@ -37,8 +39,6 @@ export type IncomeChartData = {
   balance: number;
   capitalIncome: number;
   conservativeIncome: number;
-  autoEscalateSavings?: boolean;
-  escalationRate?: number;
 };
 
 // Savings Plan Types
