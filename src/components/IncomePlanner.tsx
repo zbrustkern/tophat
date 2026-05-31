@@ -92,6 +92,14 @@ export default function IncomePlanner({
     }));
   };
 
+  const handleToggleChange = (checked: boolean) => {
+    setIsDirty(true);
+    setPlan(prev => ({
+      ...prev,
+      details: { ...prev.details, autoEscalateSavings: checked }
+    }));
+  };
+
   const updateChart = () => {
     setIsDirty(false)
     const data = calculateIncomeData(plan);
