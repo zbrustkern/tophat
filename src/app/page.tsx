@@ -86,7 +86,7 @@ export default function Home() {
             planName: apiPlan.planName,
             planType: apiPlan.planType,
             lastUpdated: parseTimestamp(apiPlan.lastUpdated),
-            details: apiPlan.formData
+            details: apiPlan.details || apiPlan.formData || {}
           } as Plan));
 
           setPlans(transformedPlans);
