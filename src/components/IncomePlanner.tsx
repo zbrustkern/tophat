@@ -5,6 +5,7 @@ import { IncomePlan } from '@/types/chart';
 import { IncomeChartData } from '@/types/chart';
 import { useIncomeCalculations } from '@/hooks/usePlanCalculations';
 import { usePlanManagement } from '@/hooks/usePlanManagement';
+import { usePlans } from '@/contexts/PlansContext';
 import { IncomeChart } from "@/components/IncomeChart";
 import { Button } from "@/components/ui/button";
 import { FormField, PlanNameField } from "@/components/PlanFormElements";
@@ -44,7 +45,12 @@ export default function IncomePlanner({
   const [isDirty, setIsDirty] = useState(false)
   const { user } = useAuth();
   const router = useRouter();
+  const { plans } = usePlans();
   const [plan, setPlan] = useState<IncomePlan>(() => {
+    if (planId) {
+      const existing = plans.find(p => p.id === planId);
+      if (existing && existing.planType === 'income') return existing as IncomePlan;
+    }
     if (initialBalance !== undefined || initialReturnRate !== undefined) {
       return {
         ...defaultPlan,

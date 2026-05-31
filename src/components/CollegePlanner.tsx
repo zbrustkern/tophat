@@ -5,6 +5,7 @@ import { CollegePlan } from '@/types/chart';
 import { CollegeChartData } from '@/types/chart';
 import { useCollegeCalculations } from '@/hooks/usePlanCalculations';
 import { usePlanManagement } from '@/hooks/usePlanManagement';
+import { usePlans } from '@/contexts/PlansContext';
 import { CollegeChart } from "@/components/CollegeChart";
 import { Button } from "@/components/ui/button";
 import { FormField, PlanNameField } from "@/components/PlanFormElements";
@@ -36,7 +37,14 @@ const defaultPlan: CollegePlan = {
 export default function CollegePlanner({ planId }: { planId: string | null }) {
   const { user } = useAuth();
   const router = useRouter();
-  const [plan, setPlan] = useState<CollegePlan>(defaultPlan);
+  const { plans } = usePlans();
+  const [plan, setPlan] = useState<CollegePlan>(() => {
+    if (planId) {
+      const existing = plans.find(p => p.id === planId);
+      if (existing && existing.planType === 'college') return existing as CollegePlan;
+    }
+    return defaultPlan;
+  });
   const [chartData, setChartData] = useState<CollegeChartData[]>([]);
   const [calculatedValue, setCalculatedValue] = useState<number | null>(null);
   const { calculateCollegeData } = useCollegeCalculations();

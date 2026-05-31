@@ -43,7 +43,12 @@ export default function SavingsPlanner({
 }) {
   const { user } = useAuth();
   const router = useRouter();
+  const { plans } = usePlans();
   const [plan, setPlan] = useState<SavingsPlan>(() => {
+    if (planId) {
+      const existing = plans.find(p => p.id === planId);
+      if (existing && existing.planType === 'savings') return existing as SavingsPlan;
+    }
     if (initialBalance !== undefined || initialReturnRate !== undefined) {
       return {
         ...defaultPlan,
