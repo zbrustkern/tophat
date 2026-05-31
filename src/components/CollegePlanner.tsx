@@ -51,6 +51,22 @@ export default function CollegePlanner({ planId }: { planId: string | null }) {
   const { loading, error, savePlan } = usePlanManagement<CollegePlan>();
   const [isDirty, setIsDirty] = useState(false);
 
+  useEffect(() => {
+    if (planId && plans.length > 0) {
+      const existing = plans.find(p => p.id === planId);
+      if (existing && existing.planType === 'college') {
+        setPlan(existing as CollegePlan);
+        const result = calculateCollegeData(existing as CollegePlan);
+        setChartData(result.chartData);
+        if (existing.details.calculationMode === 'goal') {
+          setCalculatedValue(result.finalTargetAmount);
+        } else {
+          setCalculatedValue(result.calculatedMonthlyContribution);
+        }
+      }
+    }
+  }, [planId, plans, calculateCollegeData]);
+
   const handleChange = (evt: React.ChangeEvent<HTMLInputElement>) => {
     setIsDirty(true);
     const { name, value } = evt.target;

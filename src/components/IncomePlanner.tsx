@@ -71,6 +71,16 @@ export default function IncomePlanner({
   const { calculateIncomeData } = useIncomeCalculations();
   const { loading, error, savePlan } = usePlanManagement<IncomePlan>();
 
+  useEffect(() => {
+    if (planId && plans.length > 0) {
+      const existing = plans.find(p => p.id === planId);
+      if (existing && existing.planType === 'income') {
+        setPlan(existing as IncomePlan);
+        setChartData(calculateIncomeData(existing as IncomePlan));
+      }
+    }
+  }, [planId, plans, calculateIncomeData]);
+
   const handleChange = (evt: React.ChangeEvent<HTMLInputElement>) => {
     setIsDirty(true)
     const { name, value } = evt.target;
