@@ -77,8 +77,8 @@ export function usePlanManagement<T extends Plan>() {
       setLoading(false);
     }
   }, []);
-  }, []);
 
+  return {
     loading,
     error,
     savePlan,
