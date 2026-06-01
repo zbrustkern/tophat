@@ -60,10 +60,29 @@ export function usePlanManagement<T extends Plan>() {
     }
   }, []);
 
-  return {
+  const takeSnapshot = useCallback(async (planId: string): Promise<void> => {
+    setLoading(true);
+    setError(null);
+    try {
+      const functions = getFunctions();
+      const snapshotFunction = httpsCallable(functions, 'take_snapshot');
+      const result = await snapshotFunction({ planId });
+      const data = result.data as { success: boolean };
+      if (!data.success) throw new Error('Failed to take snapshot');
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Failed to take snapshot';
+      setError(message);
+      throw err;
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+  }, []);
+
     loading,
     error,
     savePlan,
-    deletePlan
+    deletePlan,
+    takeSnapshot
   };
 }

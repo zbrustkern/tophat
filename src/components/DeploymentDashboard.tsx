@@ -17,7 +17,8 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Trash2, Plus } from "lucide-react";
+import { Trash2, Plus, RefreshCw, Camera } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
 
 const defaultPlan: RebalancePlan = {
   id: 'new',
@@ -41,7 +42,9 @@ export default function DeploymentDashboard({ planId }: { planId?: string | null
   const { user } = useAuth();
   const router = useRouter();
   const { plans } = usePlans();
-  const { loading: saving, error, savePlan } = usePlanManagement<RebalancePlan>();
+  const { loading: saving, error, savePlan, takeSnapshot } = usePlanManagement<RebalancePlan>();
+  const { toast } = useToast();
+  const [isSnapshotting, setIsSnapshotting] = useState(false);
   
   const [plan, setPlan] = useState<RebalancePlan>(() => {
     if (planId) {
@@ -55,6 +58,42 @@ export default function DeploymentDashboard({ planId }: { planId?: string | null
   const [isDirty, setIsDirty] = useState(false);
   const [results, setResults] = useState(calculateRebalanceData(plan));
   const [hydratedPlanId, setHydratedPlanId] = useState<string | null>(null);
+  const [isRefreshing, setIsRefreshing] = useState(false);
+
+  const refreshPrices = async () => {
+    if (!plan.details.assets || plan.details.assets.length === 0) return;
+    
+    setIsRefreshing(true);
+    setIsDirty(true);
+    
+    try {
+      const updatedAssets = await Promise.all(
+        plan.details.assets.map(async (asset) => {
+          if (asset.type !== 'equity' || !asset.symbol) return asset;
+          
+          try {
+            const res = await fetch(`/api/quote?symbol=${asset.symbol}`);
+            if (!res.ok) return asset;
+            const data = await res.json();
+            if (data && typeof data.price === 'number') {
+              return { ...asset, price: data.price };
+            }
+          } catch (e) {
+            console.error(`Failed to fetch price for ${asset.symbol}`, e);
+          }
+          return asset;
+        })
+      );
+      
+      setPlan(prev => ({
+        ...prev,
+        details: { ...prev.details, assets: updatedAssets }
+      }));
+    } finally {
+      setIsRefreshing(false);
+      toast({ title: "Prices Refreshed", description: "Live market prices have been applied to your assets." });
+    }
+  };
 
   useEffect(() => {
     if (planId && planId !== hydratedPlanId && plans.length > 0) {
@@ -123,20 +162,58 @@ export default function DeploymentDashboard({ planId }: { planId?: string | null
 
   const handleSave = async () => {
     if (!user) {
-      alert("Please sign in to save your plan");
+      toast({ title: "Authentication Required", description: "Please sign in to save your plan.", variant: "destructive" });
       return;
     }
     try {
       const savedPlan = await savePlan(plan);
       setPlan(savedPlan);
       setIsDirty(false);
+      toast({ title: "Plan Saved", description: "Your changes have been saved successfully." });
       if (plan.id === 'new') {
         router.push(`/tactical-allocation?plan=${savedPlan.id}`);
       }
     } catch (e) {
       console.error("Failed to save:", e);
+      toast({ title: "Error", description: "Failed to save plan.", variant: "destructive" });
     }
   };
+
+  const handleSnapshot = async () => {
+    if (!plan.id || plan.id === 'new') {
+      toast({ title: "Error", description: "You must save the plan before taking a snapshot.", variant: "destructive" });
+      return;
+    }
+    setIsSnapshotting(true);
+    try {
+      if (takeSnapshot) {
+        await takeSnapshot(plan.id);
+        toast({ title: "Snapshot Saved", description: "Your portfolio history has been permanently recorded for today." });
+      }
+    } catch (e) {
+      toast({ title: "Error", description: "Failed to save snapshot.", variant: "destructive" });
+    } finally {
+      setIsSnapshotting(false);
+    }
+  };
+
+  if (planId && planId !== 'new' && hydratedPlanId !== planId) {
+    return (
+      <main className="flex flex-col gap-6 animate-pulse">
+        <div className="m-1">
+          <Card className="bg-white shadow-sm border-none p-6">
+            <div className="h-8 w-64 bg-slate-200 rounded mb-4"></div>
+            <div className="h-4 w-96 bg-slate-200 rounded mb-8"></div>
+            <div className="grid grid-cols-3 gap-4">
+              <div className="h-20 bg-slate-100 rounded"></div>
+              <div className="h-20 bg-slate-100 rounded"></div>
+              <div className="h-20 bg-slate-100 rounded"></div>
+            </div>
+          </Card>
+        </div>
+      </main>
+    );
+  }
 
   return (
     <main className="flex flex-col gap-6">
@@ -158,6 +235,13 @@ export default function DeploymentDashboard({ planId }: { planId?: string | null
                 <h3 className="text-lg font-semibold text-gray-700 mb-2 border-b pb-2">Global Parameters</h3>
               </div>
 
+              <FormField
+                label="Starting Portfolio Value ($) - on Start Date"
+                name="initialPrincipal"
+                value={plan.details.initialPrincipal}
+                onChange={handleChange}
+                placeholder="100000"
+              />
               <FormField
                 label="Monthly Contribution ($)"
                 name="monthlyContribution"
@@ -197,9 +281,14 @@ export default function DeploymentDashboard({ planId }: { planId?: string | null
             <div className="space-y-4">
               <div className="flex justify-between items-end border-b pb-2">
                 <h3 className="text-lg font-semibold text-gray-700">Current Asset Holdings</h3>
-                <Button variant="outline" size="sm" onClick={addAsset} className="flex items-center gap-1">
-                  <Plus className="w-4 h-4" /> Add Asset
-                </Button>
+                <div className="flex gap-2">
+                  <Button variant="outline" size="sm" onClick={refreshPrices} disabled={isRefreshing} className="flex items-center gap-1 text-teal-600 border-teal-200 hover:bg-teal-50">
+                    <RefreshCw className={`w-4 h-4 ${isRefreshing ? 'animate-spin' : ''}`} /> Refresh Live Prices
+                  </Button>
+                  <Button variant="outline" size="sm" onClick={addAsset} className="flex items-center gap-1">
+                    <Plus className="w-4 h-4" /> Add Asset
+                  </Button>
+                </div>
               </div>
               <p className="text-sm text-gray-500">Break out your current equity and cash. If you input assets here, they override the manual flat inputs below.</p>
               <div className="bg-blue-50 border border-blue-100 rounded-md p-3 mt-2">
@@ -271,9 +360,20 @@ export default function DeploymentDashboard({ planId }: { planId?: string | null
               >
                 {isDirty ? "Recalculate Model" : "Model Updated"}
               </Button>
-              <Button onClick={handleSave} disabled={saving}>
-                {saving ? "Saving..." : (plan.id === 'new' ? 'Save Plan' : 'Update Plan')}
-              </Button>
+              <div className="flex gap-2">
+                <Button 
+                  onClick={handleSnapshot} 
+                  disabled={isSnapshotting || isDirty || plan.id === 'new'} 
+                  variant="outline"
+                  className="border-indigo-200 text-indigo-700 hover:bg-indigo-50 flex items-center gap-2"
+                >
+                  <Camera className={`w-4 h-4 ${isSnapshotting ? 'animate-pulse' : ''}`} />
+                  {isSnapshotting ? "Saving Snapshot..." : "Save Snapshot"}
+                </Button>
+                <Button onClick={handleSave} disabled={saving}>
+                  {saving ? "Saving..." : (plan.id === 'new' ? 'Save Plan' : 'Update Plan')}
+                </Button>
+              </div>
             </div>
             {error && <p className="text-red-500 text-sm mt-2">{error}</p>}
           </CardFooter>
