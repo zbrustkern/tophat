@@ -19,6 +19,7 @@ import {
 } from "@/components/ui/card";
 import { Trash2, Plus, RefreshCw, Camera } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { getFunctions, httpsCallable } from "firebase/functions";
 
 const defaultPlan: RebalancePlan = {
   id: 'new',
@@ -72,10 +73,12 @@ export default function DeploymentDashboard({ planId }: { planId?: string | null
           if (asset.type !== 'equity' || !asset.symbol) return asset;
           
           try {
-            const res = await fetch(`/api/quote?symbol=${asset.symbol}`);
-            if (!res.ok) return asset;
-            const data = await res.json();
-            if (data && typeof data.price === 'number') {
+            const functions = getFunctions();
+            const fetchQuote = httpsCallable(functions, 'fetch_quote');
+            const result = await fetchQuote({ symbol: asset.symbol });
+            const data = result.data as { success: boolean; price?: number };
+            
+            if (data && data.success && typeof data.price === 'number') {
               return { ...asset, price: data.price };
             }
           } catch (e) {
