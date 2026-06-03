@@ -20,6 +20,7 @@ import {
 import { Trash2, Plus, RefreshCw, Camera } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { getFunctions, httpsCallable } from "firebase/functions";
+import { HistoryTracker } from "./HistoryTracker";
 
 const defaultPlan: RebalancePlan = {
   id: 'new',
@@ -456,6 +457,8 @@ export default function DeploymentDashboard({ planId }: { planId?: string | null
           </CardContent>
         </Card>
       </div>
+
+      <HistoryTracker planId={plan.id} />
     </main>
   );
 }
