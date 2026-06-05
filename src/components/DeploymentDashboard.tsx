@@ -69,13 +69,19 @@ export default function DeploymentDashboard({ planId }: { planId?: string | null
     setIsDirty(true);
     
     try {
+      const functions = getFunctions();
+      const fetchQuote = httpsCallable(functions, 'fetch_quote');
+      
+      const vixPromise = fetchQuote({ symbol: '^VIX' }).catch(e => {
+        console.error('Failed to fetch VIX', e);
+        return null;
+      });
+
       const updatedAssets = await Promise.all(
         plan.details.assets.map(async (asset) => {
           if (asset.type !== 'equity' || !asset.symbol) return asset;
           
           try {
-            const functions = getFunctions();
-            const fetchQuote = httpsCallable(functions, 'fetch_quote');
             const result = await fetchQuote({ symbol: asset.symbol });
             const data = result.data as { success: boolean; price?: number };
             
@@ -89,13 +95,19 @@ export default function DeploymentDashboard({ planId }: { planId?: string | null
         })
       );
       
+      const vixResult = await vixPromise;
+      const vixData = vixResult?.data as { success: boolean; price?: number } | undefined;
+      const newVix = (vixData && vixData.success && typeof vixData.price === 'number') 
+        ? vixData.price 
+        : plan.details.mockVix;
+      
       setPlan(prev => ({
         ...prev,
-        details: { ...prev.details, assets: updatedAssets }
+        details: { ...prev.details, assets: updatedAssets, mockVix: newVix }
       }));
     } finally {
       setIsRefreshing(false);
-      toast({ title: "Prices Refreshed", description: "Live market prices have been applied to your assets." });
+      toast({ title: "Prices Refreshed", description: "Live market prices & VIX have been applied." });
     }
   };
 
