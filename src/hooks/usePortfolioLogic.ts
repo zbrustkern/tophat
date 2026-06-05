@@ -1,8 +1,8 @@
-import { RebalancePlan } from '@/types/chart';
+import { RebalancePlan, Asset } from '@/types/chart';
 
 export interface PortfolioCalculations {
-  targetValue: number;
-  investmentGap: number;
+  targetValue: number; // Deprecated rigid target, returning actual for chart continuity
+  investmentGap: number; // This will now represent total equity gap
   recommendation: {
     action: string;
     strategy: string;
@@ -12,6 +12,9 @@ export interface PortfolioCalculations {
   computedCash: number;
   computedEquity: number;
   computedMonths: number;
+  targetCashPercentage: number;
+  priorityAsset: Asset | null;
+  priorityGap: number;
 }
 
 export function usePortfolioLogic() {
@@ -33,7 +36,6 @@ export function usePortfolioLogic() {
     if (startDate) {
       const start = new Date(startDate);
       const now = new Date();
-      // approximate months difference
       const diffMonths = (now.getFullYear() - start.getFullYear()) * 12 + (now.getMonth() - start.getMonth());
       computedMonths = diffMonths > 0 ? diffMonths : 0;
     }
@@ -48,96 +50,137 @@ export function usePortfolioLogic() {
 
     const actualPortfolioValue = computedCash + computedEquity;
 
-    let activeInitialPrincipal = initialPrincipal;
-    if (computedMonths === 0) {
-      activeInitialPrincipal = actualPortfolioValue;
-    }
-
-    // 1. Calculate Target Value (V_t)
-    const monthlyRate = targetAnnualReturn; 
-    const rM = monthlyRate / 12;
+    // Macro Allocation: VIX-driven Cash vs Equity Target
+    // Formula: Target Cash % = 0.40 - ((VIX - 15) * 0.02). Bounded 5% to 40%.
+    let targetCashPercentage = 0.40 - ((mockVix - 15) * 0.02);
+    if (targetCashPercentage < 0.05) targetCashPercentage = 0.05;
+    if (targetCashPercentage > 0.40) targetCashPercentage = 0.40;
     
-    const fvPrincipal = activeInitialPrincipal * Math.pow(1 + rM, computedMonths);
-    const fvContributions = monthlyContribution * ((Math.pow(1 + rM, computedMonths) - 1) / (rM || 1));
+    const targetEquityPercentage = 1 - targetCashPercentage;
+    const targetEquityValue = actualPortfolioValue * targetEquityPercentage;
     
-    const targetValue = rM === 0 
-      ? activeInitialPrincipal + (monthlyContribution * computedMonths) 
-      : fvPrincipal + fvContributions;
+    // Total Equity Gap
+    const investmentGap = targetEquityValue - computedEquity;
 
-    // 2. The Investment Gap
-    const investmentGap = targetValue - actualPortfolioValue;
-
-    // 3. Volatility Overlay (VIX)
-    let adjustedContribution = monthlyContribution;
-    if (mockVix > 25) {
-      adjustedContribution = monthlyContribution * 1.5; 
-    }
-
-    // VIX Recommendation string
-    const vixMsg = `With VIX at ${mockVix}, what's today's price of SPY or the index directly? Consider checking index prices to inform your next trade.`;
-
-    // 4. Asset Drift Calculation (Sub-Allocation)
+    // Micro Allocation: Asset-level VIX routing
+    const equityAssets = assets.filter(a => a.type === 'equity');
     let driftMsg = '';
-    const equityAssets = assets.filter(a => a.type === 'equity' && typeof a.targetAllocation === 'number');
-    
-    if (investmentGap > 0 && equityAssets.length > 0) {
-      const targetEquityValue = computedEquity + investmentGap;
-      let maxDriftAsset: any = null;
-      let maxDriftValue = -Infinity;
+    let priorityAsset: Asset | null = null;
+    let priorityGap = 0;
 
-      equityAssets.forEach(asset => {
-        const targetDollarValue = targetEquityValue * (asset.targetAllocation || 0);
-        const currentValue = asset.shares * asset.price;
-        const drift = targetDollarValue - currentValue;
+    if (equityAssets.length > 0) {
+      // Determine baseline buckets based on VIX
+      let coreTarget = 0.6; let growthTarget = 0.25; let specTarget = 0.15;
+      if (mockVix < 15) { coreTarget = 0.7; growthTarget = 0.2; specTarget = 0.1; }
+      else if (mockVix > 25) { coreTarget = 0.4; growthTarget = 0.35; specTarget = 0.25; }
+      else if (mockVix > 20) { coreTarget = 0.5; growthTarget = 0.3; specTarget = 0.2; }
+
+      const cores = equityAssets.filter(a => (a.riskTier || 'core') === 'core');
+      const growths = equityAssets.filter(a => a.riskTier === 'growth');
+      const specs = equityAssets.filter(a => a.riskTier === 'speculative');
+
+      let totalCoreT = cores.length > 0 ? coreTarget : 0;
+      let totalGrowthT = growths.length > 0 ? growthTarget : 0;
+      let totalSpecT = specs.length > 0 ? specTarget : 0;
+      const sumT = totalCoreT + totalGrowthT + totalSpecT || 1;
+
+      totalCoreT /= sumT;
+      totalGrowthT /= sumT;
+      totalSpecT /= sumT;
+
+      let maxBuyGap = -Infinity;
+      let maxSellGap = -Infinity; // For negative gaps
+      let maxBuyAsset: Asset | null = null;
+      let maxSellAsset: Asset | null = null;
+
+      for (const a of equityAssets) {
+        const tier = a.riskTier || 'core';
+        let computedPct = 0;
+        if (tier === 'core') computedPct = totalCoreT / cores.length;
+        if (tier === 'growth') computedPct = totalGrowthT / growths.length;
+        if (tier === 'speculative') computedPct = totalSpecT / specs.length;
+
+        const finalPct = typeof a.targetAllocation === 'number' && !isNaN(a.targetAllocation) 
+          ? a.targetAllocation 
+          : computedPct;
+
+        // Note: if user uses manual allocations, we don't strict normalize here, 
+        // we just apply the percentage to the target equity bucket.
+        const targetAssetDollarValue = targetEquityValue * finalPct;
+        const currentDollarValue = a.shares * a.price;
+        const gap = targetAssetDollarValue - currentDollarValue; // Positive = need to buy
         
-        if (drift > maxDriftValue) {
-          maxDriftValue = drift;
-          maxDriftAsset = asset;
+        if (gap > maxBuyGap) {
+          maxBuyGap = gap;
+          maxBuyAsset = a;
         }
-      });
+        // gap < 0 means we have too much, need to sell
+        const sellGap = -gap;
+        if (sellGap > maxSellGap) {
+          maxSellGap = sellGap;
+          maxSellAsset = a;
+        }
+      }
 
-      if (maxDriftAsset && maxDriftValue > 0) {
-        driftMsg = ` **Sub-Allocation Alert:** To deploy your cash gap, explicitly buy **$${Math.round(maxDriftValue).toLocaleString()} of ${maxDriftAsset.symbol.toUpperCase()}**. This is your most underweight asset and buying it will force mean-regression to your target sub-allocation.`;
+      if (investmentGap > 0 && maxBuyAsset && maxBuyGap > 0) {
+        priorityAsset = maxBuyAsset;
+        priorityGap = maxBuyGap;
+        const tier = maxBuyAsset.riskTier || 'core';
+        driftMsg = ` **Sub-Allocation Alert:** Deploy cash into **${maxBuyAsset.symbol.toUpperCase()}** (${tier}). It is currently $${Math.round(maxBuyGap).toLocaleString()} under its VIX-adjusted target weight.`;
+      } else if (investmentGap < 0 && maxSellAsset && maxSellGap > 0) {
+        priorityAsset = maxSellAsset;
+        priorityGap = maxSellGap;
+        const tier = maxSellAsset.riskTier || 'core';
+        driftMsg = ` **Sub-Allocation Alert:** Trim **${maxSellAsset.symbol.toUpperCase()}** (${tier}). It is currently $${Math.round(maxSellGap).toLocaleString()} over its VIX-adjusted target weight.`;
       }
     }
 
-    // 5. Risk Parity Triggers
+    // Recommendation Engine
+    let adjustedContribution = monthlyContribution;
+    if (mockVix > 25) adjustedContribution = monthlyContribution * 1.5; 
+
+    const vixMsg = `VIX is ${mockVix}, putting your Target Cash Allocation at ${Math.round(targetCashPercentage * 100)}%.`;
+
     let recommendation = {
-      action: "Hold",
+      action: "Hold / Accumulate Cash",
       strategy: "No Action",
-      description: `Portfolio is perfectly balanced. ${vixMsg}`
+      description: `Portfolio is well balanced. ${vixMsg}`
     };
 
-    const gapPercentage = targetValue === 0 ? 0 : investmentGap / targetValue;
+    // If equity gap is small relative to portfolio (< 1% of portfolio)
+    const gapPercentage = Math.abs(investmentGap) / (actualPortfolioValue || 1);
 
-    if (Math.abs(gapPercentage) <= 0.01 || computedMonths === 0) {
+    if (gapPercentage <= 0.01) {
       recommendation = {
-        action: "Hold / Drift",
+        action: "Hold / Accumulate Cash",
         strategy: "No Action",
-        description: `Portfolio is tracking perfectly (within 1% deadband). ${vixMsg}`
+        description: `Portfolio is tracking perfectly to its Volatility-Targeted allocation (within 1% deadband). ${vixMsg}`
       };
     } else if (investmentGap > 0) {
       recommendation = {
-        action: "Accelerated Entry",
+        action: "Deploy Cash (Buy Dip)",
         strategy: "Index Funds / CSPs",
-        description: `Deploy excess cash into core index funds to capture the dip.${driftMsg} Alternatively, use the Live Options Scanner below to find a Cash-Secured Put that mathematically fits your available cash ($${computedCash.toLocaleString()}) without breaking risk parity. You are under target by $${investmentGap.toFixed(2)}. ${vixMsg}`
+        description: `You are under-invested in equities based on current volatility. ${driftMsg} Alternatively, use the Live Options Scanner to sell a Cash-Secured Put on the priority asset without locking up your entire reserve. You are $${investmentGap.toFixed(2)} under equity target. ${vixMsg}`
       };
     } else if (investmentGap < 0) {
       recommendation = {
-        action: "Risk Off / Trim",
-        strategy: "Covered Calls / Treasuries",
-        description: `You are significantly ahead of target. Trim overweight equities and allocate to short-term treasuries (e.g., SGOV, BIL). Alternatively, sell Covered Calls targeting 30-45 DTE at a 10-20 Delta strike to harvest premium safely. You are over target by $${Math.abs(investmentGap).toFixed(2)}. ${vixMsg}`
+        action: "Risk Off (Build Cash)",
+        strategy: "Covered Calls / Trims",
+        description: `You are over-allocated to equities based on current market complacency. ${driftMsg} Trim overweight equities to build cash, or sell Covered Calls. You are $${Math.abs(investmentGap).toFixed(2)} over equity target. ${vixMsg}`
       };
     }
 
     return {
-      targetValue,
+      targetValue: actualPortfolioValue, // Deprecated rigid target, returning actual for chart continuity
       investmentGap,
       recommendation,
       adjustedContribution,
       computedCash,
       computedEquity,
-      computedMonths
+      computedMonths,
+      targetCashPercentage,
+      priorityAsset,
+      priorityGap
     };
   };
 

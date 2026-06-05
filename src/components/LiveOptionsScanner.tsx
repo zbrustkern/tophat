@@ -1,12 +1,15 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { getFunctions, httpsCallable } from 'firebase/functions';
+import { Asset } from '@/types/chart';
 
 interface LiveOptionsScannerProps {
   availableCash: number;
+  priorityAsset?: Asset | null;
+  priorityGap?: number;
 }
 
 interface OptionData {
@@ -22,11 +25,28 @@ interface ExpirationData {
   puts: OptionData[];
 }
 
-export function LiveOptionsScanner({ availableCash }: LiveOptionsScannerProps) {
+export function LiveOptionsScanner({ availableCash, priorityAsset, priorityGap }: LiveOptionsScannerProps) {
   const [symbol, setSymbol] = useState('SPY');
+  const [maxCapitalToDeploy, setMaxCapitalToDeploy] = useState<number>(10000);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [data, setData] = useState<{ currentPrice: number, expirations: ExpirationData[] } | null>(null);
+
+  useEffect(() => {
+    if (priorityAsset?.symbol) {
+      setSymbol(priorityAsset.symbol.toUpperCase());
+    }
+  }, [priorityAsset]);
+
+  useEffect(() => {
+    if (priorityGap && priorityGap > 0) {
+      // Suggest a max capital chunk based on the gap, but don't let it exceed available cash or user preference
+      // 10000 is a good default "slug"
+      setMaxCapitalToDeploy(Math.floor(Math.min(priorityGap, availableCash, 10000)));
+    } else {
+      setMaxCapitalToDeploy(Math.floor(Math.min(availableCash, 10000)));
+    }
+  }, [priorityGap, availableCash]);
 
   const handleScan = async () => {
     setLoading(true);
@@ -59,8 +79,14 @@ export function LiveOptionsScanner({ availableCash }: LiveOptionsScannerProps) {
     // The backend returns the first 3 expirations. Let's just pick the last one (furthest DTE).
     const expData = data.expirations[data.expirations.length - 1];
     
-    // Filter options where Strike * 100 <= Available Cash
-    const affordablePuts = expData.puts.filter(p => (p.strike * 100) <= availableCash);
+    // Filter options where Strike * 100 <= maxCapitalToDeploy AND Yield > 5%
+    const affordablePuts = expData.puts.filter(p => {
+      if ((p.strike * 100) > maxCapitalToDeploy) return false;
+      const dte = Math.max(1, (new Date(expData.expiration).getTime() - Date.now()) / (1000 * 3600 * 24));
+      const annualizedYield = (p.lastPrice / p.strike) * (365 / dte);
+      if (annualizedYield < 0.05) return false; // 5% minimum
+      return true;
+    });
     
     if (affordablePuts.length > 0) {
       // Sort by strike descending to get the one closest to the money that we can afford
@@ -83,13 +109,17 @@ export function LiveOptionsScanner({ availableCash }: LiveOptionsScannerProps) {
         <CardTitle className="text-lg text-indigo-900 flex items-center gap-2">
           <span>🎯</span> Live Options Scanner
         </CardTitle>
-        <p className="text-sm text-indigo-700">Find a Cash-Secured Put that strictly fits your ${availableCash.toLocaleString()} capital constraint.</p>
+        <p className="text-sm text-indigo-700">Find a Cash-Secured Put that mathematically fits your desired capital deployment chunk while yielding &gt;5% annualized.</p>
       </CardHeader>
       <CardContent className="pt-6 space-y-4">
         <div className="flex items-end gap-4">
           <div className="space-y-2 flex-1">
-            <Label>Underlying Ticker</Label>
-            <Input value={symbol} onChange={e => setSymbol(e.target.value)} placeholder="e.g. SPY, QQQ, SPLG" />
+            <Label>Target Ticker</Label>
+            <Input value={symbol} onChange={e => setSymbol(e.target.value)} placeholder="e.g. SPY, QQQ, ARKK" />
+          </div>
+          <div className="space-y-2 flex-1">
+            <Label>Max Capital to Deploy ($)</Label>
+            <Input type="number" value={maxCapitalToDeploy} onChange={e => setMaxCapitalToDeploy(Number(e.target.value))} />
           </div>
           <Button onClick={handleScan} disabled={loading} className="bg-indigo-600 hover:bg-indigo-700">
             {loading ? "Scanning..." : "Scan Options"}
@@ -105,23 +135,24 @@ export function LiveOptionsScanner({ availableCash }: LiveOptionsScannerProps) {
             {recommendation ? (
               <div className="space-y-2">
                 <h4 className="font-bold text-emerald-700">✅ Recommended Trade Found</h4>
-                <p className="text-sm">Based on your absolute cash constraint of ${availableCash.toLocaleString()}, we recommend:</p>
+                <p className="text-sm">Based on your max capital limit of ${maxCapitalToDeploy.toLocaleString()} and minimum 5% yield, we recommend:</p>
                 <div className="bg-white p-4 rounded border shadow-sm my-2 font-mono text-sm">
                   <p><strong>Action:</strong> Sell to Open 1 Contract</p>
                   <p><strong>Symbol:</strong> {recommendation.option.contractSymbol}</p>
                   <p><strong>Expiration:</strong> {recommendation.exp}</p>
                   <p><strong>Strike:</strong> ${recommendation.option.strike.toFixed(2)}</p>
                   <p><strong>Premium (Limit):</strong> ${(recommendation.option.lastPrice).toFixed(2)}</p>
+                  <p><strong>Annualized Yield:</strong> {((recommendation.option.lastPrice / recommendation.option.strike) * (365 / Math.max(1, (new Date(recommendation.exp).getTime() - Date.now()) / (1000 * 3600 * 24))) * 100).toFixed(1)}%</p>
                 </div>
                 <p className="text-sm text-slate-600">
-                  This trade strictly caps your risk at <strong>${(recommendation.option.strike * 100).toLocaleString()}</strong> in cash-collateral, leaving you with ${ (availableCash - (recommendation.option.strike * 100)).toLocaleString() } in reserve. You will instantly collect <strong>${(recommendation.option.lastPrice * 100).toLocaleString()}</strong> in premium.
+                  This trade strictly caps your risk at <strong>${(recommendation.option.strike * 100).toLocaleString()}</strong> in cash-collateral (well within your ${maxCapitalToDeploy.toLocaleString()} limit), leaving you with ${ (availableCash - (recommendation.option.strike * 100)).toLocaleString() } in reserve. You will instantly collect <strong>${(recommendation.option.lastPrice * 100).toLocaleString()}</strong> in premium.
                 </p>
               </div>
             ) : (
               <div className="space-y-2 text-amber-800 bg-amber-50 p-4 rounded border border-amber-200">
-                <h4 className="font-bold flex items-center gap-2"><span>⚠️</span> Capital Constraint Exceeded</h4>
-                <p className="text-sm">You only have ${availableCash.toLocaleString()} in cash. The lowest available strike for {symbol.toUpperCase()} requires more capital than you have, breaking risk parity rules.</p>
-                <p className="text-sm font-medium mt-2">Suggestion: Switch to a lower-priced ETF like SPLG (for S&P 500) or QQQM (for Nasdaq) and scan again.</p>
+                <h4 className="font-bold flex items-center gap-2"><span>⚠️</span> No Suitable Trades Found</h4>
+                <p className="text-sm">We couldn&apos;t find a Put option for {symbol.toUpperCase()} that fits under your ${maxCapitalToDeploy.toLocaleString()} capital limit while also meeting the &gt;5% annualized yield requirement.</p>
+                <p className="text-sm font-medium mt-2">Suggestion: Increase your max capital limit if you want to deploy more, or switch to a lower-priced ETF (like SPLG instead of SPY) and scan again.</p>
               </div>
             )}
           </div>

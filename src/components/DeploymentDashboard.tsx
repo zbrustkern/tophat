@@ -252,26 +252,11 @@ export default function DeploymentDashboard({ planId }: { planId?: string | null
               </div>
 
               <FormField
-                label="Starting Portfolio Value ($) - on Start Date"
-                name="initialPrincipal"
-                value={plan.details.initialPrincipal}
-                onChange={handleChange}
-                placeholder="100000"
-              />
-              <FormField
                 label="Monthly Contribution ($)"
                 name="monthlyContribution"
                 value={plan.details.monthlyContribution}
                 onChange={handleChange}
                 placeholder="2000"
-              />
-              <FormField
-                label="Target Annual Return (%) - e.g. 10% for S&P 500"
-                name="targetAnnualReturn"
-                value={plan.details.targetAnnualReturn}
-                onChange={handleChange}
-                placeholder="10"
-                isPercentage
               />
               <FormField
                 label="Today's VIX Index (^VIX) or VIXY ETF"
@@ -316,7 +301,7 @@ export default function DeploymentDashboard({ planId }: { planId?: string | null
               {plan.details.assets && plan.details.assets.length > 0 && (
                 <div className="space-y-3">
                   {plan.details.assets.map((asset) => (
-                    <div key={asset.id} className="grid grid-cols-6 gap-3 items-end bg-white p-3 rounded shadow-sm border">
+                    <div key={asset.id} className="grid grid-cols-7 gap-3 items-end bg-white p-3 rounded shadow-sm border">
                       <div className="flex flex-col gap-1">
                         <label className="text-xs font-semibold text-gray-600">Ticker</label>
                         <input type="text" value={asset.symbol} onChange={(e) => handleAssetChange(asset.id, 'symbol', e.target.value)} className="border p-2 rounded text-sm uppercase" placeholder="SPY" />
@@ -339,13 +324,29 @@ export default function DeploymentDashboard({ planId }: { planId?: string | null
                       <div className="flex flex-col gap-1">
                         {asset.type === 'equity' && (
                           <>
-                            <label className="text-xs font-semibold text-gray-600">Target %</label>
+                            <label className="text-xs font-semibold text-gray-600">Risk Tier</label>
+                            <select 
+                              value={asset.riskTier || 'core'} 
+                              onChange={(e) => handleAssetChange(asset.id, 'riskTier', e.target.value)} 
+                              className="border p-2 rounded text-sm bg-white"
+                            >
+                              <option value="core">Core</option>
+                              <option value="growth">Growth</option>
+                              <option value="speculative">Speculative</option>
+                            </select>
+                          </>
+                        )}
+                      </div>
+                      <div className="flex flex-col gap-1">
+                        {asset.type === 'equity' && (
+                          <>
+                            <label className="text-xs font-semibold text-gray-600">Target % (Opt)</label>
                             <input 
                               type="number" 
-                              value={asset.targetAllocation !== undefined ? Math.round(asset.targetAllocation * 100) : ''} 
-                              onChange={(e) => handleAssetChange(asset.id, 'targetAllocation', Number(e.target.value) / 100)} 
+                              value={asset.targetAllocation !== undefined && !isNaN(asset.targetAllocation) ? Math.round(asset.targetAllocation * 100) : ''} 
+                              onChange={(e) => handleAssetChange(asset.id, 'targetAllocation', e.target.value ? Number(e.target.value) / 100 : NaN)} 
                               className="border p-2 rounded text-sm" 
-                              placeholder="e.g. 50"
+                              placeholder="Auto"
                             />
                           </>
                         )}
@@ -444,7 +445,7 @@ export default function DeploymentDashboard({ planId }: { planId?: string | null
                   <p className="text-xs text-gray-400 mt-1">Cash: ${results.computedCash.toLocaleString()} | Equity: ${results.computedEquity.toLocaleString()}</p>
                 </div>
                 <div>
-                  <p className="text-sm text-gray-500 font-medium">Investment Gap</p>
+                  <p className="text-sm text-gray-500 font-medium">Equity Investment Gap</p>
                   <p className={`text-2xl font-bold ${results.investmentGap > 0 ? 'text-red-500' : 'text-emerald-500'}`}>
                     ${Math.abs(results.investmentGap).toLocaleString(undefined, { maximumFractionDigits: 2 })} {results.investmentGap > 0 ? '(Underperforming)' : '(Overperforming)'}
                   </p>
@@ -469,7 +470,11 @@ export default function DeploymentDashboard({ planId }: { planId?: string | null
               </div>
             </div>
 
-            <LiveOptionsScanner availableCash={results.computedCash} />
+            <LiveOptionsScanner 
+              availableCash={results.computedCash} 
+              priorityAsset={results.priorityAsset}
+              priorityGap={results.priorityGap}
+            />
 
             <div className="border-t pt-6 mt-6">
               <h3 className="text-lg font-bold text-gray-800 mb-2">Project Long-Term</h3>
