@@ -76,7 +76,32 @@ export function usePortfolioLogic() {
     // VIX Recommendation string
     const vixMsg = `With VIX at ${mockVix}, what's today's price of SPY or the index directly? Consider checking index prices to inform your next trade.`;
 
-    // 4. Risk Parity Triggers
+    // 4. Asset Drift Calculation (Sub-Allocation)
+    let driftMsg = '';
+    const equityAssets = assets.filter(a => a.type === 'equity' && typeof a.targetAllocation === 'number');
+    
+    if (investmentGap > 0 && equityAssets.length > 0) {
+      const targetEquityValue = computedEquity + investmentGap;
+      let maxDriftAsset: any = null;
+      let maxDriftValue = -Infinity;
+
+      equityAssets.forEach(asset => {
+        const targetDollarValue = targetEquityValue * (asset.targetAllocation || 0);
+        const currentValue = asset.shares * asset.price;
+        const drift = targetDollarValue - currentValue;
+        
+        if (drift > maxDriftValue) {
+          maxDriftValue = drift;
+          maxDriftAsset = asset;
+        }
+      });
+
+      if (maxDriftAsset && maxDriftValue > 0) {
+        driftMsg = ` **Sub-Allocation Alert:** To deploy your cash gap, explicitly buy **$${Math.round(maxDriftValue).toLocaleString()} of ${maxDriftAsset.symbol.toUpperCase()}**. This is your most underweight asset and buying it will force mean-regression to your target sub-allocation.`;
+      }
+    }
+
+    // 5. Risk Parity Triggers
     let recommendation = {
       action: "Hold",
       strategy: "No Action",
@@ -95,7 +120,7 @@ export function usePortfolioLogic() {
       recommendation = {
         action: "Accelerated Entry",
         strategy: "Index Funds / CSPs",
-        description: `Deploy excess cash into core index funds (e.g., FXAIX, SWPPX) to capture the dip. Alternatively, sell Cash-Secured Puts on SPY/QQQ targeting 30-45 Days to Expiration (DTE) at a roughly 30-Delta strike (meaning a ~30% chance of assignment). This pays you cash while you wait for a better entry. You are under target by $${investmentGap.toFixed(2)}. ${vixMsg}`
+        description: `Deploy excess cash into core index funds to capture the dip.${driftMsg} Alternatively, use the Live Options Scanner below to find a Cash-Secured Put that mathematically fits your available cash ($${computedCash.toLocaleString()}) without breaking risk parity. You are under target by $${investmentGap.toFixed(2)}. ${vixMsg}`
       };
     } else if (investmentGap < 0) {
       recommendation = {

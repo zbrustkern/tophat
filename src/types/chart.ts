@@ -93,6 +93,7 @@ export interface Asset {
   type: 'cash' | 'equity';
   price: number;
   shares: number;
+  targetAllocation?: number; // Target percentage of the total equity bucket (e.g. 0.5 for 50%)
 }
 
 // Rebalance Plan Types

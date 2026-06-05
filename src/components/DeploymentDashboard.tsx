@@ -21,7 +21,7 @@ import { Trash2, Plus, RefreshCw, Camera } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { getFunctions, httpsCallable } from "firebase/functions";
 import { HistoryTracker } from "./HistoryTracker";
-
+import { LiveOptionsScanner } from "./LiveOptionsScanner";
 const defaultPlan: RebalancePlan = {
   id: 'new',
   planName: 'Tactical Allocation Plan',
@@ -316,7 +316,7 @@ export default function DeploymentDashboard({ planId }: { planId?: string | null
               {plan.details.assets && plan.details.assets.length > 0 && (
                 <div className="space-y-3">
                   {plan.details.assets.map((asset) => (
-                    <div key={asset.id} className="grid grid-cols-5 gap-3 items-end bg-white p-3 rounded shadow-sm border">
+                    <div key={asset.id} className="grid grid-cols-6 gap-3 items-end bg-white p-3 rounded shadow-sm border">
                       <div className="flex flex-col gap-1">
                         <label className="text-xs font-semibold text-gray-600">Ticker</label>
                         <input type="text" value={asset.symbol} onChange={(e) => handleAssetChange(asset.id, 'symbol', e.target.value)} className="border p-2 rounded text-sm uppercase" placeholder="SPY" />
@@ -336,6 +336,20 @@ export default function DeploymentDashboard({ planId }: { planId?: string | null
                         <label className="text-xs font-semibold text-gray-600">Quantity</label>
                         <input type="number" value={asset.shares} onChange={(e) => handleAssetChange(asset.id, 'shares', Number(e.target.value))} className="border p-2 rounded text-sm" />
                       </div>
+                      <div className="flex flex-col gap-1">
+                        {asset.type === 'equity' && (
+                          <>
+                            <label className="text-xs font-semibold text-gray-600">Target %</label>
+                            <input 
+                              type="number" 
+                              value={asset.targetAllocation !== undefined ? Math.round(asset.targetAllocation * 100) : ''} 
+                              onChange={(e) => handleAssetChange(asset.id, 'targetAllocation', Number(e.target.value) / 100)} 
+                              className="border p-2 rounded text-sm" 
+                              placeholder="e.g. 50"
+                            />
+                          </>
+                        )}
+                      </div>
                       <div className="flex items-center pb-1">
                         <Button variant="ghost" size="icon" onClick={() => removeAsset(asset.id)} className="text-red-500 hover:text-red-700 hover:bg-red-50">
                           <Trash2 className="w-4 h-4" />
@@ -343,6 +357,18 @@ export default function DeploymentDashboard({ planId }: { planId?: string | null
                       </div>
                     </div>
                   ))}
+                  
+                  {(() => {
+                    const totalEquityAlloc = plan.details.assets.filter(a => a.type === 'equity').reduce((sum, a) => sum + (a.targetAllocation || 0), 0);
+                    if (totalEquityAlloc > 0 && Math.abs(totalEquityAlloc - 1.0) > 0.01) {
+                      return (
+                        <div className="text-xs text-red-500 font-semibold mt-1">
+                          Warning: Equity Target Allocations sum to {Math.round(totalEquityAlloc * 100)}% (should be 100%).
+                        </div>
+                      );
+                    }
+                    return null;
+                  })()}
                 </div>
               )}
 
@@ -442,6 +468,8 @@ export default function DeploymentDashboard({ planId }: { planId?: string | null
                 )}
               </div>
             </div>
+
+            <LiveOptionsScanner availableCash={results.computedCash} />
 
             <div className="border-t pt-6 mt-6">
               <h3 className="text-lg font-bold text-gray-800 mb-2">Project Long-Term</h3>
