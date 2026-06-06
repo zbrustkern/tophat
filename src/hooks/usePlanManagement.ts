@@ -17,7 +17,7 @@ export function usePlanManagement<T extends Plan>() {
 
     try {
       const isNew = plan.id === 'new';
-      const docRef = isNew ? doc(collection(db, 'plans')) : doc(db, 'plans', plan.id);
+      const docRef = isNew ? doc(collection(db, 'users', user.uid, 'plans')) : doc(db, 'users', user.uid, 'plans', plan.id);
       
       const planData = {
         planName: plan.planName,
@@ -50,7 +50,7 @@ export function usePlanManagement<T extends Plan>() {
     setError(null);
 
     try {
-      await deleteDoc(doc(db, 'plans', planId));
+      await deleteDoc(doc(db, 'users', user.uid, 'plans', planId));
     } catch (err) {
       console.error("Delete Error: ", err);
       const message = err instanceof Error ? err.message : 'Failed to delete plan';

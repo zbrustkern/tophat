@@ -21,7 +21,7 @@ export function useIncomePlan(initialPlanId: string | null = null) {
     setError(null);
 
     try {
-      const docRef = doc(collection(db, 'plans'));
+      const docRef = doc(collection(db, 'users', user.uid, 'plans'));
       const planData = {
         planName: newPlan.planName,
         planType: 'income',
@@ -54,7 +54,7 @@ export function useIncomePlan(initialPlanId: string | null = null) {
     setError(null);
   
     try {
-      const docRef = doc(db, 'plans', planToUpdate.id);
+      const docRef = doc(db, 'users', user.uid, 'plans', planToUpdate.id);
       const planData = {
         planName: planToUpdate.planName,
         planType: planToUpdate.planType,
@@ -86,7 +86,7 @@ export function useIncomePlan(initialPlanId: string | null = null) {
     setError(null);
 
     try {
-      await deleteDoc(doc(db, 'plans', planId));
+      await deleteDoc(doc(db, 'users', user.uid, 'plans', planId));
       setPlan(null);
     } catch (error) {
       console.error("Error deleting plan:", error);
@@ -103,7 +103,7 @@ export function useIncomePlan(initialPlanId: string | null = null) {
     setError(null);
 
     try {
-      const docSnap = await getDoc(doc(db, 'plans', planId));
+      const docSnap = await getDoc(doc(db, 'users', user.uid, 'plans', planId));
       if (docSnap.exists()) {
         const data = docSnap.data();
         const planData: IncomePlan = {

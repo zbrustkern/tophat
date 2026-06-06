@@ -31,12 +31,11 @@ export const PlansProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 
     setLoading(true);
     
-    // We assume the user creates plans and saves them to 'plans' collection with 'userId'
-    const q = query(collection(db, 'plans'), where('userId', '==', user.uid));
+    const q = collection(db, 'users', user.uid, 'plans');
     
-    const unsubscribe = onSnapshot(q, (snapshot) => {
-      const fetchedPlans = snapshot.docs.map(doc => {
-        const data = doc.data();
+    const unsubscribe = onSnapshot(q, async (snapshot) => {
+      const fetchedPlansPromises = snapshot.docs.map(async docSnapshot => {
+        const data = docSnapshot.data();
         // Handle timestamps appropriately
         let lastUpdated = new Date();
         if (data.lastUpdated) {
@@ -47,15 +46,33 @@ export const PlansProvider: React.FC<{ children: React.ReactNode }> = ({ childre
           }
         }
 
+        let details = data.details || data.formData;
+        
+        // Lazy Migration for old Python backend schema
+        if ((!details || Object.keys(details).length === 0) && data.planType) {
+          try {
+            const { getDoc, doc, setDoc } = await import('firebase/firestore');
+            const detailsDoc = await getDoc(doc(db!, 'users', user.uid, 'plans', docSnapshot.id, 'details', 'main'));
+            if (detailsDoc.exists()) {
+              details = detailsDoc.data();
+              // Save it to the main document so we don't need to migrate it again
+              await setDoc(doc(db!, 'users', user.uid, 'plans', docSnapshot.id), { details }, { merge: true });
+            }
+          } catch (e) {
+            console.error("Failed to migrate plan details for", docSnapshot.id, e);
+          }
+        }
+
         return {
-          id: doc.id,
-          planName: data.planName,
+          id: docSnapshot.id,
+          planName: data.planName || 'Untitled Plan',
           planType: data.planType,
           lastUpdated,
-          details: data.details || data.formData || {}
+          details: details || {}
         } as Plan;
       });
       
+      const fetchedPlans = await Promise.all(fetchedPlansPromises);
       setPlans(fetchedPlans);
       setLoading(false);
       setError(null);

@@ -9,6 +9,7 @@ import PlanPreview from '@/components/PlanPreview';
 import { useRouter } from 'next/navigation';
 import { Plan, PlanType } from '@/types/chart';
 import { usePlanManagement } from '@/hooks/usePlanManagement';
+import { usePlans } from '@/contexts/PlansContext';
 import {
   Card,
   CardContent,
@@ -39,81 +40,16 @@ interface APIResponse {
 export default function Home() {
   const { user } = useAuth();
   const router = useRouter();
-  const [plans, setPlans] = useState<Plan[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const { plans, loading, error } = usePlans();
   const { deletePlan } = usePlanManagement<Plan>();
 
   const handleDelete = async (planId: string) => {
     try {
       await deletePlan(planId);
-      setPlans(currentPlans => currentPlans.filter(p => p.id !== planId));
     } catch (err) {
       console.error('Failed to delete plan:', err);
-      // Optional: Add a toast notification here if desired
     }
   };
-
-  const parseTimestamp = (timestamp: string | FirebaseTimestamp | null): Date => {
-    try {
-      if (!timestamp) {
-        console.log('No timestamp provided, using current date');
-        return new Date();
-      }
-
-      if (typeof timestamp === 'string') {
-        console.log('Parsing string timestamp:', timestamp);
-        return new Date(timestamp);
-      }
-
-      if ('seconds' in timestamp) {
-        console.log('Converting Firebase timestamp:', timestamp);
-        return new Date(timestamp.seconds * 1000);
-      }
-
-      console.log('Unknown timestamp format:', timestamp);
-      return new Date();
-    } catch (err) {
-      console.error('Error parsing timestamp:', err);
-      return new Date();
-    }
-  };
-
-  useEffect(() => {
-    const loadPlans = async () => {
-      if (!user) {
-        setPlans([]);
-        setLoading(false);
-        return;
-      }
-
-      try {
-        const functions = getFunctions();
-        const listPlans = httpsCallable(functions, 'list_plans');
-        const result = await listPlans();
-        const data = result.data as APIResponse;
-        
-        if (data.success) {
-          const transformedPlans = data.plans.map(apiPlan => ({
-            id: apiPlan.id,
-            planName: apiPlan.planName,
-            planType: apiPlan.planType,
-            lastUpdated: parseTimestamp(apiPlan.lastUpdated),
-            details: apiPlan.details || apiPlan.formData || {}
-          } as Plan));
-
-          setPlans(transformedPlans);
-        }
-      } catch (err) {
-        console.error('Error loading plans:', err);
-        setError('Failed to load plans. Please try again later.');
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    loadPlans();
-  }, [user]);
 
   return (
       <main>
