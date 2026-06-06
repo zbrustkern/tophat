@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -8,8 +8,15 @@ import { Button } from "@/components/ui/button";
 import { useCardOptimization } from '@/hooks/useCardOptimization';
 import { MonthlySpend, Valuations, CreditCard, SpendCategory, CARD_DATABASE, AIRLINE_TIERS } from '@/types/optimization';
 
+import { useAuth } from '@/contexts/AuthContext';
+import { db } from '@/lib/firebase/clientApp';
+import { doc, getDoc, setDoc } from 'firebase/firestore';
+
 export default function CreditCardsPage() {
+  const { user } = useAuth();
   const [targetAirline, setTargetAirline] = useState<'united' | 'american'>('united');
+  const [isSaving, setIsSaving] = useState(false);
+  const [hasLoaded, setHasLoaded] = useState(false);
   
   // Base State
   const [spend, setSpend] = useState<MonthlySpend>({
@@ -70,6 +77,53 @@ export default function CreditCardsPage() {
     setNewCard({ ...newCard, name: 'New Card ' + (customCards.length + 1) });
   };
 
+  useEffect(() => {
+    async function loadProfile() {
+      if (!user) return;
+      try {
+        if (!db) return;
+        const docSnap = await getDoc(doc(db, 'wallets', user.uid));
+        if (docSnap.exists()) {
+          const data = docSnap.data();
+          if (data.spend) setSpend(data.spend);
+          if (data.valuations) setValuations(data.valuations);
+          if (data.currentWalletIds) setCurrentWalletIds(data.currentWalletIds);
+          if (data.customCards) setCustomCards(data.customCards);
+          if (data.targetCardId) setTargetCardId(data.targetCardId);
+          if (data.targetTierReq) setTargetTierReq(data.targetTierReq);
+          if (data.targetAirline) setTargetAirline(data.targetAirline);
+          if (data.organicStatus) setOrganicStatus(data.organicStatus);
+        }
+      } catch (e) {
+        console.error("Failed to load wallet profile:", e);
+      } finally {
+        setHasLoaded(true);
+      }
+    }
+    loadProfile();
+  }, [user]);
+
+  const saveProfile = async () => {
+    if (!user || !db) return;
+    setIsSaving(true);
+    try {
+      await setDoc(doc(db, 'wallets', user.uid), {
+        spend,
+        valuations,
+        currentWalletIds,
+        customCards,
+        targetCardId,
+        targetTierReq,
+        targetAirline,
+        organicStatus
+      });
+    } catch (e) {
+      console.error("Failed to save wallet profile:", e);
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
   const results = useCardOptimization(
     spend, 
     valuations, 
@@ -85,9 +139,16 @@ export default function CreditCardsPage() {
 
   return (
     <div className="container mx-auto p-4 sm:p-6 lg:p-8 space-y-8 mt-16 max-w-7xl">
-      <div>
-        <h1 className="text-3xl font-bold tracking-tight text-slate-900">Airline Status Opportunity Cost Engine</h1>
-        <p className="text-slate-500 mt-2 text-lg">Define your wallet. Evaluate a new card. See the true cost of hitting status.</p>
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div>
+          <h1 className="text-3xl font-bold tracking-tight text-slate-900">Airline Status Opportunity Cost Engine</h1>
+          <p className="text-slate-500 mt-2 text-lg">Define your wallet. Evaluate a new card. See the true cost of hitting status.</p>
+        </div>
+        {user && (
+          <Button onClick={saveProfile} disabled={isSaving || !hasLoaded} className="bg-slate-900 text-white shrink-0">
+            {isSaving ? "Saving..." : "Save Profile to Account"}
+          </Button>
+        )}
       </div>
 
       <div className="grid lg:grid-cols-12 gap-8">

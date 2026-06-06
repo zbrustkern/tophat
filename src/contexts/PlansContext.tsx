@@ -1,9 +1,10 @@
 'use client'
 
-import React, { createContext, useState, useEffect, useContext, useCallback } from 'react';
+import React, { createContext, useState, useEffect, useContext } from 'react';
 import { useAuth } from './AuthContext';
-import { getFunctions, httpsCallable } from 'firebase/functions';
-import { Plan, BasePlan } from '@/types/chart';
+import { db } from '@/lib/firebase/clientApp';
+import { collection, query, where, onSnapshot } from 'firebase/firestore';
+import { Plan } from '@/types/chart';
 
 interface PlansContextType {
   plans: Plan[];
@@ -20,48 +21,58 @@ export const PlansProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const fetchPlans = useCallback(async () => {
-    if (!user) return;
-
-    setLoading(true);
-    setError(null);
-
-    const functions = getFunctions();
-    const listPlans = httpsCallable(functions, 'list_plans');
-
-    try {
-      const result = await listPlans();
-      const response = result.data as { success: boolean; plans: any[] };
-      if (response.success) {
-        const transformedPlans = response.plans.map(apiPlan => ({
-          id: apiPlan.id,
-          planName: apiPlan.planName,
-          planType: apiPlan.planType,
-          lastUpdated: apiPlan.lastUpdated ? new Date(apiPlan.lastUpdated) : new Date(),
-          details: apiPlan.details || apiPlan.formData || {}
-        })) as Plan[];
-        setPlans(transformedPlans);
-      }
-    } catch (error) {
-      console.error("Error fetching plans:", error);
-      setError("Failed to load plans. Please try again.");
-    } finally {
-      setLoading(false);
-    }
-  }, [user]);
-
   useEffect(() => {
-    if (user) {
-      fetchPlans();
-    } else {
+    if (!user || !db) {
       setPlans([]);
       setLoading(false);
       setError(null);
+      return;
     }
-  }, [user, fetchPlans]);
+
+    setLoading(true);
+    
+    // We assume the user creates plans and saves them to 'plans' collection with 'userId'
+    const q = query(collection(db, 'plans'), where('userId', '==', user.uid));
+    
+    const unsubscribe = onSnapshot(q, (snapshot) => {
+      const fetchedPlans = snapshot.docs.map(doc => {
+        const data = doc.data();
+        // Handle timestamps appropriately
+        let lastUpdated = new Date();
+        if (data.lastUpdated) {
+          if (typeof data.lastUpdated.toDate === 'function') {
+            lastUpdated = data.lastUpdated.toDate();
+          } else if (typeof data.lastUpdated === 'string' || typeof data.lastUpdated === 'number') {
+            lastUpdated = new Date(data.lastUpdated);
+          }
+        }
+
+        return {
+          id: doc.id,
+          planName: data.planName,
+          planType: data.planType,
+          lastUpdated,
+          details: data.details || data.formData || {}
+        } as Plan;
+      });
+      
+      setPlans(fetchedPlans);
+      setLoading(false);
+      setError(null);
+    }, (err) => {
+      console.error("Error subscribing to plans:", err);
+      setError("Failed to load plans from database.");
+      setLoading(false);
+    });
+
+    return () => unsubscribe();
+  }, [user]);
+
+  // Dummy refresh function since onSnapshot is real-time
+  const refreshPlans = async () => {};
 
   return (
-    <PlansContext.Provider value={{ plans, loading, error, refreshPlans: fetchPlans }}>
+    <PlansContext.Provider value={{ plans, loading, error, refreshPlans }}>
       {children}
     </PlansContext.Provider>
   );
