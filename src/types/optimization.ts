@@ -1,12 +1,13 @@
 // types/optimization.ts
 
-export type SpendCategory = 'groceries' | 'gas' | 'dining' | 'travel' | 'other';
+export type SpendCategory = 'groceries' | 'gas' | 'dining' | 'travel' | 'wholesale' | 'other';
 
 export interface MonthlySpend {
   groceries: number;
   gas: number;
   dining: number;
   travel: number;
+  wholesale: number;
   other: number;
 }
 
@@ -46,7 +47,7 @@ export const CARD_DATABASE: CreditCard[] = [
     name: 'United Club Infinite',
     annualFee: 525,
     currency: 'United Miles',
-    multipliers: { groceries: 1, gas: 1, dining: 2, travel: 4, other: 1 },
+    multipliers: { groceries: 1, gas: 1, dining: 2, travel: 4, wholesale: 1, other: 1 },
     statusRules: { type: 'PQP', airline: 'united', earnRate: 15, annualCap: 28000, holdingBonus: 1500 }
   },
   {
@@ -54,7 +55,7 @@ export const CARD_DATABASE: CreditCard[] = [
     name: 'Citi AAdvantage Executive',
     annualFee: 595,
     currency: 'AA Miles',
-    multipliers: { groceries: 1, gas: 1, dining: 1, travel: 4, other: 1 },
+    multipliers: { groceries: 1, gas: 1, dining: 1, travel: 4, wholesale: 1, other: 1 },
     statusRules: { 
       type: 'LP', 
       airline: 'american', 
@@ -72,7 +73,7 @@ export const CARD_DATABASE: CreditCard[] = [
     name: 'Amex Blue Cash Preferred',
     annualFee: 95,
     currency: 'CashBack',
-    multipliers: { groceries: 6, gas: 3, dining: 1, travel: 1, other: 1 },
+    multipliers: { groceries: 6, gas: 3, dining: 1, travel: 1, wholesale: 1, other: 1 },
     statusRules: { type: 'NONE' }
   },
   {
@@ -80,7 +81,7 @@ export const CARD_DATABASE: CreditCard[] = [
     name: 'Citi Double Cash',
     annualFee: 0,
     currency: 'CashBack',
-    multipliers: { groceries: 2, gas: 2, dining: 2, travel: 2, other: 2 },
+    multipliers: { groceries: 2, gas: 2, dining: 2, travel: 2, wholesale: 2, other: 2 },
     statusRules: { type: 'NONE' }
   },
   {
@@ -88,7 +89,15 @@ export const CARD_DATABASE: CreditCard[] = [
     name: 'Chase Sapphire Reserve',
     annualFee: 550,
     currency: 'UR',
-    multipliers: { groceries: 1, gas: 1, dining: 3, travel: 3, other: 1 },
+    multipliers: { groceries: 1, gas: 1, dining: 3, travel: 3, wholesale: 1, other: 1 },
+    statusRules: { type: 'NONE' }
+  },
+  {
+    id: 'citi-costco-visa',
+    name: 'Costco Anywhere Visa',
+    annualFee: 0,
+    currency: 'CashBack',
+    multipliers: { groceries: 1, gas: 4, dining: 3, travel: 3, wholesale: 2, other: 1 },
     statusRules: { type: 'NONE' }
   }
 ];
