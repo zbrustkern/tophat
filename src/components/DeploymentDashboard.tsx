@@ -17,9 +17,10 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Trash2, Plus, RefreshCw, Camera } from "lucide-react";
+import { Trash2, Plus, RefreshCw, Camera, History } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { getFunctions, httpsCallable } from "firebase/functions";
+import { db } from '@/lib/firebase/firestore';
 import { HistoryTracker } from "./HistoryTracker";
 import { LiveOptionsScanner } from "./LiveOptionsScanner";
 const defaultPlan: RebalancePlan = {
@@ -47,6 +48,7 @@ export default function DeploymentDashboard({ planId }: { planId?: string | null
   const { loading: saving, error, savePlan, takeSnapshot } = usePlanManagement<RebalancePlan>();
   const { toast } = useToast();
   const [isSnapshotting, setIsSnapshotting] = useState(false);
+  const [isBackfilling, setIsBackfilling] = useState(false);
   
   const [plan, setPlan] = useState<RebalancePlan>(() => {
     if (planId) {
@@ -210,6 +212,67 @@ export default function DeploymentDashboard({ planId }: { planId?: string | null
       toast({ title: "Error", description: "Failed to save snapshot.", variant: "destructive" });
     } finally {
       setIsSnapshotting(false);
+    }
+  };
+
+  const handleBackfill = async () => {
+    if (!user || !plan.id || plan.id === 'new') return;
+    if (!plan.details.startDate) {
+      toast({ title: "Start Date Required", description: "You must set a Start Date to backfill history.", variant: "destructive" });
+      return;
+    }
+
+    const symbols = plan.details.assets?.filter(a => a.type === 'equity' && a.symbol).map(a => a.symbol) || [];
+    if (symbols.length === 0) {
+      toast({ title: "No Equities", description: "You need at least one equity asset with a ticker to backfill prices.", variant: "destructive" });
+      return;
+    }
+
+    setIsBackfilling(true);
+    try {
+      const functions = getFunctions();
+      const fetchHistoricalPrices = httpsCallable(functions, 'fetch_historical_prices');
+      
+      toast({ title: "Fetching Data...", description: "Downloading historical month-end prices from Yahoo Finance." });
+      
+      const res = await fetchHistoricalPrices({ symbols, startDate: plan.details.startDate });
+      const data = res.data as { success: boolean, prices?: Record<string, Record<string, number>>, message?: string };
+      
+      if (!data.success || !data.prices) {
+        throw new Error(data.message || "Failed to fetch prices");
+      }
+
+      let snapshotsCreated = 0;
+      const { doc, setDoc } = await import('firebase/firestore');
+      
+      for (const [dateStr, priceMap] of Object.entries(data.prices)) {
+        const backfillDetails = JSON.parse(JSON.stringify(plan.details));
+        
+        for (const asset of backfillDetails.assets) {
+          if (asset.type === 'equity' && asset.symbol && priceMap[asset.symbol]) {
+            asset.price = priceMap[asset.symbol];
+          }
+        }
+        
+        backfillDetails.mockVix = 15;
+        
+        const historyRef = doc(db, `users/${user.uid}/plans/${plan.id}/history`, dateStr);
+        await setDoc(historyRef, {
+          timestamp: new Date(dateStr),
+          planType: plan.planType,
+          details: backfillDetails
+        });
+        snapshotsCreated++;
+      }
+      
+      toast({ title: "Backfill Complete", description: `Successfully generated ${snapshotsCreated} historical snapshots.` });
+      setTimeout(() => window.location.reload(), 1500);
+
+    } catch (e) {
+      console.error(e);
+      toast({ title: "Backfill Failed", description: String(e), variant: "destructive" });
+    } finally {
+      setIsBackfilling(false);
     }
   };
 
@@ -404,18 +467,37 @@ export default function DeploymentDashboard({ planId }: { planId?: string | null
                 {isDirty ? "Recalculate Model" : "Model Updated"}
               </Button>
               <div className="flex gap-2">
-                <Button 
-                  onClick={handleSnapshot} 
-                  disabled={isSnapshotting || isDirty || plan.id === 'new'} 
-                  variant="outline"
-                  className="border-indigo-200 text-indigo-700 hover:bg-indigo-50 flex items-center gap-2"
-                >
-                  <Camera className={`w-4 h-4 ${isSnapshotting ? 'animate-pulse' : ''}`} />
-                  {isSnapshotting ? "Saving Snapshot..." : "Save Snapshot"}
-                </Button>
-                <Button onClick={handleSave} disabled={saving}>
-                  {saving ? "Saving..." : (plan.id === 'new' ? 'Save Plan' : 'Update Plan')}
-                </Button>
+                <div className="flex flex-col items-end">
+                  <Button 
+                    onClick={handleSnapshot} 
+                    disabled={isSnapshotting || isDirty || plan.id === 'new'} 
+                    variant="outline"
+                    className="border-indigo-200 text-indigo-700 hover:bg-indigo-50 flex items-center gap-2"
+                  >
+                    <Camera className={`w-4 h-4 ${isSnapshotting ? 'animate-pulse' : ''}`} />
+                    {isSnapshotting ? "Saving..." : "Save Daily Snapshot"}
+                  </Button>
+                  <span className="text-[10px] text-gray-400 mt-1">Creates a chart data point</span>
+                </div>
+                <div className="flex flex-col items-end">
+                  <Button 
+                    onClick={handleBackfill} 
+                    disabled={isBackfilling || isDirty || plan.id === 'new' || !plan.details.startDate} 
+                    variant="outline"
+                    title="Automatically assumes your current cash/shares were held at the historical date, using historical Yahoo Finance prices."
+                    className="border-amber-200 text-amber-700 hover:bg-amber-50 flex items-center gap-2"
+                  >
+                    <History className={`w-4 h-4 ${isBackfilling ? 'animate-spin' : ''}`} />
+                    {isBackfilling ? "Fetching..." : "Backfill History"}
+                  </Button>
+                  <span className="text-[10px] text-gray-400 mt-1 cursor-help" title="Automatically assumes your current cash/shares were held at the historical date, using historical Yahoo Finance prices.">Auto-generates chart via Yahoo</span>
+                </div>
+                <div className="flex flex-col items-end">
+                  <Button onClick={handleSave} disabled={saving}>
+                    {saving ? "Saving..." : (plan.id === 'new' ? 'Save Plan' : 'Update Settings')}
+                  </Button>
+                  <span className="text-[10px] text-gray-400 mt-1">Saves settings & assets</span>
+                </div>
               </div>
             </div>
             {error && <p className="text-red-500 text-sm mt-2">{error}</p>}
@@ -436,18 +518,19 @@ export default function DeploymentDashboard({ planId }: { planId?: string | null
             <div className="grid md:grid-cols-2 gap-8">
               <div className="space-y-4">
                 <div>
-                  <p className="text-sm text-gray-500 font-medium">Target Value ($V_t$) at {results.computedMonths} months</p>
-                  <p className="text-3xl font-bold text-gray-800">${results.targetValue.toLocaleString(undefined, { maximumFractionDigits: 2 })}</p>
-                </div>
-                <div>
-                  <p className="text-sm text-gray-500 font-medium">Actual Portfolio Value ($A_t$)</p>
+                  <p className="text-sm text-gray-500 font-medium">Total Portfolio Value</p>
                   <p className="text-3xl font-bold text-gray-800">${(results.computedCash + results.computedEquity).toLocaleString(undefined, { maximumFractionDigits: 2 })}</p>
                   <p className="text-xs text-gray-400 mt-1">Cash: ${results.computedCash.toLocaleString()} | Equity: ${results.computedEquity.toLocaleString()}</p>
                 </div>
                 <div>
+                  <p className="text-sm text-gray-500 font-medium">Target Equity Alloc. (VIX-Adjusted)</p>
+                  <p className="text-3xl font-bold text-gray-800">${(results.targetValue * (1 - results.targetCashPercentage)).toLocaleString(undefined, { maximumFractionDigits: 2 })} <span className="text-lg text-gray-500">({(100 - results.targetCashPercentage * 100).toFixed(0)}%)</span></p>
+                  <p className="text-xs text-gray-400 mt-1">Current Equity: ${results.computedEquity.toLocaleString()}</p>
+                </div>
+                <div>
                   <p className="text-sm text-gray-500 font-medium">Equity Investment Gap</p>
                   <p className={`text-2xl font-bold ${results.investmentGap > 0 ? 'text-red-500' : 'text-emerald-500'}`}>
-                    ${Math.abs(results.investmentGap).toLocaleString(undefined, { maximumFractionDigits: 2 })} {results.investmentGap > 0 ? '(Underperforming)' : '(Overperforming)'}
+                    ${Math.abs(results.investmentGap).toLocaleString(undefined, { maximumFractionDigits: 2 })} {results.investmentGap > 0 ? '(Underweight)' : '(Overweight)'}
                   </p>
                 </div>
               </div>
