@@ -1,11 +1,11 @@
 import { useState, useEffect } from "react";
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
+import { usePlans } from "@/contexts/PlansContext";
 import { SavingsPlan } from '@/types/chart';
 import { SavingsChartData } from '@/types/chart';
 import { useSavingsCalculations } from '@/hooks/usePlanCalculations';
 import { usePlanManagement } from '@/hooks/usePlanManagement';
-import { usePlans } from '@/contexts/PlansContext';
 import { SavingsChart } from "@/components/SavingsChart";
 import { Button } from "@/components/ui/button";
 import { FormField, PlanNameField } from "@/components/PlanFormElements";
@@ -30,6 +30,7 @@ const defaultPlan: SavingsPlan = {
     currentBalance: 100000,
     taxRate: 0.40,
     returnRate: 0.08,
+    withdrawalRate: 0.04
   }
 };
 
@@ -43,8 +44,8 @@ export default function SavingsPlanner({
   initialReturnRate?: number;
 }) {
   const { user } = useAuth();
-  const router = useRouter();
   const { plans } = usePlans();
+  const router = useRouter();
   const [plan, setPlan] = useState<SavingsPlan>(() => {
     if (planId) {
       const existing = plans.find(p => p.id === planId);
@@ -88,7 +89,7 @@ export default function SavingsPlanner({
     let newValue: string | number = value;
 
     // Handle percentage fields
-    if (["taxRate", "returnRate"].includes(name)) {
+    if (["taxRate", "returnRate", "withdrawalRate"].includes(name)) {
       newValue = parseFloat(value) / 100; // Convert from percentage to decimal
     } else if (name !== "planName") {
       newValue = Number(value);
@@ -189,6 +190,31 @@ export default function SavingsPlanner({
                 placeholder="40"
                 isPercentage
               />
+              <FormField
+                label="Safe Withdrawal Rate (%)"
+                name="withdrawalRate"
+                value={plan.details.withdrawalRate ?? 0.04}
+                onChange={handleChange}
+                placeholder="4"
+                isPercentage
+              />
+            </div>
+            
+            <div className="mt-6 p-4 bg-blue-50/80 rounded-xl border border-blue-100 text-sm text-blue-900 leading-relaxed shadow-sm">
+              <h4 className="font-semibold mb-1 flex items-center gap-1.5 text-blue-950">
+                💡 About the Safe Withdrawal Rate (SWR)
+              </h4>
+              <p className="mb-2">
+                The SWR determines what percentage of your retirement portfolio is withdrawn annually to support your desired income.
+              </p>
+              <ul className="list-disc list-inside space-y-1 text-blue-900">
+                <li>
+                  <strong className="text-blue-950">The 4% Rule:</strong> A 4% safe withdrawal rate is the industry standard (based on the Trinity Study) designed to prevent you from depleting your portfolio over a 30-year retirement by keeping pace with inflation.
+                </li>
+                <li>
+                  <strong className="text-blue-950">Higher rates (e.g. 6-8%):</strong> Require saving less today, but carry a high risk of exhausting your capital during market downturns.
+                </li>
+              </ul>
             </div>
           </CardContent>
           <CardFooter className="bg-white border-t py-4">

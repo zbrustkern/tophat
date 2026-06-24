@@ -11,7 +11,9 @@ export function useIncomeCalculations() {
       returnRate: portfolioReturn,
       balance: initialBalance,
       autoEscalateSavings = true,
-      escalationRate = 0.01
+      escalationRate = 0.01,
+      saveMode = 'rate',
+      saveAmount = 0
     } = plan.details;
 
     const years = 25;
@@ -21,19 +23,26 @@ export function useIncomeCalculations() {
     let currentSavingsRate = initialSavingsRate;
     let currentBalance = initialBalance;
 
+    const isFixed = saveMode === 'fixed';
+
     for (let year = 2024; year < 2024 + years; year++) {
-      const takeHome = (currentIncome * (1 - currentSavingsRate)) * (1 - taxRate);
-      const netContribution = currentSavingsRate * currentIncome;
+      const netContribution = isFixed 
+        ? Math.min(saveAmount, currentIncome) 
+        : currentSavingsRate * currentIncome;
+      
+      const takeHome = (currentIncome - netContribution) * (1 - taxRate);
       currentBalance = currentBalance * (1 + portfolioReturn) + netContribution;
       const capitalIncome = currentBalance * portfolioReturn;
       const conservativeIncome = currentBalance * .04;
+
+      const effectiveSavingsRate = isFixed ? (netContribution / currentIncome) : currentSavingsRate;
 
       data.push({
         year,
         income: Math.round(currentIncome),
         takeHome: Math.round(takeHome),
         raiseRate: currentRaise,
-        saveRate: currentSavingsRate,
+        saveRate: effectiveSavingsRate,
         taxRate,
         netContribution: Math.round(netContribution),
         portfolioReturn,
@@ -62,7 +71,8 @@ export function useSavingsCalculations() {
       retirementAge,
       currentBalance,
       taxRate,
-      returnRate
+      returnRate,
+      withdrawalRate
     } = plan.details;
 
     const years = retirementAge - currentAge;
@@ -70,8 +80,11 @@ export function useSavingsCalculations() {
     let currentSavings = 0;
     let balance = currentBalance;
 
+    // Use withdrawal rate if specified, otherwise fall back to returnRate for backward compatibility
+    const swr = withdrawalRate ?? returnRate;
+
     // Calculate required savings
-    const totalRequired = desiredIncome / (returnRate * (1 - taxRate));
+    const totalRequired = desiredIncome / (swr * (1 - taxRate));
     const yearlySavings = (totalRequired - currentBalance * Math.pow(1 + returnRate, years)) / 
                           ((Math.pow(1 + returnRate, years) - 1) / returnRate);
 
@@ -84,7 +97,7 @@ export function useSavingsCalculations() {
         balance: Math.round(balance),
         savingsRate: Math.round(yearlySavings),
         totalSaved: Math.round(currentSavings),
-        projectedIncome: Math.round(balance * returnRate * (1 - taxRate)),
+        projectedIncome: Math.round(balance * swr * (1 - taxRate)),
       });
     }
 

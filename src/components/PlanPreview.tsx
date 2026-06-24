@@ -46,12 +46,15 @@ const PlanPreview = ({ plan, onDelete }: PlanPreviewProps) => {
   const getPreviewData = () => {
     if (plan.planType === 'income') {
       const data = calculateIncomeData(plan as IncomePlan);
+      const isFixed = plan.details.saveMode === 'fixed';
       return {
         chart: <IncomeChart chartData={data} isThumbnail={true} />,
         mainValue: formatCurrency(plan.details.income),
         mainLabel: 'Current Income',
-        secondaryValue: `${(plan.details.saveRate * 100).toFixed(0)}%`,
-        secondaryLabel: 'Savings Rate'
+        secondaryValue: isFixed 
+          ? formatCurrency(plan.details.saveAmount ?? 20000)
+          : `${((plan.details.saveRate ?? 0.20) * 100).toFixed(0)}%`,
+        secondaryLabel: isFixed ? 'Savings Amount' : 'Savings Rate'
       };
     } else if (plan.planType === 'savings') {
       const { chartData } = calculateSavingsData(plan as SavingsPlan);

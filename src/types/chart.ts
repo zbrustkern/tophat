@@ -20,6 +20,8 @@ export interface IncomeDetails {
   returnRate: number;
   autoEscalateSavings?: boolean;
   escalationRate?: number;
+  saveMode?: 'rate' | 'fixed';
+  saveAmount?: number;
 }
 
 export interface IncomePlan extends BasePlan {
@@ -49,6 +51,7 @@ export interface SavingsDetails {
   currentBalance: number;
   taxRate: number;
   returnRate: number;
+  withdrawalRate?: number;
 }
 
 export interface SavingsPlan extends BasePlan {

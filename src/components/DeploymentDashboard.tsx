@@ -256,7 +256,7 @@ export default function DeploymentDashboard({ planId }: { planId?: string | null
         
         backfillDetails.mockVix = 15;
         
-        const historyRef = doc(db, `users/${user.uid}/plans/${plan.id}/history`, dateStr);
+        const historyRef = doc(db!, `users/${user.uid}/plans/${plan.id}/history`, dateStr);
         await setDoc(historyRef, {
           timestamp: new Date(dateStr),
           planType: plan.planType,

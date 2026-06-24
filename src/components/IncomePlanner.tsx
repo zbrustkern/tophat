@@ -1,13 +1,14 @@
 import { useState, useEffect } from "react";
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
+import { usePlans } from "@/contexts/PlansContext";
 import { IncomePlan } from '@/types/chart';
 import { IncomeChartData } from '@/types/chart';
 import { useIncomeCalculations } from '@/hooks/usePlanCalculations';
 import { usePlanManagement } from '@/hooks/usePlanManagement';
-import { usePlans } from '@/contexts/PlansContext';
 import { IncomeChart } from "@/components/IncomeChart";
 import { Button } from "@/components/ui/button";
+import { Label } from "@/components/ui/label";
 import { FormField, PlanNameField } from "@/components/PlanFormElements";
 import {
   Card,
@@ -18,7 +19,6 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Switch } from "@/components/ui/switch";
-import { Label } from "@/components/ui/label";
 
 const defaultPlan: IncomePlan = {
   id: 'new',
@@ -34,6 +34,8 @@ const defaultPlan: IncomePlan = {
     returnRate: 0.08,
     autoEscalateSavings: true,
     escalationRate: 0.01,
+    saveMode: 'rate',
+    saveAmount: 20000
   }
 };
 
@@ -48,8 +50,8 @@ export default function IncomePlanner({
 }) {
   const [isDirty, setIsDirty] = useState(false)
   const { user } = useAuth();
-  const router = useRouter();
   const { plans } = usePlans();
+  const router = useRouter();
   const [plan, setPlan] = useState<IncomePlan>(() => {
     if (planId) {
       const existing = plans.find(p => p.id === planId);
@@ -83,7 +85,7 @@ export default function IncomePlanner({
     }
   }, [planId, plans, calculateIncomeData, hydratedPlanId]);
 
-  const handleChange = (evt: React.ChangeEvent<HTMLInputElement>) => {
+  const handleChange = (evt: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     setIsDirty(true)
     const { name, value } = evt.target;
     let newValue: string | number = value;
@@ -91,7 +93,7 @@ export default function IncomePlanner({
     // Handle percentage fields
     if (["raiseRate", "saveRate", "taxRate", "returnRate", "escalationRate"].includes(name)) {
       newValue = parseFloat(value) / 100; // Convert from percentage to decimal
-    } else if (name !== "planName") {
+    } else if (name !== "planName" && name !== "saveMode") {
       newValue = Number(value);
     }
 
@@ -138,8 +140,6 @@ export default function IncomePlanner({
   if (loading) return <div>Loading...</div>;
   if (error) return <div>Error: {error}</div>;
 
-  const percentageFields = ["raiseRate", "saveRate", "taxRate", "returnRate"];
-
   return (
     <main className="flex flex-col">
       <div className="m-1">
@@ -185,14 +185,37 @@ export default function IncomePlanner({
                 placeholder="3"
                 isPercentage
               />
-              <FormField
-                label="Annual Savings Rate (%)"
-                name="saveRate"
-                value={plan.details.saveRate}
-                onChange={handleChange}
-                placeholder="20"
-                isPercentage
-              />
+              <div className="grid w-full max-w-sm items-center gap-1.5">
+                <Label htmlFor="saveMode" className="text-sm font-medium text-gray-700">Savings Type</Label>
+                <select
+                  id="saveMode"
+                  name="saveMode"
+                  value={plan.details.saveMode ?? 'rate'}
+                  onChange={handleChange}
+                  className="flex h-10 w-full rounded-md border border-input bg-white px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 border-gray-200"
+                >
+                  <option value="rate">Percentage of Income</option>
+                  <option value="fixed">Fixed Dollar Amount</option>
+                </select>
+              </div>
+              {(plan.details.saveMode ?? 'rate') === 'rate' ? (
+                <FormField
+                  label="Annual Savings Rate (%)"
+                  name="saveRate"
+                  value={plan.details.saveRate}
+                  onChange={handleChange}
+                  placeholder="20"
+                  isPercentage
+                />
+              ) : (
+                <FormField
+                  label="Annual Savings Amount ($)"
+                  name="saveAmount"
+                  value={plan.details.saveAmount ?? 20000}
+                  onChange={handleChange}
+                  placeholder="20,000"
+                />
+              )}
               <FormField
                 label="Blended Total Tax Rate (%)"
                 name="taxRate"

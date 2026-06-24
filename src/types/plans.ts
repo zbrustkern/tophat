@@ -12,6 +12,8 @@ export interface BasePlan {
     balance: number;
     taxRate: number;
     returnRate: number;
+    saveMode?: 'rate' | 'fixed';
+    saveAmount?: number;
   }
   
   export interface SavingsDetails {
@@ -21,6 +23,7 @@ export interface BasePlan {
     currentBalance: number;
     taxRate: number;
     returnRate: number;
+    withdrawalRate?: number;
   }
   
   export interface IncomePlan extends BasePlan {
