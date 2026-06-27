@@ -1,3 +1,10 @@
+## [1.0.1](https://github.com/zbrustkern/tophat/compare/v1.0.0...v1.0.1) (2026-06-27)
+
+
+### Bug Fixes
+
+* change npm ci to npm install in workflow ([8e8d0b3](https://github.com/zbrustkern/tophat/commit/8e8d0b39a3530bc8cafd26bc5eee88d720508282))
+
 # 1.0.0 (2026-06-27)
 
 
