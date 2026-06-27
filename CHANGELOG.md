@@ -1,3 +1,10 @@
+# [1.3.0](https://github.com/zbrustkern/tophat/compare/v1.2.1...v1.3.0) (2026-06-27)
+
+
+### Features
+
+* integrate budget module into navigation and dashboard ([122f0c3](https://github.com/zbrustkern/tophat/commit/122f0c318f9ae470cbca6303753a304a22f898b4))
+
 ## [1.2.1](https://github.com/zbrustkern/tophat/compare/v1.2.0...v1.2.1) (2026-06-27)
 
 
