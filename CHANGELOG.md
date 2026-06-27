@@ -1,3 +1,10 @@
+## [1.1.2](https://github.com/zbrustkern/tophat/compare/v1.1.1...v1.1.2) (2026-06-27)
+
+
+### Bug Fixes
+
+* skip github action runs on semantic-release automated commits ([919de99](https://github.com/zbrustkern/tophat/commit/919de99e8365c31e1d6c98a295c71a6e3c671a9f))
+
 ## [1.1.1](https://github.com/zbrustkern/tophat/compare/v1.1.0...v1.1.1) (2026-06-27)
 
 
