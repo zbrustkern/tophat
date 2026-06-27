@@ -1,3 +1,10 @@
+## [1.2.1](https://github.com/zbrustkern/tophat/compare/v1.2.0...v1.2.1) (2026-06-27)
+
+
+### Bug Fixes
+
+* resolve set -e bash early exit in deploy wrapper ([ee7e95b](https://github.com/zbrustkern/tophat/commit/ee7e95b687a645d2c4f9756f190860b1dc7bade8))
+
 # [1.2.0](https://github.com/zbrustkern/tophat/compare/v1.1.5...v1.2.0) (2026-06-27)
 
 
