@@ -67,8 +67,10 @@ jobs:
           NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID: ${{ secrets.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID }}
           NEXT_PUBLIC_FIREBASE_APP_ID: ${{ secrets.NEXT_PUBLIC_FIREBASE_APP_ID }}
         run: |
+          set +e
           OUTPUT=$(npx firebase-tools deploy --only hosting --project ${{ env.PROJECT_ID }} --force 2>&1)
           EXIT_CODE=$?
+          set -e
           echo "$OUTPUT"
           if [ $EXIT_CODE -ne 0 ]; then
             if echo "$OUTPUT" | grep -q "is the current active version"; then
