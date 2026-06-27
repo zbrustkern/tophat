@@ -1,3 +1,10 @@
+## [1.1.1](https://github.com/zbrustkern/tophat/compare/v1.1.0...v1.1.1) (2026-06-27)
+
+
+### Bug Fixes
+
+* replace FirebaseExtended action with native firebase deploy ([90c23f5](https://github.com/zbrustkern/tophat/commit/90c23f50d11db85cc55f5a184a8e774023f9223c))
+
 # [1.1.0](https://github.com/zbrustkern/tophat/compare/v1.0.1...v1.1.0) (2026-06-27)
 
 
