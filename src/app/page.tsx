@@ -53,7 +53,7 @@ export default function Home() {
 
   // Render the main dashboard layout
   return (
-      <main>
+      <main data-version="1.1.3">
         {/* Header Section */}
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
           <h1 className="text-2xl font-bold">Your Financial Plans</h1>
