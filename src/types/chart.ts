@@ -22,6 +22,7 @@ export interface IncomeDetails {
   escalationRate?: number;
   saveMode?: 'rate' | 'fixed';
   saveAmount?: number;
+  withdrawalRate?: number;
 }
 
 export interface IncomePlan extends BasePlan {
