@@ -1,3 +1,10 @@
+## [1.1.3](https://github.com/zbrustkern/tophat/compare/v1.1.2...v1.1.3) (2026-06-27)
+
+
+### Bug Fixes
+
+* force new build hash to clear firebase cache error ([c4077e1](https://github.com/zbrustkern/tophat/commit/c4077e18a89fa43d622fe2504e511a1178455c48))
+
 ## [1.1.2](https://github.com/zbrustkern/tophat/compare/v1.1.1...v1.1.2) (2026-06-27)
 
 
