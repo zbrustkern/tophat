@@ -1,3 +1,10 @@
+## [1.1.5](https://github.com/zbrustkern/tophat/compare/v1.1.4...v1.1.5) (2026-06-27)
+
+
+### Bug Fixes
+
+* gracefully suppress firebase identical version deployment errors ([bba1ed9](https://github.com/zbrustkern/tophat/commit/bba1ed91426508ef15003f02d17713bd4b43b2a4))
+
 ## [1.1.4](https://github.com/zbrustkern/tophat/compare/v1.1.3...v1.1.4) (2026-06-27)
 
 
