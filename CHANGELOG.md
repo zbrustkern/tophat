@@ -1,3 +1,11 @@
+# [1.1.0](https://github.com/zbrustkern/tophat/compare/v1.0.1...v1.1.0) (2026-06-27)
+
+
+### Features
+
+* add withdrawalRate to IncomePlanner to complete income withdrawal logic ([f1bcd34](https://github.com/zbrustkern/tophat/commit/f1bcd340ed011ba1794b478c27bb3f9e1953a394))
+* add withdrawalRate to IncomePlanner to complete income withdrawal logic ([549dc59](https://github.com/zbrustkern/tophat/commit/549dc59631f41d08a48fb682214b3e839941d663))
+
 ## [1.0.1](https://github.com/zbrustkern/tophat/compare/v1.0.0...v1.0.1) (2026-06-27)
 
 
