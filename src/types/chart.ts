@@ -1,5 +1,15 @@
 // types/chart.ts
 
+// Global Settings
+export interface GlobalSettings {
+  taxRate: number;
+  returnRate: number;
+  withdrawalRate: number;
+  inflationRate: number;
+  currentAge: number;
+  retirementAge: number;
+}
+
 // Plan Types
 export type PlanType = 'income' | 'savings' | 'house' | 'car' | 'college' | 'debt' | 'rebalance';
 
@@ -23,6 +33,7 @@ export interface IncomeDetails {
   saveMode?: 'rate' | 'fixed';
   saveAmount?: number;
   withdrawalRate?: number;
+  useGlobalSettings?: boolean;
 }
 
 export interface IncomePlan extends BasePlan {
@@ -53,6 +64,7 @@ export interface SavingsDetails {
   taxRate: number;
   returnRate: number;
   withdrawalRate?: number;
+  useGlobalSettings?: boolean;
 }
 
 export interface SavingsPlan extends BasePlan {
