@@ -1,3 +1,10 @@
+## [1.1.4](https://github.com/zbrustkern/tophat/compare/v1.1.3...v1.1.4) (2026-06-27)
+
+
+### Bug Fixes
+
+* force real code change to bypass firebase identical version bug ([a903e51](https://github.com/zbrustkern/tophat/commit/a903e51b0db9f45caf794341654bcae502b24fbe))
+
 ## [1.1.3](https://github.com/zbrustkern/tophat/compare/v1.1.2...v1.1.3) (2026-06-27)
 
 
