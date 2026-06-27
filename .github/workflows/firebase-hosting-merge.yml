@@ -66,4 +66,16 @@ jobs:
           NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET: ${{ secrets.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET }}
           NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID: ${{ secrets.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID }}
           NEXT_PUBLIC_FIREBASE_APP_ID: ${{ secrets.NEXT_PUBLIC_FIREBASE_APP_ID }}
-        run: npx firebase-tools deploy --only hosting --project ${{ env.PROJECT_ID }} --force
+        run: |
+          OUTPUT=$(npx firebase-tools deploy --only hosting --project ${{ env.PROJECT_ID }} --force 2>&1)
+          EXIT_CODE=$?
+          echo "$OUTPUT"
+          if [ $EXIT_CODE -ne 0 ]; then
+            if echo "$OUTPUT" | grep -q "is the current active version"; then
+              echo "✅ Ignored duplicate version error (Firebase Web Frameworks caching quirk). Site is already up to date!"
+              exit 0
+            else
+              echo "❌ Firebase deploy failed with a real error."
+              exit $EXIT_CODE
+            fi
+          fi
