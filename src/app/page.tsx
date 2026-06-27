@@ -86,6 +86,14 @@ export default function Home() {
               <PlusCircle className="mr-2 h-4 w-4" />
               New Tactical Allocation
             </Button>
+            <Button 
+              onClick={() => router.push('/budget')}
+              className="w-full sm:w-auto justify-center"
+              variant="secondary"
+            >
+              <PlusCircle className="mr-2 h-4 w-4" />
+              Budget Planner
+            </Button>
           </div>
         </div>
 

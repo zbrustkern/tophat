@@ -4,7 +4,7 @@ import Link from "next/link"
 import { usePathname } from "next/navigation"
 import SignInButton from "./SignInButton"
 import { useState } from 'react'
-import { Menu, LayoutDashboard, DollarSign, PiggyBank, GraduationCap, Target, CreditCard, Plane } from 'lucide-react'
+import { Menu, LayoutDashboard, DollarSign, PiggyBank, GraduationCap, Target, CreditCard, Plane, Calculator } from 'lucide-react'
 
 export function NavBar() {
   const pathname = usePathname()
@@ -45,6 +45,11 @@ export function NavBar() {
       href: "/airline-status",
       label: "Airline Status Optimizer",
       icon: <Plane className="h-5 w-5" />
+    },
+    {
+      href: "/budget",
+      label: "Budget Planner",
+      icon: <Calculator className="h-5 w-5" />
     }
   ]
 
