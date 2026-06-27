@@ -51,6 +51,7 @@ export default function Home() {
     }
   };
 
+  // Render the main dashboard layout
   return (
       <main>
         {/* Header Section */}
