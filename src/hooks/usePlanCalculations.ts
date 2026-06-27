@@ -13,7 +13,8 @@ export function useIncomeCalculations() {
       autoEscalateSavings = true,
       escalationRate = 0.01,
       saveMode = 'rate',
-      saveAmount = 0
+      saveAmount = 0,
+      withdrawalRate = 0.04
     } = plan.details;
 
     const years = 25;
@@ -33,7 +34,7 @@ export function useIncomeCalculations() {
       const takeHome = (currentIncome - netContribution) * (1 - taxRate);
       currentBalance = currentBalance * (1 + portfolioReturn) + netContribution;
       const capitalIncome = currentBalance * portfolioReturn;
-      const conservativeIncome = currentBalance * .04;
+      const conservativeIncome = currentBalance * withdrawalRate;
 
       const effectiveSavingsRate = isFixed ? (netContribution / currentIncome) : currentSavingsRate;
 

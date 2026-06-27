@@ -14,6 +14,7 @@ export interface BasePlan {
     returnRate: number;
     saveMode?: 'rate' | 'fixed';
     saveAmount?: number;
+    withdrawalRate?: number;
   }
   
   export interface SavingsDetails {

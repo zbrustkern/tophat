@@ -178,6 +178,14 @@ export default function IncomePlanner({
                 isPercentage
               />
               <FormField
+                label="Safe Withdrawal Rate (%)"
+                name="withdrawalRate"
+                value={plan.details.withdrawalRate ?? 0.04}
+                onChange={handleChange}
+                placeholder="4"
+                isPercentage
+              />
+              <FormField
                 label="Estimated Annual Raise (%)"
                 name="raiseRate"
                 value={plan.details.raiseRate}
