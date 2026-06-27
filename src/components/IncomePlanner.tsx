@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
 import { usePlans } from "@/contexts/PlansContext";
+import { useSettings } from "@/contexts/SettingsContext";
 import { IncomePlan } from '@/types/chart';
 import { IncomeChartData } from '@/types/chart';
 import { useIncomeCalculations } from '@/hooks/usePlanCalculations';
@@ -35,7 +36,8 @@ const defaultPlan: IncomePlan = {
     autoEscalateSavings: true,
     escalationRate: 0.01,
     saveMode: 'rate',
-    saveAmount: 20000
+    saveAmount: 20000,
+    useGlobalSettings: true
   }
 };
 
@@ -51,6 +53,7 @@ export default function IncomePlanner({
   const [isDirty, setIsDirty] = useState(false)
   const { user } = useAuth();
   const { plans } = usePlans();
+  const { settings } = useSettings();
   const router = useRouter();
   const [plan, setPlan] = useState<IncomePlan>(() => {
     if (planId) {
@@ -85,6 +88,15 @@ export default function IncomePlanner({
     }
   }, [planId, plans, calculateIncomeData, hydratedPlanId]);
 
+  const effectiveDetails = {
+    ...plan.details,
+    ...(plan.details.useGlobalSettings !== false && settings ? {
+      taxRate: settings.taxRate,
+      returnRate: settings.returnRate,
+      withdrawalRate: settings.withdrawalRate,
+    } : {})
+  };
+
   const handleChange = (evt: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     setIsDirty(true)
     const { name, value } = evt.target;
@@ -114,9 +126,17 @@ export default function IncomePlanner({
     }));
   };
 
+  const handleGlobalToggleChange = (checked: boolean) => {
+    setIsDirty(true);
+    setPlan(prev => ({
+      ...prev,
+      details: { ...prev.details, useGlobalSettings: checked }
+    }));
+  };
+
   const updateChart = () => {
     setIsDirty(false)
-    const data = calculateIncomeData(plan);
+    const data = calculateIncomeData({ ...plan, details: effectiveDetails });
     setChartData(data);
   };
 
@@ -154,6 +174,18 @@ export default function IncomePlanner({
           </CardHeader>
           <CardContent className="bg-gray-50/50">
             <PlanNameField value={plan.planName} onChange={handleChange} />
+            
+            <div className="mb-6 p-4 bg-sky-50 rounded-lg border border-sky-100 shadow-sm flex items-center justify-between">
+              <div>
+                <Label className="text-base font-semibold text-sky-900">Use Global Settings</Label>
+                <p className="text-sm text-sky-700">Sync Tax Rate, Return Rate, and Withdrawal Rate with your global defaults.</p>
+              </div>
+              <Switch 
+                checked={plan.details.useGlobalSettings !== false} 
+                onCheckedChange={handleGlobalToggleChange} 
+              />
+            </div>
+
             <div className="grid md:grid-cols-3 gap-4">
               <FormField
                 label="Income in $/year"
@@ -172,18 +204,20 @@ export default function IncomePlanner({
               <FormField
                 label="Estimated Portfolio Return (%)"
                 name="returnRate"
-                value={plan.details.returnRate}
+                value={effectiveDetails.returnRate}
                 onChange={handleChange}
                 placeholder="8"
                 isPercentage
+                disabled={plan.details.useGlobalSettings !== false}
               />
               <FormField
                 label="Safe Withdrawal Rate (%)"
                 name="withdrawalRate"
-                value={plan.details.withdrawalRate ?? 0.04}
+                value={effectiveDetails.withdrawalRate ?? 0.04}
                 onChange={handleChange}
                 placeholder="4"
                 isPercentage
+                disabled={plan.details.useGlobalSettings !== false}
               />
               <FormField
                 label="Estimated Annual Raise (%)"
@@ -227,10 +261,11 @@ export default function IncomePlanner({
               <FormField
                 label="Blended Total Tax Rate (%)"
                 name="taxRate"
-                value={plan.details.taxRate}
+                value={effectiveDetails.taxRate}
                 onChange={handleChange}
                 placeholder="40"
                 isPercentage
+                disabled={plan.details.useGlobalSettings !== false}
               />
             </div>
             
