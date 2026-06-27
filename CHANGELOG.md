@@ -1,3 +1,10 @@
+# [1.2.0](https://github.com/zbrustkern/tophat/compare/v1.1.5...v1.2.0) (2026-06-27)
+
+
+### Features
+
+* add initial budget placeholder component ([c4233af](https://github.com/zbrustkern/tophat/commit/c4233afbe87d824b676360875b75e4e7ffc3b3d3))
+
 ## [1.1.5](https://github.com/zbrustkern/tophat/compare/v1.1.4...v1.1.5) (2026-06-27)
 
 
