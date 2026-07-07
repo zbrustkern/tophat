@@ -280,17 +280,32 @@ export default function SettingsPage() {
               </select>
             </div>
             <div className="space-y-2">
-              <Label>College Plan</Label>
-              <select
-                value={formData.activePlans?.collegePlanId || ''}
-                onChange={(e) => setFormData({ ...formData, activePlans: { ...formData.activePlans, collegePlanId: e.target.value } })}
-                className="h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background"
-              >
-                <option value="">None</option>
+              <Label>College Plans</Label>
+              <div className="space-y-2 border rounded-md p-3 bg-background min-h-[40px]">
                 {plans.filter(p => p.planType === 'college').map(p => (
-                  <option key={p.id} value={p.id}>{p.planName}</option>
+                  <label key={p.id} className="flex items-center gap-2 text-sm cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={formData.activePlans?.collegePlanIds?.includes(p.id) || false}
+                      onChange={(e) => {
+                        const currentIds = formData.activePlans?.collegePlanIds || [];
+                        const newIds = e.target.checked 
+                          ? [...currentIds, p.id] 
+                          : currentIds.filter(id => id !== p.id);
+                        setFormData({
+                          ...formData,
+                          activePlans: { ...formData.activePlans, collegePlanIds: newIds }
+                        });
+                      }}
+                      className="rounded border-gray-300 text-blue-600 focus:ring-blue-500 h-4 w-4"
+                    />
+                    {p.planName}
+                  </label>
                 ))}
-              </select>
+                {plans.filter(p => p.planType === 'college').length === 0 && (
+                  <span className="text-muted-foreground text-sm italic">None</span>
+                )}
+              </div>
             </div>
             <div className="space-y-2">
               <Label>Budget Plan</Label>
@@ -301,6 +316,19 @@ export default function SettingsPage() {
               >
                 <option value="">None</option>
                 {plans.filter(p => p.planType === 'budget').map(p => (
+                  <option key={p.id} value={p.id}>{p.planName}</option>
+                ))}
+              </select>
+            </div>
+            <div className="space-y-2">
+              <Label>Portfolio Plan</Label>
+              <select
+                value={formData.activePlans?.portfolioPlanId || ''}
+                onChange={(e) => setFormData({ ...formData, activePlans: { ...formData.activePlans, portfolioPlanId: e.target.value } })}
+                className="h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background"
+              >
+                <option value="">None</option>
+                {plans.filter(p => p.planType === 'rebalance').map(p => (
                   <option key={p.id} value={p.id}>{p.planName}</option>
                 ))}
               </select>

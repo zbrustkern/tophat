@@ -1,5 +1,5 @@
 import { useMemo } from 'react';
-import { Plan, GlobalSettings } from '@/types/chart';
+import { Plan, PlanType, GlobalSettings } from '@/types/chart';
 import { useBudgetCalculations } from './useBudgetCalculations';
 import { useIncomeCalculations, useSavingsCalculations, useCollegeCalculations } from './usePlanCalculations';
 
@@ -44,13 +44,31 @@ export function useMasterCalculations() {
   const calculateMasterData = (plans: Plan[], settings: GlobalSettings | null): MasterDashboardData | null => {
     if (!settings || !settings.activePlans) return null;
 
-    const { incomePlanId, savingsPlanId, collegePlanId, budgetPlanId } = settings.activePlans;
+    const activePlans = settings.activePlans || {};
+
+    const resolvePlan = (planId: string | undefined, planType: PlanType): Plan | undefined => {
+      if (planId) return plans.find(p => p.id === planId && p.planType === planType);
+      const typePlans = plans.filter(p => p.planType === planType);
+      if (typePlans.length === 1) return typePlans[0];
+      return undefined;
+    };
 
     // 1. Resolve Active Plans
-    const incomePlan = plans.find(p => p.id === incomePlanId && p.planType === 'income');
-    const savingsPlan = plans.find(p => p.id === savingsPlanId && p.planType === 'savings');
-    const collegePlan = plans.find(p => p.id === collegePlanId && p.planType === 'college');
-    const budgetPlan = plans.find(p => p.id === budgetPlanId && p.planType === 'budget');
+    const incomePlan = resolvePlan(activePlans.incomePlanId, 'income');
+    const savingsPlan = resolvePlan(activePlans.savingsPlanId, 'savings');
+    const budgetPlan = resolvePlan(activePlans.budgetPlanId, 'budget');
+    const portfolioPlan = resolvePlan(activePlans.portfolioPlanId, 'rebalance');
+
+    let collegePlans: Plan[] = [];
+    const allCollegePlans = plans.filter(p => p.planType === 'college');
+    if (activePlans.collegePlanIds && activePlans.collegePlanIds.length > 0) {
+      collegePlans = allCollegePlans.filter(p => activePlans.collegePlanIds!.includes(p.id));
+    } else if (activePlans.collegePlanId) {
+      const p = allCollegePlans.find(p => p.id === activePlans.collegePlanId);
+      if (p) collegePlans.push(p);
+    } else if (allCollegePlans.length === 1) {
+      collegePlans.push(allCollegePlans[0]);
+    }
 
     // 2. Fetch Waterfall Data from Budget Calculations
     let waterfall = {
@@ -70,12 +88,17 @@ export function useMasterCalculations() {
 
     // 3. Compute Current Assets & Allocations
     let savingsCurrentBalance = savingsPlan ? (savingsPlan.details as any).currentBalance || 0 : 0;
-    let collegeCurrentBalance = collegePlan ? (collegePlan.details as any).currentBalance || 0 : 0;
-    const totalAssets = savingsCurrentBalance + collegeCurrentBalance;
+    let collegeCurrentBalance = collegePlans.reduce((sum, cp) => sum + ((cp.details as any).currentBalance || 0), 0);
+    let portfolioCurrentBalance = portfolioPlan ? ((portfolioPlan.details as any).currentCash || 0) + ((portfolioPlan.details as any).currentEquity || 0) : 0;
+    const totalAssets = savingsCurrentBalance + collegeCurrentBalance + portfolioCurrentBalance;
 
     const allocations = [];
     if (savingsCurrentBalance > 0) allocations.push({ name: 'Retirement Savings', value: savingsCurrentBalance });
-    if (collegeCurrentBalance > 0) allocations.push({ name: 'College Savings', value: collegeCurrentBalance });
+    collegePlans.forEach(cp => {
+      const bal = (cp.details as any).currentBalance || 0;
+      if (bal > 0) allocations.push({ name: cp.planName, value: bal });
+    });
+    if (portfolioCurrentBalance > 0) allocations.push({ name: 'Investment Portfolio', value: portfolioCurrentBalance });
 
     // 4. Compute Net Worth Trajectory (Projecting forward)
     const trajectory: MasterTrajectoryPoint[] = [];
@@ -86,7 +109,12 @@ export function useMasterCalculations() {
 
     const incomeData = incomePlan ? calculateIncomeData(incomePlan as any, settings) : [];
     const savingsDataObj = savingsPlan ? calculateSavingsData(savingsPlan as any, settings) : { chartData: [] };
-    const collegeDataObj = collegePlan ? calculateCollegeData(collegePlan as any) : { chartData: [] };
+    
+    // College data for all active college plans
+    const collegeDataObjs = collegePlans.map(cp => ({
+      plan: cp,
+      data: calculateCollegeData(cp as any)
+    }));
 
     // Create lookup maps by Year
     const incomeByYear = new Map(incomeData.map((d: any) => [d.year, d]));
@@ -95,8 +123,13 @@ export function useMasterCalculations() {
     const savingsByYear = new Map(savingsDataObj.chartData.map((d: any) => [currentYear + (d.year - currentAge), d]));
     
     // College data is by Child Age
-    const collegeCurrentAge = collegePlan ? (collegePlan.details as any).childAge || 0 : 0;
-    const collegeByYear = new Map(collegeDataObj.chartData.map((d: any) => [currentYear + (d.age - collegeCurrentAge), d]));
+    const collegeMaps = collegeDataObjs.map(obj => {
+      const childAge = (obj.plan.details as any).childAge || 0;
+      return {
+        data: obj.data,
+        byYear: new Map(obj.data.chartData.map((d: any) => [currentYear + (d.age - childAge), d]))
+      };
+    });
 
     for (let i = 0; i < projectionYears; i++) {
       const year = currentYear + i;
@@ -104,16 +137,27 @@ export function useMasterCalculations() {
 
       const incPoint = incomeByYear.get(year);
       const savPoint = savingsByYear.get(year);
-      const colPoint = collegeByYear.get(year);
+      
+      let colBal = 0;
+      let colContrib = 0;
+      let colPointFound = false;
+
+      collegeMaps.forEach(cm => {
+        const pt = cm.byYear.get(year);
+        if (pt) {
+          colBal += pt.balance;
+          colContrib += (cm.data as any).calculatedMonthlyContribution * 12;
+          colPointFound = true;
+        }
+      });
 
       const income = incPoint ? incPoint.income : 0;
       const takeHome = incPoint ? incPoint.takeHome : 0;
       const preTaxSav = incPoint ? incPoint.netContribution : 0;
       
       const savBal = savPoint ? savPoint.balance : 0;
-      const colBal = colPoint ? colPoint.balance : 0;
       
-      if (!incPoint && !savPoint && !colPoint && i > 0) {
+      if (!incPoint && !savPoint && !colPointFound && i > 0) {
         const lastPoint = trajectory[trajectory.length - 1];
         trajectory.push({
           year,
@@ -126,7 +170,7 @@ export function useMasterCalculations() {
           netCashFlow: -waterfall.annualCoreBudget,
           savingsBalance: lastPoint.savingsBalance,
           collegeBalance: lastPoint.collegeBalance,
-          totalNetWorth: lastPoint.savingsBalance + lastPoint.collegeBalance
+          totalNetWorth: lastPoint.savingsBalance + lastPoint.collegeBalance + portfolioCurrentBalance
         });
         continue;
       }
@@ -138,11 +182,11 @@ export function useMasterCalculations() {
         takeHome,
         expenses: waterfall.annualCoreBudget,
         preTaxSavings: preTaxSav,
-        postTaxSavings: (savPoint ? savPoint.savingsRate : 0) + (colPoint ? (collegeDataObj as any).calculatedMonthlyContribution * 12 : 0),
-        netCashFlow: takeHome - waterfall.annualCoreBudget - (savPoint ? savPoint.savingsRate : 0) - (colPoint ? (collegeDataObj as any).calculatedMonthlyContribution * 12 : 0),
+        postTaxSavings: (savPoint ? savPoint.savingsRate : 0) + colContrib,
+        netCashFlow: takeHome - waterfall.annualCoreBudget - (savPoint ? savPoint.savingsRate : 0) - colContrib,
         savingsBalance: savBal,
         collegeBalance: colBal,
-        totalNetWorth: savBal + colBal
+        totalNetWorth: savBal + colBal + portfolioCurrentBalance
       });
     }
 

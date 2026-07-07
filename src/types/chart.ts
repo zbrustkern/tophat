@@ -21,7 +21,9 @@ export interface GlobalSettings {
     incomePlanId?: string;
     savingsPlanId?: string;
     collegePlanId?: string;
+    collegePlanIds?: string[];
     budgetPlanId?: string;
+    portfolioPlanId?: string;
   };
 }
 
