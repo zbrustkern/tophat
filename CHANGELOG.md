@@ -1,3 +1,10 @@
+# [1.5.0](https://github.com/zbrustkern/tophat/compare/v1.4.0...v1.5.0) (2026-07-07)
+
+
+### Features
+
+* complete Phase 5 Budget Module and Waterfall Data Flow ([5205b16](https://github.com/zbrustkern/tophat/commit/5205b16a6862a860d2f001ced30ae6cb9d61f8ed))
+
 # [1.4.0](https://github.com/zbrustkern/tophat/compare/v1.3.0...v1.4.0) (2026-07-07)
 
 
