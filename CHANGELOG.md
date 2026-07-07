@@ -1,3 +1,10 @@
+# [1.9.0](https://github.com/zbrustkern/tophat/compare/v1.8.0...v1.9.0) (2026-07-07)
+
+
+### Features
+
+* resolve double counting savings, monthly budget view, update master allocations ([ed5be3d](https://github.com/zbrustkern/tophat/commit/ed5be3dd148befdf86b6f38e716ca98d7e672008))
+
 # [1.8.0](https://github.com/zbrustkern/tophat/compare/v1.7.1...v1.8.0) (2026-07-07)
 
 
