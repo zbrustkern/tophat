@@ -86,6 +86,26 @@ export const STATE_TAX_PROFILES: Record<string, Record<FilingStatus, TaxConfigur
         { rate: 0.109, upTo: null }
       ]
     }
+  },
+  'IL': { // Illinois Flat Tax (4.95%)
+    Single: {
+      standardDeduction: 2425,
+      childTaxCredit: 0,
+      brackets: [
+        { rate: 0.0495, upTo: null }
+      ]
+    },
+    MarriedJointly: {
+      standardDeduction: 4850,
+      childTaxCredit: 0,
+      brackets: [
+        { rate: 0.0495, upTo: null }
+      ]
+    }
+  },
+  'WA': { // Washington (No income tax)
+    Single: { standardDeduction: 0, childTaxCredit: 0, brackets: [{ rate: 0, upTo: null }] },
+    MarriedJointly: { standardDeduction: 0, childTaxCredit: 0, brackets: [{ rate: 0, upTo: null }] }
   }
 };
 

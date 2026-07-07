@@ -20,7 +20,21 @@ import {
   CardTitle,
   CardFooter
 } from "@/components/ui/card";
+} from "@/components/ui/card";
 import { Plus, Trash2 } from "lucide-react";
+
+const BUDGET_CATEGORIES = [
+  { value: "housing", label: "Housing" },
+  { value: "utilities", label: "Utilities" },
+  { value: "childcare", label: "Childcare" },
+  { value: "insurance", label: "Insurance" },
+  { value: "groceries", label: "Groceries (Wallet)" },
+  { value: "gas", label: "Gas (Wallet)" },
+  { value: "dining", label: "Dining (Wallet)" },
+  { value: "travel", label: "Travel (Wallet)" },
+  { value: "wholesale", label: "Wholesale (Wallet)" },
+  { value: "other", label: "Other" }
+];
 
 const generateId = () => Math.random().toString(36).substr(2, 9);
 
@@ -262,11 +276,16 @@ export default function BudgetPlanner() {
                 {/* Category */}
                 <div className="flex flex-col md:block">
                   <span className="md:hidden text-xs font-semibold text-slate-500 mb-1">Category</span>
-                  <Input 
-                    value={item.category} 
-                    onChange={(e) => updateLineItem(item.id, 'category', e.target.value)} 
-                    placeholder="e.g. Housing" 
-                  />
+                  <select
+                    value={item.category}
+                    onChange={(e) => updateLineItem(item.id, 'category', e.target.value)}
+                    className="h-10 w-full rounded-md border border-input bg-white px-3 py-2 text-sm ring-offset-background focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
+                  >
+                    <option value="" disabled>Select Category...</option>
+                    {BUDGET_CATEGORIES.map(cat => (
+                      <option key={cat.value} value={cat.value}>{cat.label}</option>
+                    ))}
+                  </select>
                 </div>
 
                 {/* Amount */}

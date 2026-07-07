@@ -221,7 +221,7 @@ export default function SettingsPage() {
             </div>
             
             {(() => {
-              const totalIncome = (formData.incomes || []).reduce((sum, inc) => sum + inc.amount, 0) * 12; // Annualize monthly income
+              const totalIncome = (formData.incomes || []).reduce((sum, inc) => sum + inc.amount, 0); // Already annual
               if (totalIncome === 0) return null;
               
               const taxResult = calculateTaxes(
@@ -248,7 +248,7 @@ export default function SettingsPage() {
           <CardHeader className="flex flex-row justify-between items-start">
             <div>
               <CardTitle>Household & Incomes</CardTitle>
-              <CardDescription>Manage the people in your household and their baseline monthly income.</CardDescription>
+              <CardDescription>Manage the people in your household and their baseline annual income.</CardDescription>
             </div>
             <Button onClick={handleAddPayor} variant="outline" size="sm">Add Person</Button>
           </CardHeader>
@@ -268,7 +268,7 @@ export default function SettingsPage() {
                         />
                       </div>
                       <div className="space-y-2 flex-1 w-full">
-                        <Label>Monthly Income ($)</Label>
+                        <Label>Annual Income ($)</Label>
                         <Input 
                           type="number"
                           value={incomeAmount} 
