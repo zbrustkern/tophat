@@ -11,8 +11,13 @@ vi.mock('@/contexts/PlansContext', () => ({
   usePlans: vi.fn(),
 }));
 
+vi.mock('@/contexts/SettingsContext', () => ({
+  useSettings: vi.fn(),
+}));
+
 import { useAuth } from '@/contexts/AuthContext';
 import { usePlans } from '@/contexts/PlansContext';
+import { useSettings } from '@/contexts/SettingsContext';
 
 describe('User Story: Dashboard displays saved plans', () => {
   beforeEach(() => {
@@ -22,6 +27,7 @@ describe('User Story: Dashboard displays saved plans', () => {
   it('shows empty state when user has no plans', () => {
     (useAuth as any).mockReturnValue({ user: { uid: '123', email: 'test@example.com' }, loading: false });
     (usePlans as any).mockReturnValue({ plans: [], loading: false });
+    (useSettings as any).mockReturnValue({ settings: { activePlans: {} }, loading: false });
 
     render(<Dashboard />);
 
@@ -38,6 +44,7 @@ describe('User Story: Dashboard displays saved plans', () => {
       ],
       loading: false
     });
+    (useSettings as any).mockReturnValue({ settings: { activePlans: {} }, loading: false });
 
     render(<Dashboard />);
 
