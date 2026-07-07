@@ -89,6 +89,7 @@ export interface CollegeDetails {
   returnRate: number;
   targetAmount: number;
   monthlyContribution: number;
+  useGlobalSettings?: boolean;
 }
 
 export interface CollegePlan extends BasePlan {

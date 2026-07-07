@@ -2,12 +2,15 @@ import { useState, useEffect } from "react";
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
 import { usePlans } from "@/contexts/PlansContext";
+import { useSettings } from "@/contexts/SettingsContext";
 import { SavingsPlan } from '@/types/chart';
 import { SavingsChartData } from '@/types/chart';
 import { useSavingsCalculations } from '@/hooks/usePlanCalculations';
 import { usePlanManagement } from '@/hooks/usePlanManagement';
 import { SavingsChart } from "@/components/SavingsChart";
 import { Button } from "@/components/ui/button";
+import { Label } from "@/components/ui/label";
+import { Switch } from "@/components/ui/switch";
 import { FormField, PlanNameField } from "@/components/PlanFormElements";
 import {
   Card,
@@ -30,7 +33,8 @@ const defaultPlan: SavingsPlan = {
     currentBalance: 100000,
     taxRate: 0.40,
     returnRate: 0.08,
-    withdrawalRate: 0.04
+    withdrawalRate: 0.04,
+    useGlobalSettings: true
   }
 };
 
@@ -45,6 +49,7 @@ export default function SavingsPlanner({
 }) {
   const { user } = useAuth();
   const { plans } = usePlans();
+  const { settings } = useSettings();
   const router = useRouter();
   const [plan, setPlan] = useState<SavingsPlan>(() => {
     if (planId) {
@@ -83,6 +88,17 @@ export default function SavingsPlanner({
     }
   }, [planId, plans, calculateSavingsData, hydratedPlanId]);
 
+  const effectiveDetails = {
+    ...plan.details,
+    ...(plan.details.useGlobalSettings !== false && settings ? {
+      taxRate: settings.taxRate,
+      returnRate: settings.returnRate,
+      withdrawalRate: settings.withdrawalRate,
+      currentAge: settings.currentAge,
+      retirementAge: settings.retirementAge,
+    } : {})
+  };
+
   const handleChange = (evt: React.ChangeEvent<HTMLInputElement>) => {
     setIsDirty(true);
     const { name, value } = evt.target;
@@ -104,9 +120,17 @@ export default function SavingsPlanner({
     }));
   };
 
+  const handleGlobalToggleChange = (checked: boolean) => {
+    setIsDirty(true);
+    setPlan(prev => ({
+      ...prev,
+      details: { ...prev.details, useGlobalSettings: checked }
+    }));
+  };
+
   const updateChart = () => {
     setIsDirty(false)
-    const { chartData: newChartData, requiredSavings: newRequiredSavings } = calculateSavingsData(plan);
+    const { chartData: newChartData, requiredSavings: newRequiredSavings } = calculateSavingsData({ ...plan, details: effectiveDetails });
     setChartData(newChartData);
     setRequiredSavings(newRequiredSavings);
   };
@@ -145,6 +169,18 @@ export default function SavingsPlanner({
           </CardHeader>
           <CardContent className="bg-gray-50/50">
             <PlanNameField value={plan.planName} onChange={handleChange} />
+            
+            <div className="mb-6 p-4 bg-sky-50 rounded-lg border border-sky-100 shadow-sm flex items-center justify-between">
+              <div>
+                <Label className="text-base font-semibold text-sky-900">Use Global Settings</Label>
+                <p className="text-sm text-sky-700">Sync Ages, Tax Rate, Return Rate, and Withdrawal Rate with your defaults.</p>
+              </div>
+              <Switch 
+                checked={plan.details.useGlobalSettings !== false} 
+                onCheckedChange={handleGlobalToggleChange} 
+              />
+            </div>
+
             <div className="grid md:grid-cols-3 gap-4">
               <FormField
                 label="Desired Annual Income ($)"
@@ -163,40 +199,45 @@ export default function SavingsPlanner({
               <FormField
                 label="Estimated Portfolio Return (%)"
                 name="returnRate"
-                value={plan.details.returnRate}
+                value={effectiveDetails.returnRate}
                 onChange={handleChange}
                 placeholder="8"
                 isPercentage
+                disabled={plan.details.useGlobalSettings !== false}
               />
               <FormField
                 label="Current Age"
                 name="currentAge"
-                value={plan.details.currentAge}
+                value={effectiveDetails.currentAge}
                 onChange={handleChange}
                 placeholder="30"
+                disabled={plan.details.useGlobalSettings !== false}
               />
               <FormField
                 label="Retirement Age"
                 name="retirementAge"
-                value={plan.details.retirementAge}
+                value={effectiveDetails.retirementAge}
                 onChange={handleChange}
                 placeholder="65"
+                disabled={plan.details.useGlobalSettings !== false}
               />
               <FormField
                 label="Expected Tax Rate (%)"
                 name="taxRate"
-                value={plan.details.taxRate}
+                value={effectiveDetails.taxRate}
                 onChange={handleChange}
                 placeholder="40"
                 isPercentage
+                disabled={plan.details.useGlobalSettings !== false}
               />
               <FormField
                 label="Safe Withdrawal Rate (%)"
                 name="withdrawalRate"
-                value={plan.details.withdrawalRate ?? 0.04}
+                value={effectiveDetails.withdrawalRate ?? 0.04}
                 onChange={handleChange}
                 placeholder="4"
                 isPercentage
+                disabled={plan.details.useGlobalSettings !== false}
               />
             </div>
             

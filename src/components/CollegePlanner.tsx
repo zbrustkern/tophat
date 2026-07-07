@@ -6,8 +6,11 @@ import { CollegeChartData } from '@/types/chart';
 import { useCollegeCalculations } from '@/hooks/usePlanCalculations';
 import { usePlanManagement } from '@/hooks/usePlanManagement';
 import { usePlans } from '@/contexts/PlansContext';
+import { useSettings } from '@/contexts/SettingsContext';
 import { CollegeChart } from "@/components/CollegeChart";
 import { Button } from "@/components/ui/button";
+import { Label } from "@/components/ui/label";
+import { Switch } from "@/components/ui/switch";
 import { FormField, PlanNameField } from "@/components/PlanFormElements";
 import {
   Card,
@@ -31,6 +34,7 @@ const defaultPlan: CollegePlan = {
     returnRate: 0.07,
     targetAmount: 100000,
     monthlyContribution: 500,
+    useGlobalSettings: true
   }
 };
 
@@ -38,6 +42,7 @@ export default function CollegePlanner({ planId }: { planId: string | null }) {
   const { user } = useAuth();
   const router = useRouter();
   const { plans } = usePlans();
+  const { settings } = useSettings();
   const [plan, setPlan] = useState<CollegePlan>(() => {
     if (planId) {
       const existing = plans.find(p => p.id === planId);
@@ -68,6 +73,13 @@ export default function CollegePlanner({ planId }: { planId: string | null }) {
       }
     }
   }, [planId, plans, calculateCollegeData, hydratedPlanId]);
+
+  const effectiveDetails = {
+    ...plan.details,
+    ...(plan.details.useGlobalSettings !== false && settings ? {
+      returnRate: settings.returnRate,
+    } : {})
+  };
 
   const handleChange = (evt: React.ChangeEvent<HTMLInputElement>) => {
     setIsDirty(true);
@@ -101,9 +113,17 @@ export default function CollegePlanner({ planId }: { planId: string | null }) {
     }));
   };
 
+  const handleGlobalToggleChange = (checked: boolean) => {
+    setIsDirty(true);
+    setPlan(prev => ({
+      ...prev,
+      details: { ...prev.details, useGlobalSettings: checked }
+    }));
+  };
+
   const updateChart = () => {
     setIsDirty(false);
-    const result = calculateCollegeData(plan);
+    const result = calculateCollegeData({ ...plan, details: effectiveDetails });
     setChartData(result.chartData);
     if (plan.details.calculationMode === 'goal') {
       setCalculatedValue(result.finalTargetAmount);
@@ -164,6 +184,17 @@ export default function CollegePlanner({ planId }: { planId: string | null }) {
               </Button>
             </div>
 
+            <div className="mb-6 p-4 bg-sky-50 rounded-lg border border-sky-100 shadow-sm flex items-center justify-between">
+              <div>
+                <Label className="text-base font-semibold text-sky-900">Use Global Settings</Label>
+                <p className="text-sm text-sky-700">Sync Expected Return Rate with your global defaults.</p>
+              </div>
+              <Switch 
+                checked={plan.details.useGlobalSettings !== false} 
+                onCheckedChange={handleGlobalToggleChange} 
+              />
+            </div>
+
             <div className="grid md:grid-cols-3 gap-4">
               <FormField
                 label="Child's Current Age"
@@ -189,10 +220,11 @@ export default function CollegePlanner({ planId }: { planId: string | null }) {
               <FormField
                 label="Expected Return (%)"
                 name="returnRate"
-                value={plan.details.returnRate}
+                value={effectiveDetails.returnRate}
                 onChange={handleChange}
                 placeholder="7"
                 isPercentage
+                disabled={plan.details.useGlobalSettings !== false}
               />
 
               {plan.details.calculationMode === 'goal' ? (
