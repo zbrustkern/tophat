@@ -54,6 +54,7 @@ describe('usePlanCalculations', () => {
         planType: 'savings',
         lastUpdated: new Date(),
         details: {
+          goalType: 'income_stream',
           desiredIncome: 120000,
           currentAge: 30,
           retirementAge: 65,

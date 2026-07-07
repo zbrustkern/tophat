@@ -65,6 +65,7 @@ export default function BudgetPlanner() {
   const { loading, savePlan } = usePlanManagement<BudgetPlan>();
   const { calculateBudgetData } = useBudgetCalculations();
   const [isDirty, setIsDirty] = useState(false);
+  const [activePayorView, setActivePayorView] = useState<string>('All');
 
   useEffect(() => {
     if (plans.length > 0) {
@@ -141,14 +142,29 @@ export default function BudgetPlanner() {
   };
 
   // Perform calculations
-  const data = calculateBudgetData(plan, settings, plans);
   const payors = settings?.payors || ['Joint'];
+  const data = calculateBudgetData(plan, settings, plans, activePayorView);
 
   return (
     <div className="flex flex-col gap-6">
       {/* Waterfall Summary Graphic */}
       <div className="flex flex-col gap-2">
-        <h3 className="text-lg font-semibold text-slate-700">Monthly Cash Flow Waterfall</h3>
+        <div className="flex flex-col sm:flex-row justify-between sm:items-end gap-2">
+          <h3 className="text-lg font-semibold text-slate-700">Monthly Cash Flow Waterfall</h3>
+          <div className="flex items-center gap-2">
+            <Label className="text-sm font-semibold text-slate-500 whitespace-nowrap">View Cash Flow By:</Label>
+            <select
+              value={activePayorView}
+              onChange={(e) => setActivePayorView(e.target.value)}
+              className="h-8 rounded-md border border-input bg-white px-2 py-1 text-sm ring-offset-background focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
+            >
+              <option value="All">Household / All</option>
+              {payors.map(p => (
+                <option key={p} value={p}>{p} Only</option>
+              ))}
+            </select>
+          </div>
+        </div>
         <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-2">
           {/* Gross */}
           <Card className="bg-sky-50 border-sky-200 flex flex-col justify-center items-center text-center p-4">
@@ -234,8 +250,10 @@ export default function BudgetPlanner() {
             </div>
 
             {/* Line Items */}
-            {plan.details.lineItems.map((item) => (
-              <div key={item.id} className="grid grid-cols-1 md:grid-cols-[1fr_1.5fr_1fr_1fr_1fr_auto] gap-3 p-3 md:p-0 md:bg-transparent bg-slate-50 border md:border-0 rounded-lg md:rounded-none items-center">
+            {plan.details.lineItems.map((item) => {
+              const isExcluded = activePayorView !== 'All' && item.payorId !== activePayorView;
+              return (
+              <div key={item.id} className={`grid grid-cols-1 md:grid-cols-[1fr_1.5fr_1fr_1fr_1fr_auto] gap-3 p-3 md:p-0 md:bg-transparent bg-slate-50 border md:border-0 rounded-lg md:rounded-none items-center transition-opacity duration-300 ${isExcluded ? 'opacity-40 grayscale' : ''}`}>
                 
                 {/* Payor */}
                 <div className="flex flex-col md:block">
@@ -310,7 +328,7 @@ export default function BudgetPlanner() {
                   </Button>
                 </div>
               </div>
-            ))}
+            )})}
           </div>
 
           <Button onClick={addLineItem} variant="secondary" className="w-full mt-4 border-dashed border-2 bg-transparent hover:bg-slate-50">

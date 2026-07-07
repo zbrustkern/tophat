@@ -126,22 +126,28 @@ export function useIncomeCalculations() {
 export function useSavingsCalculations() {
   const calculateSavingsData = useCallback((plan: SavingsPlan, globalSettings?: GlobalSettings | null) => {
     const {
+      goalType,
       desiredIncome,
       currentAge,
       retirementAge,
+      targetAmount,
+      timelineYears,
       currentBalance,
       taxRate,
       returnRate,
       withdrawalRate,
+      futureTaxRateScenario,
       useGlobalSettings
     } = plan.details;
 
-    // Use dynamic tax rate if using global settings
+    const currentYear = new Date().getFullYear();
+
+    // Base tax rate calculation
     let effectiveTaxRate = taxRate;
     if (useGlobalSettings !== false && globalSettings) {
-      // In savings, desired income is used as a proxy for gross need
+      const incomeToTest = desiredIncome || 50000;
       const result = calculateTaxes(
-        desiredIncome, 
+        incomeToTest, 
         globalSettings.filingStatus || 'Single', 
         globalSettings.stateOfResidence || 'TX', 
         globalSettings.dependents || 0
@@ -149,30 +155,73 @@ export function useSavingsCalculations() {
       effectiveTaxRate = result.effectiveTaxRate;
     }
 
-    const years = retirementAge - currentAge;
+    let futureTaxRate = effectiveTaxRate;
+    if (futureTaxRateScenario === 'higher') futureTaxRate = Math.min(1, futureTaxRate + 0.10);
+    if (futureTaxRateScenario === 'lower') futureTaxRate = Math.max(0, futureTaxRate - 0.10);
+
     const data = [];
     let currentSavings = 0;
     let balance = currentBalance;
+    let yearlySavings = 0;
 
-    // Use withdrawal rate if specified, otherwise fall back to returnRate for backward compatibility
-    const swr = withdrawalRate ?? returnRate;
+    if (goalType === 'income_stream') {
+      const startAge = currentAge || 30;
+      const endAge = retirementAge || 65;
+      const years = endAge - startAge;
+      const swr = withdrawalRate ?? 0.04;
 
-    // Calculate required savings
-    const totalRequired = desiredIncome / (swr * (1 - effectiveTaxRate));
-    const yearlySavings = (totalRequired - currentBalance * Math.pow(1 + returnRate, years)) / 
-                          ((Math.pow(1 + returnRate, years) - 1) / returnRate);
+      const totalRequired = (desiredIncome || 0) / (swr * (1 - futureTaxRate));
+      
+      if (years > 0) {
+        yearlySavings = (totalRequired - currentBalance * Math.pow(1 + returnRate, years)) / 
+                        ((Math.pow(1 + returnRate, years) - 1) / returnRate);
+      } else {
+        yearlySavings = totalRequired - currentBalance;
+      }
+      
+      yearlySavings = Math.max(0, yearlySavings); // Graceful handling if already enough
 
-    for (let year = currentAge; year <= retirementAge; year++) {
-      balance = balance * (1 + returnRate) + yearlySavings;
-      currentSavings += yearlySavings;
+      for (let i = 0; i <= years; i++) {
+        balance = balance * (1 + returnRate) + yearlySavings;
+        currentSavings += yearlySavings;
 
-      data.push({
-        year,
-        balance: Math.round(balance),
-        savingsRate: Math.round(yearlySavings),
-        totalSaved: Math.round(currentSavings),
-        projectedIncome: Math.round(balance * swr * (1 - effectiveTaxRate)),
-      });
+        data.push({
+          year: currentYear + i,
+          age: startAge + i,
+          balance: Math.round(balance),
+          targetBalance: Math.round(totalRequired),
+          savingsRate: Math.round(yearlySavings),
+          totalSaved: Math.round(currentSavings),
+          projectedIncome: Math.round(balance * swr * (1 - futureTaxRate)),
+        });
+      }
+    } else {
+      // target_amount
+      const years = timelineYears || 5;
+      const target = targetAmount || 0;
+
+      if (years > 0) {
+        yearlySavings = (target - currentBalance * Math.pow(1 + returnRate, years)) / 
+                        ((Math.pow(1 + returnRate, years) - 1) / returnRate);
+      } else {
+        yearlySavings = target - currentBalance;
+      }
+
+      yearlySavings = Math.max(0, yearlySavings);
+
+      for (let i = 0; i <= years; i++) {
+        balance = balance * (1 + returnRate) + yearlySavings;
+        currentSavings += yearlySavings;
+
+        data.push({
+          year: currentYear + i,
+          balance: Math.round(balance),
+          targetBalance: Math.round(target),
+          savingsRate: Math.round(yearlySavings),
+          totalSaved: Math.round(currentSavings),
+          projectedIncome: 0,
+        });
+      }
     }
 
     return { chartData: data, requiredSavings: yearlySavings };

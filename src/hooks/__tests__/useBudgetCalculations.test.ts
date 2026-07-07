@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { renderHook } from '@testing-library/react';
 import { useBudgetCalculations } from '../useBudgetCalculations';
-import { BudgetPlan, GlobalSettings, Plan, IncomePlan } from '@/types/chart';
+import { BudgetPlan, GlobalSettings, Plan, IncomePlan, HousePlan } from '@/types/chart';
 
 describe('useBudgetCalculations', () => {
   const mockGlobalSettings: GlobalSettings = {
@@ -48,7 +48,25 @@ describe('useBudgetCalculations', () => {
       taxRate: 0.24,
       returnRate: 0.07,
       useGlobalSettings: false,
-      taxType: 'preTax'
+      taxType: 'preTax',
+      payorId: 'N'
+    }
+  };
+
+  const mockHousePlanOwned: HousePlan = {
+    id: 'house1',
+    planName: 'Owned House',
+    planType: 'house',
+    lastUpdated: new Date(),
+    details: {
+      status: 'owned',
+      currentLoanBalance: 300000,
+      interestRate: 0.04,
+      remainingTermMonths: 360,
+      annualPropertyTaxRate: 0.02,
+      currentValue: 400000,
+      annualHomeInsurance: 1200,
+      annualMaintenance: 2400
     }
   };
 
@@ -96,5 +114,30 @@ describe('useBudgetCalculations', () => {
     
     // Net Cash Flow = 76000 - 30000 = 46000
     expect(data.waterfall.netCashFlow).toBe(46000);
+  });
+
+  it('should include house plan expenses in the annual core budget if housePlanId is provided', () => {
+    const { result } = renderHook(() => useBudgetCalculations());
+    const settingsWithHouse = { 
+      ...mockGlobalSettings, 
+      activePlans: { housePlanId: 'house1', incomePlanId: 'income1' } 
+    };
+    const data = result.current.calculateBudgetData(mockBudgetPlan, settingsWithHouse, [...allPlans, mockHousePlanOwned]);
+
+    // House costs: 
+    // Mortgage payment: 300000 loan, 4% rate, 360 months -> ~1432.25/mo
+    // Property tax: 400000 * 0.02 / 12 = ~666.67/mo
+    // Insurance: 1200 / 12 = 100/mo
+    // Maintenance: 2400 / 12 = 200/mo
+    // Total house monthly cost: ~2398.92
+    // Total annual house cost: ~28787
+    
+    // Core Expenses without house: 30000
+    // Total Core Expenses: ~58787
+    expect(data.waterfall.annualCoreBudget).toBeGreaterThan(58780);
+    expect(data.waterfall.annualCoreBudget).toBeLessThan(58790);
+
+    // Total expenses shown is the old value (just budget items)
+    expect(data.totalExpenses).toBe(2500); 
   });
 });

@@ -11,6 +11,7 @@ import { SavingsChart } from "@/components/SavingsChart";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { FormField, PlanNameField } from "@/components/PlanFormElements";
 import {
   Card,
@@ -27,11 +28,16 @@ const defaultPlan: SavingsPlan = {
   planType: 'savings',
   lastUpdated: new Date(),
   details: {
+    goalType: 'income_stream',
     desiredIncome: 100000,
     currentAge: 30,
     retirementAge: 65,
+    targetAmount: 50000,
+    timelineYears: 5,
     currentBalance: 100000,
     taxRate: 0.40,
+    taxType: 'preTax',
+    futureTaxRateScenario: 'current',
     returnRate: 0.08,
     withdrawalRate: 0.04,
     useGlobalSettings: true
@@ -107,7 +113,7 @@ export default function SavingsPlanner({
     // Handle percentage fields
     if (["taxRate", "returnRate", "withdrawalRate"].includes(name)) {
       newValue = parseFloat(value) / 100; // Convert from percentage to decimal
-    } else if (name !== "planName") {
+    } else if (!["planName", "goalType", "taxType", "futureTaxRateScenario", "linkedPortfolioId"].includes(name)) {
       newValue = Number(value);
     }
 
@@ -117,6 +123,14 @@ export default function SavingsPlanner({
         ? { planName: value }
         : { details: { ...prev.details, [name]: newValue } }
       )
+    }));
+  };
+
+  const handleSelectChange = (name: string, value: string) => {
+    setIsDirty(true);
+    setPlan(prev => ({
+      ...prev,
+      details: { ...prev.details, [name]: value }
     }));
   };
 
@@ -164,7 +178,7 @@ export default function SavingsPlanner({
               Savings Planner
             </CardTitle>
             <CardDescription className="text-gray-500 font-medium">
-              Plan your path to retirement
+              Plan for a retirement income stream or a specific savings target.
             </CardDescription>
           </CardHeader>
           <CardContent className="bg-gray-50/50">
@@ -181,82 +195,103 @@ export default function SavingsPlanner({
               />
             </div>
 
+            <div className="grid md:grid-cols-3 gap-6 mb-6">
+              <div className="flex flex-col gap-1.5">
+                <Label className="text-sm font-medium text-gray-700">Goal Type</Label>
+                <Select value={plan.details.goalType || 'income_stream'} onValueChange={(val) => handleSelectChange('goalType', val)}>
+                  <SelectTrigger className="bg-white">
+                    <SelectValue placeholder="Select Goal Type" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="income_stream">Income Stream (Retirement)</SelectItem>
+                    <SelectItem value="target_amount">Target Amount (Down Payment, Car)</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="flex flex-col gap-1.5">
+                <Label className="text-sm font-medium text-gray-700">Tax Treatment</Label>
+                <Select value={plan.details.taxType || 'preTax'} onValueChange={(val) => handleSelectChange('taxType', val)}>
+                  <SelectTrigger className="bg-white">
+                    <SelectValue placeholder="Select Tax Treatment" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="preTax">Pre-Tax (e.g. Traditional 401k/IRA)</SelectItem>
+                    <SelectItem value="postTax">Post-Tax (e.g. Roth, Standard Brokerage, Cash)</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {plan.details.goalType === 'income_stream' && (
+                <div className="flex flex-col gap-1.5">
+                  <Label className="text-sm font-medium text-gray-700">Future Tax Rate Scenario</Label>
+                  <Select value={plan.details.futureTaxRateScenario || 'current'} onValueChange={(val) => handleSelectChange('futureTaxRateScenario', val)}>
+                    <SelectTrigger className="bg-white">
+                      <SelectValue placeholder="Select Scenario" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="current">Current Rate (Expected)</SelectItem>
+                      <SelectItem value="higher">Higher Taxes (+10%)</SelectItem>
+                      <SelectItem value="lower">Lower Taxes (-10%)</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              )}
+              
+              <div className="flex flex-col gap-1.5">
+                <Label className="text-sm font-medium text-gray-700">Link Portfolio (Optional)</Label>
+                <Select value={plan.details.linkedPortfolioId || 'none'} onValueChange={(val) => handleSelectChange('linkedPortfolioId', val === 'none' ? '' : val)}>
+                  <SelectTrigger className="bg-white">
+                    <SelectValue placeholder="Select Portfolio" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="none">None (Cash/Manual Return)</SelectItem>
+                    {plans.filter(p => p.planType === 'rebalance').map(p => (
+                      <SelectItem key={p.id} value={p.id}>{p.planName}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+
             <div className="grid md:grid-cols-3 gap-4">
-              <FormField
-                label="Desired Annual Income ($)"
-                name="desiredIncome"
-                value={plan.details.desiredIncome}
-                onChange={handleChange}
-                placeholder="100,000"
-              />
-              <FormField
-                label="Current Balance ($)"
-                name="currentBalance"
-                value={plan.details.currentBalance}
-                onChange={handleChange}
-                placeholder="25,000"
-              />
-              <FormField
-                label="Estimated Portfolio Return (%)"
-                name="returnRate"
-                value={effectiveDetails.returnRate}
-                onChange={handleChange}
-                placeholder="8"
-                isPercentage
-                disabled={plan.details.useGlobalSettings !== false}
-              />
-              <FormField
-                label="Current Age"
-                name="currentAge"
-                value={effectiveDetails.currentAge}
-                onChange={handleChange}
-                placeholder="30"
-                disabled={plan.details.useGlobalSettings !== false}
-              />
-              <FormField
-                label="Retirement Age"
-                name="retirementAge"
-                value={effectiveDetails.retirementAge}
-                onChange={handleChange}
-                placeholder="65"
-                disabled={plan.details.useGlobalSettings !== false}
-              />
-              <FormField
-                label="Expected Tax Rate (%)"
-                name="taxRate"
-                value={effectiveDetails.taxRate}
-                onChange={handleChange}
-                placeholder="40"
-                isPercentage
-                disabled={plan.details.useGlobalSettings !== false}
-              />
-              <FormField
-                label="Safe Withdrawal Rate (%)"
-                name="withdrawalRate"
-                value={effectiveDetails.withdrawalRate ?? 0.04}
-                onChange={handleChange}
-                placeholder="4"
-                isPercentage
-                disabled={plan.details.useGlobalSettings !== false}
-              />
+              {plan.details.goalType === 'income_stream' ? (
+                <>
+                  <FormField label="Desired Annual Income ($)" name="desiredIncome" value={plan.details.desiredIncome} onChange={handleChange} placeholder="100000" />
+                  <FormField label="Current Age" name="currentAge" value={effectiveDetails.currentAge} onChange={handleChange} placeholder="30" disabled={plan.details.useGlobalSettings !== false} />
+                  <FormField label="Retirement Age" name="retirementAge" value={effectiveDetails.retirementAge} onChange={handleChange} placeholder="65" disabled={plan.details.useGlobalSettings !== false} />
+                  <FormField label="Safe Withdrawal Rate (%)" name="withdrawalRate" value={effectiveDetails.withdrawalRate ?? 0.04} onChange={handleChange} placeholder="4" isPercentage disabled={plan.details.useGlobalSettings !== false} />
+                </>
+              ) : (
+                <>
+                  <FormField label="Target Amount ($)" name="targetAmount" value={plan.details.targetAmount} onChange={handleChange} placeholder="50000" />
+                  <FormField label="Timeline (Years)" name="timelineYears" value={plan.details.timelineYears} onChange={handleChange} placeholder="5" />
+                </>
+              )}
+              
+              <FormField label="Current Balance ($)" name="currentBalance" value={plan.details.currentBalance} onChange={handleChange} placeholder="25000" />
+              <FormField label="Estimated Portfolio Return (%)" name="returnRate" value={effectiveDetails.returnRate} onChange={handleChange} placeholder="8" isPercentage disabled={plan.details.useGlobalSettings !== false} />
+              <FormField label="Expected Tax Rate (%)" name="taxRate" value={effectiveDetails.taxRate} onChange={handleChange} placeholder="40" isPercentage disabled={plan.details.useGlobalSettings !== false} />
             </div>
             
-            <div className="mt-6 p-4 bg-blue-50/80 rounded-xl border border-blue-100 text-sm text-blue-900 leading-relaxed shadow-sm">
-              <h4 className="font-semibold mb-1 flex items-center gap-1.5 text-blue-950">
-                💡 About the Safe Withdrawal Rate (SWR)
-              </h4>
-              <p className="mb-2">
-                The SWR determines what percentage of your retirement portfolio is withdrawn annually to support your desired income.
-              </p>
-              <ul className="list-disc list-inside space-y-1 text-blue-900">
-                <li>
-                  <strong className="text-blue-950">The 4% Rule:</strong> A 4% safe withdrawal rate is the industry standard (based on the Trinity Study) designed to prevent you from depleting your portfolio over a 30-year retirement by keeping pace with inflation.
-                </li>
-                <li>
-                  <strong className="text-blue-950">Higher rates (e.g. 6-8%):</strong> Require saving less today, but carry a high risk of exhausting your capital during market downturns.
-                </li>
-              </ul>
-            </div>
+            {plan.details.goalType === 'income_stream' && (
+              <div className="mt-6 p-4 bg-blue-50/80 rounded-xl border border-blue-100 text-sm text-blue-900 leading-relaxed shadow-sm">
+                <h4 className="font-semibold mb-1 flex items-center gap-1.5 text-blue-950">
+                  💡 About the Safe Withdrawal Rate (SWR)
+                </h4>
+                <p className="mb-2">
+                  The SWR determines what percentage of your retirement portfolio is withdrawn annually to support your desired income.
+                </p>
+                <ul className="list-disc list-inside space-y-1 text-blue-900">
+                  <li>
+                    <strong className="text-blue-950">The 4% Rule:</strong> A 4% safe withdrawal rate is the industry standard (based on the Trinity Study) designed to prevent you from depleting your portfolio over a 30-year retirement by keeping pace with inflation.
+                  </li>
+                  <li>
+                    <strong className="text-blue-950">Higher rates (e.g. 6-8%):</strong> Require saving less today, but carry a high risk of exhausting your capital during market downturns.
+                  </li>
+                </ul>
+              </div>
+            )}
           </CardContent>
           <CardFooter className="bg-white border-t py-4">
             <div className="flex w-full items-center justify-between">

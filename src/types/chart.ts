@@ -19,11 +19,14 @@ export interface GlobalSettings {
   dependents?: number;
   activePlans?: {
     incomePlanId?: string;
-    savingsPlanId?: string;
+    incomePlanIds?: string[];
+    savingsPlanId?: string; // Legacy
+    savingsPlanIds?: string[]; // New
     collegePlanId?: string;
     collegePlanIds?: string[];
     budgetPlanId?: string;
     portfolioPlanId?: string;
+    housePlanId?: string;
   };
 }
 
@@ -57,6 +60,7 @@ export interface IncomeDetails {
   saveAmount?: number;
   withdrawalRate?: number;
   useGlobalSettings?: boolean;
+  payorId?: string;
   employerMatchLimit?: number; // e.g., 0.05 (up to 5% of salary)
   employerMatchRate?: number; // e.g., 1.0 (100% match)
   disasterConfig?: DisasterConfig;
@@ -83,15 +87,27 @@ export type IncomeChartData = {
   employerMatchAmount: number;
 };
 
-// Savings Plan Types
+// Savings Goal Plan Types
 export interface SavingsDetails {
-  desiredIncome: number;
-  currentAge: number;
-  retirementAge: number;
+  goalType: 'income_stream' | 'target_amount';
+  
+  // For 'income_stream'
+  desiredIncome?: number;
+  currentAge?: number;
+  retirementAge?: number;
+  withdrawalRate?: number;
+  futureTaxRateScenario?: 'current' | 'higher' | 'lower'; // for projection
+  
+  // For 'target_amount'
+  targetAmount?: number;
+  timelineYears?: number;
+  
+  // Common funding
   currentBalance: number;
+  linkedPortfolioId?: string; // If null, uses cash logic
+  
   taxRate: number;
   returnRate: number;
-  withdrawalRate?: number;
   useGlobalSettings?: boolean;
   taxType?: 'preTax' | 'postTax';
 }
@@ -103,7 +119,9 @@ export interface SavingsPlan extends BasePlan {
 
 export type SavingsChartData = {
   year: number;
+  age?: number;
   balance: number;
+  targetBalance?: number;
   savingsRate: number;
   totalSaved: number;
   projectedIncome: number;
@@ -183,9 +201,38 @@ export interface BudgetPlan extends BasePlan {
   details: BudgetDetails;
 }
 
+// House Plan Types
+export interface HouseDetails {
+  status: 'owned'; // Removed 'planning' as it's now a Savings Goal
+  
+  // For 'owned'
+  currentValue?: number;
+  originalLoanAmount?: number;
+  currentLoanBalance?: number;
+  interestRate?: number;
+  remainingTermMonths?: number;
+  
+  // Common
+  annualPropertyTaxRate?: number; 
+  state?: string; 
+  annualHomeInsurance?: number;
+  annualMaintenance?: number;
+  appreciationRate?: number; // default 0.03
+  
+  // Scenarios
+  extraMonthlyPayment?: number;
+  refinanceRate?: number;
+  refinanceTermMonths?: number;
+}
+
+export interface HousePlan extends BasePlan {
+  planType: 'house';
+  details: HouseDetails;
+}
+
 // Union type for all plans
-export type Plan = IncomePlan | SavingsPlan | CollegePlan | RebalancePlan | BudgetPlan;
+export type Plan = IncomePlan | SavingsPlan | CollegePlan | RebalancePlan | BudgetPlan | HousePlan;
 
 // Optional: You might want to add these helper types for future use
-export type PlanDetails = IncomeDetails | SavingsDetails | CollegeDetails | RebalanceDetails | BudgetDetails;
+export type PlanDetails = IncomeDetails | SavingsDetails | CollegeDetails | RebalanceDetails | BudgetDetails | HouseDetails;
 export type ChartData = IncomeChartData | SavingsChartData | CollegeChartData;

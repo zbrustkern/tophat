@@ -243,6 +243,27 @@ export default function IncomePlanner({
             </div>
 
             <div className="grid md:grid-cols-3 gap-4">
+              <div className="grid w-full max-w-sm items-center gap-1.5">
+                <Label htmlFor="payorId" className="text-sm font-medium text-gray-700">Who earns this?</Label>
+                <select
+                  id="payorId"
+                  name="payorId"
+                  value={plan.details.payorId || 'Joint'}
+                  onChange={(e) => {
+                    setIsDirty(true);
+                    setPlan(prev => ({
+                      ...prev,
+                      details: { ...prev.details, payorId: e.target.value }
+                    }));
+                  }}
+                  className="flex h-10 w-full rounded-md border border-input bg-white px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 border-gray-200"
+                >
+                  <option value="Joint">Joint / All</option>
+                  {settings?.payors?.map(p => (
+                    <option key={p} value={p}>{p}</option>
+                  ))}
+                </select>
+              </div>
               <FormField
                 label="Income in $/year"
                 name="income"
