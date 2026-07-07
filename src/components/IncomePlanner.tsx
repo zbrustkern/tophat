@@ -76,6 +76,10 @@ export default function IncomePlanner({
   const { calculateIncomeData } = useIncomeCalculations();
   const { loading, error, savePlan } = usePlanManagement<IncomePlan>();
   const [hydratedPlanId, setHydratedPlanId] = useState<string | null>(null);
+  
+  // Scenario Analysis State
+  const [comparisonPlanId, setComparisonPlanId] = useState<string>('none');
+  const [comparisonChartData, setComparisonChartData] = useState<IncomeChartData[]>([]);
 
   useEffect(() => {
     if (planId && planId !== hydratedPlanId && plans.length > 0) {
@@ -138,6 +142,39 @@ export default function IncomePlanner({
     setIsDirty(false)
     const data = calculateIncomeData({ ...plan, details: effectiveDetails });
     setChartData(data);
+    
+    // Scenario Analysis logic
+    if (comparisonPlanId !== 'none') {
+      const compPlan = plans.find(p => p.id === comparisonPlanId);
+      if (compPlan && compPlan.planType === 'income') {
+        // If the comparison plan uses global settings, compute its effective details too
+        const compEffectiveDetails = {
+          ...(compPlan as IncomePlan).details,
+          ...((compPlan as IncomePlan).details.useGlobalSettings !== false && settings ? {
+            taxRate: settings.taxRate,
+            returnRate: settings.returnRate,
+            withdrawalRate: settings.withdrawalRate,
+          } : {})
+        };
+        const compData = calculateIncomeData({ ...(compPlan as IncomePlan), details: compEffectiveDetails });
+        setComparisonChartData(compData);
+      }
+    } else {
+      setComparisonChartData([]);
+    }
+  };
+
+  // Helper for Delta Board
+  const getDelta = (yearIndex: number) => {
+    if (chartData.length > yearIndex && comparisonChartData.length > yearIndex) {
+      const primary = chartData[yearIndex];
+      const secondary = comparisonChartData[yearIndex];
+      return {
+        balanceDiff: primary.balance - secondary.balance,
+        incomeDiff: primary.conservativeIncome - secondary.conservativeIncome
+      };
+    }
+    return null;
   };
 
   const handleSave = async () => {
@@ -317,16 +354,73 @@ export default function IncomePlanner({
 
       <div className="m-1">
         <Card className="bg-white shadow-lg hover:shadow-xl transition-all duration-200 border-none">
-          <CardHeader className="flex gap-3">
-            <CardTitle className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-blue-400 bg-clip-text text-transparent">
-              Income Expectations
-            </CardTitle>
-            <CardDescription className="text-gray-500 font-medium">
-              How much passive income are you set to earn?
-            </CardDescription>
+          <CardHeader className="flex flex-col sm:flex-row gap-3 justify-between sm:items-center">
+            <div>
+              <CardTitle className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-blue-400 bg-clip-text text-transparent">
+                Income Expectations
+              </CardTitle>
+              <CardDescription className="text-gray-500 font-medium mt-1">
+                How much passive income are you set to earn?
+              </CardDescription>
+            </div>
+            
+            {/* Scenario Analysis Dropdown */}
+            <div className="flex items-center gap-2 bg-slate-50 p-2 rounded-md border">
+              <Label htmlFor="comparePlan" className="text-sm font-semibold text-slate-700 whitespace-nowrap">Compare to:</Label>
+              <select
+                id="comparePlan"
+                value={comparisonPlanId}
+                onChange={(e) => {
+                  setComparisonPlanId(e.target.value);
+                  setIsDirty(true); // Prompt them to hit recalculate
+                }}
+                className="h-8 rounded-md border border-slate-200 bg-white px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+              >
+                <option value="none">None</option>
+                {plans
+                  .filter(p => p.planType === 'income' && p.id !== plan.id)
+                  .map(p => (
+                    <option key={p.id} value={p.id}>{p.planName}</option>
+                  ))
+                }
+              </select>
+            </div>
           </CardHeader>
-          <CardContent className="bg-gray-50/50">
-            <IncomeChart chartData={chartData} />
+          <CardContent className="bg-gray-50/50 flex flex-col gap-6">
+            <IncomeChart 
+              chartData={chartData} 
+              secondaryChartData={comparisonChartData.length > 0 ? comparisonChartData : undefined}
+            />
+
+            {/* Delta Board */}
+            {comparisonChartData.length > 0 && chartData.length > 0 && (
+              <div className="bg-white p-4 rounded-lg border shadow-sm">
+                <h3 className="text-lg font-semibold text-slate-800 mb-4 text-center">Scenario Comparison (Primary vs Comparison)</h3>
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                  {[10, 20, 30, 40].map(yearsOut => {
+                    // yearIndex is the number of years from start. The first index is year 0, so year 10 is index 10.
+                    const delta = getDelta(yearsOut);
+                    if (!delta) return null;
+                    const balanceIsPositive = delta.balanceDiff >= 0;
+                    const incomeIsPositive = delta.incomeDiff >= 0;
+
+                    return (
+                      <div key={yearsOut} className="bg-slate-50 p-3 rounded border text-center">
+                        <div className="text-sm font-bold text-slate-500 mb-2">Year {yearsOut}</div>
+                        <div className="flex flex-col gap-1">
+                          <div className={`text-sm font-semibold ${balanceIsPositive ? 'text-emerald-600' : 'text-rose-600'}`}>
+                            Balance: {balanceIsPositive ? '+' : ''}${Math.round(delta.balanceDiff).toLocaleString()}
+                          </div>
+                          <div className={`text-sm font-semibold ${incomeIsPositive ? 'text-emerald-600' : 'text-rose-600'}`}>
+                            Income: {incomeIsPositive ? '+' : ''}${Math.round(delta.incomeDiff).toLocaleString()}
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
           </CardContent>
         </Card>
       </div>

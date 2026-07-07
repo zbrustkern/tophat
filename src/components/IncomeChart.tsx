@@ -14,10 +14,11 @@ import {
 
 interface IncomeChartProps {
   chartData: IncomeChartData[];
+  secondaryChartData?: IncomeChartData[];
   isThumbnail?: boolean;
 }
 
-export function IncomeChart({ chartData, isThumbnail = false }: IncomeChartProps) {
+export function IncomeChart({ chartData, secondaryChartData, isThumbnail = false }: IncomeChartProps) {
     const chartConfig = {
       balance: {
         label: "Balance",
@@ -27,10 +28,27 @@ export function IncomeChart({ chartData, isThumbnail = false }: IncomeChartProps
         label: "Passive Income",
         color: "#60a5fa",
       },
+      secondaryBalance: {
+        label: "Comparison Balance",
+        color: "#93c5fd",
+      },
+      secondaryConservativeIncome: {
+        label: "Comparison Income",
+        color: "#bfdbfe",
+      },
     } satisfies ChartConfig
 
+    const mergedData = chartData.map((primaryPoint, index) => {
+      const secondaryPoint = secondaryChartData?.[index];
+      return {
+        ...primaryPoint,
+        secondaryBalance: secondaryPoint?.balance,
+        secondaryConservativeIncome: secondaryPoint?.conservativeIncome
+      };
+    });
+
     // For thumbnails, we'll use a subset of the data
-    const thumbnailData = isThumbnail ? chartData.filter((_, index) => index % 5 === 0) : chartData;
+    const thumbnailData = isThumbnail ? mergedData.filter((_, index) => index % 5 === 0) : mergedData;
 
     return (
         <ChartContainer config={chartConfig} className={isThumbnail ? "h-[100px] w-full" : "min-h-[200px] w-half"}>
@@ -71,6 +89,26 @@ export function IncomeChart({ chartData, isThumbnail = false }: IncomeChartProps
                 yAxisId="left" 
                 dot={false}
               />
+              {secondaryChartData && (
+                <Line
+                  type="monotone" 
+                  dataKey="secondaryBalance" 
+                  stroke="var(--color-secondaryBalance)"
+                  strokeWidth={2} 
+                  strokeDasharray="5 5"
+                  yAxisId="left" 
+                  dot={false}
+                />
+              )}
+              {secondaryChartData && (
+                <Bar 
+                  dataKey="secondaryConservativeIncome" 
+                  fill="var(--color-secondaryConservativeIncome)" 
+                  radius={4} 
+                  yAxisId="right" 
+                  fillOpacity={0.6}
+                />
+              )}
               <Bar 
                 dataKey="conservativeIncome" 
                 fill="var(--color-conservativeIncome)" 
