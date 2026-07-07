@@ -1,3 +1,14 @@
+# [1.4.0](https://github.com/zbrustkern/tophat/compare/v1.3.0...v1.4.0) (2026-07-07)
+
+
+### Features
+
+* add global settings data model and dashboard page ([64cfc14](https://github.com/zbrustkern/tophat/commit/64cfc14343248943442d128c8efa565b26666848))
+* integrate global settings into income planner ([193ef0b](https://github.com/zbrustkern/tophat/commit/193ef0be0a6ab9e20d4dbfd116a377825469793e))
+* integrate global settings into savings and college planners ([72e8901](https://github.com/zbrustkern/tophat/commit/72e8901f152f3894a2452f88b3e655e2cfd4a670))
+* Phase 3 & 4 - Tax Bracket Engine, Disaster Simulator, and Employer Match ([2467051](https://github.com/zbrustkern/tophat/commit/246705185e315d471c79f19c5653622a8a6c60f5))
+* scenario analysis for income planner ([1c2c0b4](https://github.com/zbrustkern/tophat/commit/1c2c0b4f492f4499572c996f9287486e4b85b6a3))
+
 # [1.3.0](https://github.com/zbrustkern/tophat/compare/v1.2.1...v1.3.0) (2026-06-27)
 
 
