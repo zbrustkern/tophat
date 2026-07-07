@@ -20,7 +20,6 @@ import {
   CardTitle,
   CardFooter
 } from "@/components/ui/card";
-} from "@/components/ui/card";
 import { Plus, Trash2 } from "lucide-react";
 
 const BUDGET_CATEGORIES = [

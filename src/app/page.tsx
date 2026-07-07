@@ -59,6 +59,12 @@ export default function Home() {
           <h1 className="text-2xl font-bold">Your Financial Plans</h1>
           <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
             <Button 
+              onClick={() => router.push('/dashboard')}
+              className="w-full sm:w-auto justify-center bg-indigo-600 hover:bg-indigo-700 text-white"
+            >
+              Master Dashboard
+            </Button>
+            <Button 
               onClick={() => router.push('/income')}
               className="w-full sm:w-auto justify-center"
             >

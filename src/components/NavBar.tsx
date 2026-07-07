@@ -12,8 +12,13 @@ export function NavBar() {
   
   const routes = [
     {
+      href: "/dashboard",
+      label: "Master Dashboard",
+      icon: <LayoutDashboard className="h-5 w-5" />
+    },
+    {
       href: "/",
-      label: "Dashboard",
+      label: "My Plans",
       icon: <LayoutDashboard className="h-5 w-5" />
     },
     {
