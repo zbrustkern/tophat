@@ -1,3 +1,10 @@
+# [1.6.0](https://github.com/zbrustkern/tophat/compare/v1.5.0...v1.6.0) (2026-07-07)
+
+
+### Features
+
+* add IL tax profile, annualize income inputs, sync budget categories ([7e26222](https://github.com/zbrustkern/tophat/commit/7e26222e25da57e377f297d651a497a743d2fe12))
+
 # [1.5.0](https://github.com/zbrustkern/tophat/compare/v1.4.0...v1.5.0) (2026-07-07)
 
 
