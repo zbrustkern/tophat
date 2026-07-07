@@ -71,11 +71,11 @@ export default function DashboardPage() {
   const cashFlowData = [
     {
       name: 'Cash Flow',
-      Income: waterfall.grossIncome,
-      Taxes: waterfall.taxes,
-      Expenses: waterfall.annualCoreBudget,
-      Savings: waterfall.preTaxSavings + waterfall.postTaxSavings,
-      Net: waterfall.netCashFlow
+      Income: waterfall.grossIncome / 12,
+      Taxes: waterfall.taxes / 12,
+      Expenses: waterfall.annualCoreBudget / 12,
+      Savings: (waterfall.preTaxSavings + waterfall.postTaxSavings) / 12,
+      Net: waterfall.netCashFlow / 12
     }
   ];
 
@@ -210,7 +210,7 @@ export default function DashboardPage() {
           {/* Cash Flow Summary */}
           <Card className="flex-1 shadow-sm flex flex-col">
             <CardHeader>
-              <CardTitle>Annual Cash Flow</CardTitle>
+              <CardTitle>Monthly Cash Flow</CardTitle>
               <CardDescription>Income vs Destinations</CardDescription>
             </CardHeader>
             <CardContent className="flex-1 min-h-[250px]">

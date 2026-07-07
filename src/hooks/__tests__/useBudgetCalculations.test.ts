@@ -81,7 +81,8 @@ describe('useBudgetCalculations', () => {
   it('should fall back to global settings income if no active income plan', () => {
     const { result } = renderHook(() => useBudgetCalculations());
     const noActivePlansSettings = { ...mockGlobalSettings, activePlans: {} };
-    const data = result.current.calculateBudgetData(mockBudgetPlan, noActivePlansSettings, allPlans);
+    // Pass only the budget plan so the auto-resolve doesn't pick up the income plan
+    const data = result.current.calculateBudgetData(mockBudgetPlan, noActivePlansSettings, [mockBudgetPlan]);
     
     // Global incomes total: 100000
     expect(data.waterfall.grossIncome).toBe(100000);

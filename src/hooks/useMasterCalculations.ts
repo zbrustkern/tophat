@@ -98,7 +98,28 @@ export function useMasterCalculations() {
       const bal = (cp.details as any).currentBalance || 0;
       if (bal > 0) allocations.push({ name: cp.planName, value: bal });
     });
-    if (portfolioCurrentBalance > 0) allocations.push({ name: 'Investment Portfolio', value: portfolioCurrentBalance });
+    
+    if (portfolioPlan && (portfolioPlan.details as any).assets) {
+      let core = 0;
+      let growth = 0;
+      let speculative = 0;
+      let unallocatedCash = (portfolioPlan.details as any).currentCash || 0;
+      
+      (portfolioPlan.details as any).assets.forEach((asset: any) => {
+        const val = (asset.price || 0) * (asset.shares || 0);
+        if (asset.type === 'cash') unallocatedCash += val;
+        else if (asset.riskTier === 'growth') growth += val;
+        else if (asset.riskTier === 'speculative') speculative += val;
+        else core += val; // Default to core
+      });
+      
+      if (core > 0) allocations.push({ name: 'Core Portfolio', value: core });
+      if (growth > 0) allocations.push({ name: 'Growth Portfolio', value: growth });
+      if (speculative > 0) allocations.push({ name: 'Speculative Portfolio', value: speculative });
+      if (unallocatedCash > 0) allocations.push({ name: 'Portfolio Cash', value: unallocatedCash });
+    } else if (portfolioCurrentBalance > 0) {
+      allocations.push({ name: 'Investment Portfolio', value: portfolioCurrentBalance });
+    }
 
     // 4. Compute Net Worth Trajectory (Projecting forward)
     const trajectory: MasterTrajectoryPoint[] = [];
@@ -151,9 +172,13 @@ export function useMasterCalculations() {
         }
       });
 
+      const incomeIsPreTax = incomePlan ? (incomePlan.details as any).taxType === 'preTax' : true;
+      const incomeNetContrib = incPoint ? incPoint.netContribution : 0;
+      
       const income = incPoint ? incPoint.income : 0;
       const takeHome = incPoint ? incPoint.takeHome : 0;
-      const preTaxSav = incPoint ? incPoint.netContribution : 0;
+      const preTaxSav = incomeIsPreTax ? incomeNetContrib : 0;
+      const postTaxSav = (!incomeIsPreTax ? incomeNetContrib : 0) + colContrib;
       
       const savBal = savPoint ? savPoint.balance : 0;
       
@@ -182,8 +207,8 @@ export function useMasterCalculations() {
         takeHome,
         expenses: waterfall.annualCoreBudget,
         preTaxSavings: preTaxSav,
-        postTaxSavings: (savPoint ? savPoint.savingsRate : 0) + colContrib,
-        netCashFlow: takeHome - waterfall.annualCoreBudget - (savPoint ? savPoint.savingsRate : 0) - colContrib,
+        postTaxSavings: postTaxSav,
+        netCashFlow: takeHome - waterfall.annualCoreBudget - postTaxSav,
         savingsBalance: savBal,
         collegeBalance: colBal,
         totalNetWorth: savBal + colBal + portfolioCurrentBalance

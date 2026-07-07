@@ -148,54 +148,54 @@ export default function BudgetPlanner() {
     <div className="flex flex-col gap-6">
       {/* Waterfall Summary Graphic */}
       <div className="flex flex-col gap-2">
-        <h3 className="text-lg font-semibold text-slate-700">Annual Cash Flow Waterfall</h3>
+        <h3 className="text-lg font-semibold text-slate-700">Monthly Cash Flow Waterfall</h3>
         <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-2">
           {/* Gross */}
           <Card className="bg-sky-50 border-sky-200 flex flex-col justify-center items-center text-center p-4">
             <div className="text-[10px] text-sky-600 font-bold uppercase tracking-wider mb-1">Gross Income</div>
-            <div className="text-lg font-bold text-sky-700">${Math.round(data.waterfall.grossIncome).toLocaleString()}</div>
+            <div className="text-lg font-bold text-sky-700">${Math.round(data.waterfall.grossIncome / 12).toLocaleString()}</div>
           </Card>
 
           {/* Pre-tax */}
           <Card className="bg-amber-50 border-amber-200 flex flex-col justify-center items-center text-center p-4 relative">
             <div className="absolute -left-3 top-1/2 -translate-y-1/2 text-slate-400 font-bold hidden lg:block">-</div>
             <div className="text-[10px] text-amber-600 font-bold uppercase tracking-wider mb-1">Pre-Tax Savings</div>
-            <div className="text-lg font-bold text-amber-700">${Math.round(data.waterfall.preTaxSavings).toLocaleString()}</div>
+            <div className="text-lg font-bold text-amber-700">${Math.round(data.waterfall.preTaxSavings / 12).toLocaleString()}</div>
           </Card>
 
           {/* Taxes */}
           <Card className="bg-rose-50 border-rose-200 flex flex-col justify-center items-center text-center p-4 relative">
             <div className="absolute -left-3 top-1/2 -translate-y-1/2 text-slate-400 font-bold hidden lg:block">-</div>
             <div className="text-[10px] text-rose-600 font-bold uppercase tracking-wider mb-1">Taxes</div>
-            <div className="text-lg font-bold text-rose-700">${Math.round(data.waterfall.taxes).toLocaleString()}</div>
+            <div className="text-lg font-bold text-rose-700">${Math.round(data.waterfall.taxes / 12).toLocaleString()}</div>
           </Card>
 
           {/* Take Home */}
           <Card className="bg-emerald-50 border-emerald-200 flex flex-col justify-center items-center text-center p-4 relative shadow-sm">
             <div className="absolute -left-3 top-1/2 -translate-y-1/2 text-slate-400 font-bold hidden lg:block">=</div>
             <div className="text-[10px] text-emerald-600 font-bold uppercase tracking-wider mb-1">Take Home</div>
-            <div className="text-lg font-bold text-emerald-700">${Math.round(data.waterfall.takeHome).toLocaleString()}</div>
+            <div className="text-lg font-bold text-emerald-700">${Math.round(data.waterfall.takeHome / 12).toLocaleString()}</div>
           </Card>
 
           {/* Core Budget */}
           <Card className="bg-orange-50 border-orange-200 flex flex-col justify-center items-center text-center p-4 relative">
             <div className="absolute -left-3 top-1/2 -translate-y-1/2 text-slate-400 font-bold hidden lg:block">-</div>
             <div className="text-[10px] text-orange-600 font-bold uppercase tracking-wider mb-1">Core Budget</div>
-            <div className="text-lg font-bold text-orange-700">${Math.round(data.waterfall.annualCoreBudget).toLocaleString()}</div>
+            <div className="text-lg font-bold text-orange-700">${Math.round(data.waterfall.annualCoreBudget / 12).toLocaleString()}</div>
           </Card>
 
           {/* Post-tax Savings */}
           <Card className="bg-indigo-50 border-indigo-200 flex flex-col justify-center items-center text-center p-4 relative">
             <div className="absolute -left-3 top-1/2 -translate-y-1/2 text-slate-400 font-bold hidden lg:block">-</div>
             <div className="text-[10px] text-indigo-600 font-bold uppercase tracking-wider mb-1">Post-Tax Savings</div>
-            <div className="text-lg font-bold text-indigo-700">${Math.round(data.waterfall.postTaxSavings).toLocaleString()}</div>
+            <div className="text-lg font-bold text-indigo-700">${Math.round(data.waterfall.postTaxSavings / 12).toLocaleString()}</div>
           </Card>
 
           {/* Net */}
           <Card className="bg-violet-100 border-violet-300 flex flex-col justify-center items-center text-center p-4 relative shadow-md scale-105 z-10">
             <div className="absolute -left-4 top-1/2 -translate-y-1/2 text-slate-500 font-bold hidden lg:block">=</div>
             <div className="text-[10px] text-violet-700 font-bold uppercase tracking-wider mb-1">Net Cash Flow</div>
-            <div className="text-xl font-bold text-violet-900">${Math.round(data.waterfall.netCashFlow).toLocaleString()}</div>
+            <div className="text-xl font-bold text-violet-900">${Math.round(data.waterfall.netCashFlow / 12).toLocaleString()}</div>
           </Card>
         </div>
       </div>

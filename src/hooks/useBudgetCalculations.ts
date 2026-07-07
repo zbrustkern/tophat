@@ -16,14 +16,29 @@ export function useBudgetCalculations() {
     });
     const annualCoreBudget = totalMonthlyExpenses * 12;
 
-    // 2. Load Active Plans
     const activeIncomeId = globalSettings?.activePlans?.incomePlanId;
     const activeSavingsId = globalSettings?.activePlans?.savingsPlanId;
-    const activeCollegeId = globalSettings?.activePlans?.collegePlanId;
 
-    const incomePlan = allPlans.find(p => p.id === activeIncomeId && p.planType === 'income') as IncomePlan | undefined;
-    const savingsPlan = allPlans.find(p => p.id === activeSavingsId && p.planType === 'savings') as SavingsPlan | undefined;
-    const collegePlan = allPlans.find(p => p.id === activeCollegeId && p.planType === 'college') as CollegePlan | undefined;
+    const resolvePlan = (planId: string | undefined, planType: string): Plan | undefined => {
+      if (planId) return allPlans.find(p => p.id === planId && p.planType === planType);
+      const typePlans = allPlans.filter(p => p.planType === planType);
+      if (typePlans.length === 1) return typePlans[0];
+      return undefined;
+    };
+
+    const incomePlan = resolvePlan(activeIncomeId, 'income') as IncomePlan | undefined;
+    const savingsPlan = resolvePlan(activeSavingsId, 'savings') as SavingsPlan | undefined;
+    
+    let collegePlans: CollegePlan[] = [];
+    const allCollegePlans = allPlans.filter(p => p.planType === 'college') as CollegePlan[];
+    if (globalSettings?.activePlans?.collegePlanIds && globalSettings.activePlans.collegePlanIds.length > 0) {
+      collegePlans = allCollegePlans.filter(p => globalSettings.activePlans!.collegePlanIds!.includes(p.id));
+    } else if (globalSettings?.activePlans?.collegePlanId) {
+      const p = allCollegePlans.find(p => p.id === globalSettings.activePlans!.collegePlanId);
+      if (p) collegePlans.push(p);
+    } else if (allCollegePlans.length === 1) {
+      collegePlans.push(allCollegePlans[0]);
+    }
 
     // 3. Process Income & Taxes
     let grossIncome = 0;
@@ -58,24 +73,19 @@ export function useBudgetCalculations() {
     // 4. Process Other Savings Plans
     let postTaxSavings = 0;
 
-    if (savingsPlan) {
-      const { requiredSavings } = calculateSavingsData(savingsPlan, globalSettings);
-      if (savingsPlan.details.taxType === 'preTax') {
-        preTaxSavings += requiredSavings;
-      } else {
-        postTaxSavings += requiredSavings;
-      }
-    }
+    // We do NOT deduct SavingsPlan required savings from cash flow here, 
+    // because IncomePlan already captures the reality of retirement contributions.
+    // SavingsPlan is an aspirational goal-seeker.
 
-    if (collegePlan) {
-      const { calculatedMonthlyContribution } = calculateCollegeData(collegePlan);
+    collegePlans.forEach(cp => {
+      const { calculatedMonthlyContribution } = calculateCollegeData(cp);
       const annualCollege = calculatedMonthlyContribution * 12;
-      if (collegePlan.details.taxType === 'preTax') {
+      if (cp.details.taxType === 'preTax') {
         preTaxSavings += annualCollege;
       } else {
         postTaxSavings += annualCollege;
       }
-    }
+    });
 
     // Add Income Plan post-tax savings if applicable
     if (!incomePlanIsPreTax) {
