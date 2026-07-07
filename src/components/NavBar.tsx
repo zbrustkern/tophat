@@ -38,7 +38,7 @@ export function NavBar() {
     },
     {
       href: "/tactical-allocation",
-      label: "Tactical Allocation",
+      label: "Portfolio",
       icon: <Target className="h-5 w-5" />
     },
     {

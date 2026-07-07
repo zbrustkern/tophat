@@ -7,8 +7,11 @@ import { IncomeChart } from '@/components/IncomeChart';
 import { SavingsChart } from '@/components/SavingsChart';
 import { CollegeChart } from '@/components/CollegeChart';
 import { useIncomeCalculations, useSavingsCalculations, useCollegeCalculations } from '@/hooks/usePlanCalculations';
+import { useBudgetCalculations } from '@/hooks/useBudgetCalculations';
 import { usePortfolioLogic } from '@/hooks/usePortfolioLogic';
-import { Plan, IncomePlan, SavingsPlan, CollegePlan, RebalancePlan } from '@/types/chart';
+import { useSettings } from "@/contexts/SettingsContext";
+import { usePlans } from "@/contexts/PlansContext";
+import { Plan, IncomePlan, SavingsPlan, CollegePlan, RebalancePlan, BudgetPlan } from '@/types/chart';
 
 interface PlanPreviewProps {
   plan: Plan;
@@ -21,6 +24,9 @@ const PlanPreview = ({ plan, onDelete }: PlanPreviewProps) => {
   const { calculateSavingsData } = useSavingsCalculations();
   const { calculateCollegeData } = useCollegeCalculations();
   const { calculateRebalanceData } = usePortfolioLogic();
+  const { calculateBudgetData } = useBudgetCalculations();
+  const { settings } = useSettings();
+  const { plans } = usePlans();
   
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('en-US', {
@@ -40,7 +46,10 @@ const PlanPreview = ({ plan, onDelete }: PlanPreviewProps) => {
     }).format(date);
   };
 
-  const planPath = plan.planType === 'income' ? '/income' : plan.planType === 'savings' ? '/savings' : plan.planType === 'rebalance' ? '/tactical-allocation' : '/college';
+  const planPath = plan.planType === 'income' ? '/income' : 
+                   plan.planType === 'savings' ? '/savings' : 
+                   plan.planType === 'rebalance' ? '/tactical-allocation' : 
+                   plan.planType === 'budget' ? '/budget' : '/college';
   
   // Calculate preview data
   const getPreviewData = () => {
@@ -74,6 +83,38 @@ const PlanPreview = ({ plan, onDelete }: PlanPreviewProps) => {
         mainLabel: collegeDetails.calculationMode === 'goal' ? 'Projected Balance' : 'Required Monthly',
         secondaryValue: collegeDetails.collegeAge,
         secondaryLabel: 'College Age'
+      };
+    } else if (plan.planType === 'budget') {
+      const budgetData = calculateBudgetData(plan as BudgetPlan, settings, plans);
+      return {
+        chart: (
+          <div className="flex flex-col justify-center h-full bg-slate-50 rounded-lg border p-4 space-y-3">
+            <div className="flex justify-between items-end">
+              <div>
+                <p className="text-xs font-medium text-slate-500 uppercase tracking-wider">Annual Expenses</p>
+                <p className="text-xl font-bold text-slate-800">
+                  {formatCurrency(budgetData.waterfall.annualCoreBudget)}
+                </p>
+              </div>
+              <div className="text-right">
+                <p className="text-xs font-medium text-slate-500 uppercase tracking-wider">Net Cash Flow</p>
+                <p className={`text-sm font-semibold ${budgetData.waterfall.netCashFlow >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                  {formatCurrency(budgetData.waterfall.netCashFlow)}
+                </p>
+              </div>
+            </div>
+            <div className="w-full bg-slate-200 rounded-full h-2 mt-2">
+              <div 
+                className={`h-2 rounded-full ${budgetData.waterfall.netCashFlow >= 0 ? 'bg-green-500' : 'bg-red-500'}`} 
+                style={{ width: `${Math.min(100, Math.max(5, (budgetData.waterfall.annualCoreBudget / (budgetData.waterfall.takeHome || 1)) * 100))}%` }}
+              ></div>
+            </div>
+          </div>
+        ),
+        mainValue: formatCurrency(budgetData.totalExpenses),
+        mainLabel: 'Monthly Budget',
+        secondaryValue: formatCurrency(budgetData.waterfall.takeHome / 12),
+        secondaryLabel: 'Monthly Take Home'
       };
     } else {
       // RebalancePlan

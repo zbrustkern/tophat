@@ -90,7 +90,7 @@ export default function Home() {
               className="w-full sm:w-auto justify-center"
             >
               <PlusCircle className="mr-2 h-4 w-4" />
-              New Tactical Allocation
+              New Portfolio
             </Button>
             <Button 
               onClick={() => router.push('/budget')}

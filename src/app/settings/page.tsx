@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useSettings } from '@/contexts/SettingsContext';
+import { usePlans } from '@/contexts/PlansContext';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -12,6 +13,7 @@ import { SUPPORTED_STATES, FilingStatus } from '@/lib/taxes/brackets';
 
 export default function SettingsPage() {
   const { settings, loading, error, updateSettings } = useSettings();
+  const { plans } = usePlans();
   const [formData, setFormData] = useState<GlobalSettings | null>(null);
   const [isSaving, setIsSaving] = useState(false);
 
@@ -241,6 +243,68 @@ export default function SettingsPage() {
                 </div>
               );
             })()}
+          </CardContent>
+        </Card>
+
+        {/* Active Plans */}
+        <Card className="md:col-span-2">
+          <CardHeader>
+            <CardTitle>Active Master Plans</CardTitle>
+            <CardDescription>Select which plans feed into your Master Dashboard.</CardDescription>
+          </CardHeader>
+          <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label>Income Plan</Label>
+              <select
+                value={formData.activePlans?.incomePlanId || ''}
+                onChange={(e) => setFormData({ ...formData, activePlans: { ...formData.activePlans, incomePlanId: e.target.value } })}
+                className="h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background"
+              >
+                <option value="">None</option>
+                {plans.filter(p => p.planType === 'income').map(p => (
+                  <option key={p.id} value={p.id}>{p.planName}</option>
+                ))}
+              </select>
+            </div>
+            <div className="space-y-2">
+              <Label>Savings Plan</Label>
+              <select
+                value={formData.activePlans?.savingsPlanId || ''}
+                onChange={(e) => setFormData({ ...formData, activePlans: { ...formData.activePlans, savingsPlanId: e.target.value } })}
+                className="h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background"
+              >
+                <option value="">None</option>
+                {plans.filter(p => p.planType === 'savings').map(p => (
+                  <option key={p.id} value={p.id}>{p.planName}</option>
+                ))}
+              </select>
+            </div>
+            <div className="space-y-2">
+              <Label>College Plan</Label>
+              <select
+                value={formData.activePlans?.collegePlanId || ''}
+                onChange={(e) => setFormData({ ...formData, activePlans: { ...formData.activePlans, collegePlanId: e.target.value } })}
+                className="h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background"
+              >
+                <option value="">None</option>
+                {plans.filter(p => p.planType === 'college').map(p => (
+                  <option key={p.id} value={p.id}>{p.planName}</option>
+                ))}
+              </select>
+            </div>
+            <div className="space-y-2">
+              <Label>Budget Plan</Label>
+              <select
+                value={formData.activePlans?.budgetPlanId || ''}
+                onChange={(e) => setFormData({ ...formData, activePlans: { ...formData.activePlans, budgetPlanId: e.target.value } })}
+                className="h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background"
+              >
+                <option value="">None</option>
+                {plans.filter(p => p.planType === 'budget').map(p => (
+                  <option key={p.id} value={p.id}>{p.planName}</option>
+                ))}
+              </select>
+            </div>
           </CardContent>
         </Card>
 
