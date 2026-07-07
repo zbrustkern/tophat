@@ -20,20 +20,9 @@ export function useIncomeCalculations() {
       useGlobalSettings,
       employerMatchLimit = 0,
       employerMatchRate = 0,
-      disasterConfig
+      disasterConfig,
+      taxType = 'preTax'
     } = plan.details;
-
-    // Use dynamic tax rate if using global settings
-    let effectiveTaxRate = taxRate;
-    if (useGlobalSettings !== false && globalSettings) {
-      const result = calculateTaxes(
-        initialIncome, 
-        globalSettings.filingStatus || 'Single', 
-        globalSettings.stateOfResidence || 'TX', 
-        globalSettings.dependents || 0
-      );
-      effectiveTaxRate = result.effectiveTaxRate;
-    }
 
     const years = 25;
     const data = [];
@@ -80,12 +69,27 @@ export function useIncomeCalculations() {
       
       const effectiveSavingsRate = isFixed ? (netContribution / currentIncome) : currentSavingsRate;
 
+      // Handle tax type for deductions
+      const isPreTax = taxType === 'preTax';
+      const taxableIncome = isPreTax ? Math.max(0, currentIncome - netContribution) : currentIncome;
+
+      let effectiveTaxRate = taxRate;
+      if (useGlobalSettings !== false && globalSettings) {
+        const result = calculateTaxes(
+          taxableIncome, 
+          globalSettings.filingStatus || 'Single', 
+          globalSettings.stateOfResidence || 'TX', 
+          globalSettings.dependents || 0
+        );
+        effectiveTaxRate = result.effectiveTaxRate;
+      }
+
       // Calculate Employer Match
-      // Match applies to the % of base income contributed, up to the limit
       const eligibleContributionRate = Math.min(effectiveSavingsRate, employerMatchLimit);
       const employerMatchAmount = eligibleContributionRate * currentIncome * employerMatchRate;
       
-      const takeHome = (currentIncome - netContribution) * (1 - effectiveTaxRate);
+      const totalTaxes = taxableIncome * effectiveTaxRate;
+      const takeHome = currentIncome - netContribution - totalTaxes;
       
       // Both employee netContribution and employerMatchAmount go into the portfolio
       currentBalance = currentBalance * (1 + currentYearReturnRate) + netContribution + employerMatchAmount;

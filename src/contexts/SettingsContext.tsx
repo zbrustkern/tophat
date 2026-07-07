@@ -27,7 +27,8 @@ const defaultSettings: GlobalSettings = {
   ],
   filingStatus: 'Single',
   stateOfResidence: 'TX',
-  dependents: 0
+  dependents: 0,
+  activePlans: {}
 };
 
 const SettingsContext = createContext<SettingsContextType | undefined>(undefined);

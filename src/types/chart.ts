@@ -17,6 +17,12 @@ export interface GlobalSettings {
   filingStatus?: 'Single' | 'MarriedJointly';
   stateOfResidence?: string;
   dependents?: number;
+  activePlans?: {
+    incomePlanId?: string;
+    savingsPlanId?: string;
+    collegePlanId?: string;
+    budgetPlanId?: string;
+  };
 }
 
 // Plan Types
@@ -52,6 +58,7 @@ export interface IncomeDetails {
   employerMatchLimit?: number; // e.g., 0.05 (up to 5% of salary)
   employerMatchRate?: number; // e.g., 1.0 (100% match)
   disasterConfig?: DisasterConfig;
+  taxType?: 'preTax' | 'postTax';
 }
 
 export interface IncomePlan extends BasePlan {
@@ -84,6 +91,7 @@ export interface SavingsDetails {
   returnRate: number;
   withdrawalRate?: number;
   useGlobalSettings?: boolean;
+  taxType?: 'preTax' | 'postTax';
 }
 
 export interface SavingsPlan extends BasePlan {
@@ -109,6 +117,7 @@ export interface CollegeDetails {
   targetAmount: number;
   monthlyContribution: number;
   useGlobalSettings?: boolean;
+  taxType?: 'preTax' | 'postTax';
 }
 
 export interface CollegePlan extends BasePlan {

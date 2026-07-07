@@ -128,78 +128,64 @@ export default function BudgetPlanner() {
   };
 
   // Perform calculations
-  const data = calculateBudgetData(plan, settings);
+  const data = calculateBudgetData(plan, settings, plans);
   const payors = settings?.payors || ['Joint'];
 
   return (
     <div className="flex flex-col gap-6">
-      {/* Summary Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <Card className="bg-sky-50 border-sky-100">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sky-900 text-lg">Total Income</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-3xl font-bold text-sky-700">${data.totalIncome.toLocaleString()}</div>
-            <p className="text-sm text-sky-600 mt-1">From Global Settings</p>
-          </CardContent>
-        </Card>
-        
-        <Card className="bg-rose-50 border-rose-100">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-rose-900 text-lg">Total Expenses</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-3xl font-bold text-rose-700">${data.totalExpenses.toLocaleString()}</div>
-            <p className="text-sm text-rose-600 mt-1">Across all payors</p>
-          </CardContent>
-        </Card>
+      {/* Waterfall Summary Graphic */}
+      <div className="flex flex-col gap-2">
+        <h3 className="text-lg font-semibold text-slate-700">Annual Cash Flow Waterfall</h3>
+        <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-2">
+          {/* Gross */}
+          <Card className="bg-sky-50 border-sky-200 flex flex-col justify-center items-center text-center p-4">
+            <div className="text-[10px] text-sky-600 font-bold uppercase tracking-wider mb-1">Gross Income</div>
+            <div className="text-lg font-bold text-sky-700">${Math.round(data.waterfall.grossIncome).toLocaleString()}</div>
+          </Card>
 
-        <Card className="bg-emerald-50 border-emerald-100">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-emerald-900 text-lg">Net Cash Flow</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-3xl font-bold text-emerald-700">${data.totalDiscretionary.toLocaleString()}</div>
-            <p className="text-sm text-emerald-600 mt-1">Discretionary remaining</p>
-          </CardContent>
-        </Card>
+          {/* Pre-tax */}
+          <Card className="bg-amber-50 border-amber-200 flex flex-col justify-center items-center text-center p-4 relative">
+            <div className="absolute -left-3 top-1/2 -translate-y-1/2 text-slate-400 font-bold hidden lg:block">-</div>
+            <div className="text-[10px] text-amber-600 font-bold uppercase tracking-wider mb-1">Pre-Tax Savings</div>
+            <div className="text-lg font-bold text-amber-700">${Math.round(data.waterfall.preTaxSavings).toLocaleString()}</div>
+          </Card>
+
+          {/* Taxes */}
+          <Card className="bg-rose-50 border-rose-200 flex flex-col justify-center items-center text-center p-4 relative">
+            <div className="absolute -left-3 top-1/2 -translate-y-1/2 text-slate-400 font-bold hidden lg:block">-</div>
+            <div className="text-[10px] text-rose-600 font-bold uppercase tracking-wider mb-1">Taxes</div>
+            <div className="text-lg font-bold text-rose-700">${Math.round(data.waterfall.taxes).toLocaleString()}</div>
+          </Card>
+
+          {/* Take Home */}
+          <Card className="bg-emerald-50 border-emerald-200 flex flex-col justify-center items-center text-center p-4 relative shadow-sm">
+            <div className="absolute -left-3 top-1/2 -translate-y-1/2 text-slate-400 font-bold hidden lg:block">=</div>
+            <div className="text-[10px] text-emerald-600 font-bold uppercase tracking-wider mb-1">Take Home</div>
+            <div className="text-lg font-bold text-emerald-700">${Math.round(data.waterfall.takeHome).toLocaleString()}</div>
+          </Card>
+
+          {/* Core Budget */}
+          <Card className="bg-orange-50 border-orange-200 flex flex-col justify-center items-center text-center p-4 relative">
+            <div className="absolute -left-3 top-1/2 -translate-y-1/2 text-slate-400 font-bold hidden lg:block">-</div>
+            <div className="text-[10px] text-orange-600 font-bold uppercase tracking-wider mb-1">Core Budget</div>
+            <div className="text-lg font-bold text-orange-700">${Math.round(data.waterfall.annualCoreBudget).toLocaleString()}</div>
+          </Card>
+
+          {/* Post-tax Savings */}
+          <Card className="bg-indigo-50 border-indigo-200 flex flex-col justify-center items-center text-center p-4 relative">
+            <div className="absolute -left-3 top-1/2 -translate-y-1/2 text-slate-400 font-bold hidden lg:block">-</div>
+            <div className="text-[10px] text-indigo-600 font-bold uppercase tracking-wider mb-1">Post-Tax Savings</div>
+            <div className="text-lg font-bold text-indigo-700">${Math.round(data.waterfall.postTaxSavings).toLocaleString()}</div>
+          </Card>
+
+          {/* Net */}
+          <Card className="bg-violet-100 border-violet-300 flex flex-col justify-center items-center text-center p-4 relative shadow-md scale-105 z-10">
+            <div className="absolute -left-4 top-1/2 -translate-y-1/2 text-slate-500 font-bold hidden lg:block">=</div>
+            <div className="text-[10px] text-violet-700 font-bold uppercase tracking-wider mb-1">Net Cash Flow</div>
+            <div className="text-xl font-bold text-violet-900">${Math.round(data.waterfall.netCashFlow).toLocaleString()}</div>
+          </Card>
+        </div>
       </div>
-
-      {/* Payor Breakdown */}
-      {plan.details.useGlobalSettings !== false && payors.length > 0 && (
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-lg">Breakdown by Payor</CardTitle>
-          </CardHeader>
-          <CardContent className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
-            {payors.map(payor => {
-              const inc = data.incomesByPayor[payor] || 0;
-              const exp = data.expensesByPayor[payor] || 0;
-              const disc = data.discretionaryByPayor[payor] || 0;
-              return (
-                <div key={payor} className="p-3 border rounded-lg bg-slate-50">
-                  <div className="font-bold text-slate-800 mb-2">{payor}</div>
-                  <div className="flex justify-between text-sm mb-1">
-                    <span className="text-slate-500">Income</span>
-                    <span className="font-medium">${inc.toLocaleString()}</span>
-                  </div>
-                  <div className="flex justify-between text-sm mb-1">
-                    <span className="text-slate-500">Expenses</span>
-                    <span className="font-medium text-rose-600">-${exp.toLocaleString()}</span>
-                  </div>
-                  <div className="flex justify-between text-sm font-bold pt-2 border-t mt-2">
-                    <span className="text-slate-700">Net</span>
-                    <span className={disc >= 0 ? "text-emerald-600" : "text-rose-600"}>
-                      ${disc.toLocaleString()}
-                    </span>
-                  </div>
-                </div>
-              );
-            })}
-          </CardContent>
-        </Card>
-      )}
 
       {/* The Main Budget Grid */}
       <Card>
