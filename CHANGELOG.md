@@ -1,3 +1,10 @@
+# [1.7.0](https://github.com/zbrustkern/tophat/compare/v1.6.0...v1.7.0) (2026-07-07)
+
+
+### Features
+
+* phase 6 master dashboard option 2 grid ([ad63af7](https://github.com/zbrustkern/tophat/commit/ad63af713a9400af9be34b9d5561919e3810be47))
+
 # [1.6.0](https://github.com/zbrustkern/tophat/compare/v1.5.0...v1.6.0) (2026-07-07)
 
 
