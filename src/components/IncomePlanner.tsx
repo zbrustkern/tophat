@@ -11,6 +11,7 @@ import { IncomeChart } from "@/components/IncomeChart";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { FormField, PlanNameField } from "@/components/PlanFormElements";
+import { DISASTERS, DisasterType } from "@/lib/simulators/disasters";
 import {
   Card,
   CardContent,
@@ -35,9 +36,10 @@ const defaultPlan: IncomePlan = {
     returnRate: 0.08,
     autoEscalateSavings: true,
     escalationRate: 0.01,
-    saveMode: 'rate',
     saveAmount: 20000,
-    useGlobalSettings: true
+    useGlobalSettings: true,
+    employerMatchLimit: 0,
+    employerMatchRate: 0
   }
 };
 
@@ -107,7 +109,7 @@ export default function IncomePlanner({
     let newValue: string | number = value;
 
     // Handle percentage fields
-    if (["raiseRate", "saveRate", "taxRate", "returnRate", "escalationRate"].includes(name)) {
+    if (["raiseRate", "saveRate", "taxRate", "returnRate", "escalationRate", "employerMatchLimit", "employerMatchRate"].includes(name)) {
       newValue = parseFloat(value) / 100; // Convert from percentage to decimal
     } else if (name !== "planName" && name !== "saveMode") {
       newValue = Number(value);
@@ -135,6 +137,23 @@ export default function IncomePlanner({
     setPlan(prev => ({
       ...prev,
       details: { ...prev.details, useGlobalSettings: checked }
+    }));
+  };
+
+  const handleDisasterChange = (field: string, value: any) => {
+    setIsDirty(true);
+    setPlan(prev => ({
+      ...prev,
+      details: {
+        ...prev.details,
+        disasterConfig: {
+          ...prev.details.disasterConfig,
+          active: prev.details.disasterConfig?.active || false,
+          type: prev.details.disasterConfig?.type || 'recession',
+          startYear: prev.details.disasterConfig?.startYear || 'random',
+          [field]: value
+        }
+      }
     }));
   };
 
@@ -304,6 +323,22 @@ export default function IncomePlanner({
                 isPercentage
                 disabled={plan.details.useGlobalSettings !== false}
               />
+              <FormField
+                label="Employer Match up to (%)"
+                name="employerMatchLimit"
+                value={plan.details.employerMatchLimit ?? 0}
+                onChange={handleChange}
+                placeholder="5"
+                isPercentage
+              />
+              <FormField
+                label="Employer Match Rate (%)"
+                name="employerMatchRate"
+                value={plan.details.employerMatchRate ?? 0}
+                onChange={handleChange}
+                placeholder="100"
+                isPercentage
+              />
             </div>
             
             <div className="mt-8 p-4 bg-white rounded-lg border border-gray-100 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-4">
@@ -334,6 +369,56 @@ export default function IncomePlanner({
                   onCheckedChange={handleToggleChange} 
                 />
               </div>
+            </div>
+
+            {/* Disaster Simulator */}
+            <div className="mt-6 p-4 bg-rose-50 rounded-lg border border-rose-100 shadow-sm flex flex-col gap-4">
+              <div className="flex items-center justify-between">
+                <div className="space-y-1">
+                  <Label className="text-base font-semibold text-rose-900">Stress Test: Disaster Simulator</Label>
+                  <p className="text-sm text-rose-700">Simulate a severe macroeconomic shock to see if your plan survives.</p>
+                </div>
+                <Switch 
+                  checked={plan.details.disasterConfig?.active ?? false} 
+                  onCheckedChange={(checked) => handleDisasterChange('active', checked)} 
+                />
+              </div>
+              
+              {plan.details.disasterConfig?.active && (
+                <div className="grid md:grid-cols-2 gap-4 mt-2">
+                  <div className="space-y-2">
+                    <Label className="text-sm font-medium text-rose-800">Event Type</Label>
+                    <select
+                      value={plan.details.disasterConfig.type || 'recession'}
+                      onChange={(e) => handleDisasterChange('type', e.target.value)}
+                      className="flex h-10 w-full rounded-md border border-input bg-white px-3 py-2 text-sm ring-offset-background border-rose-200"
+                    >
+                      {Object.values(DISASTERS).map((d) => (
+                        <option key={d.id} value={d.id}>{d.name}</option>
+                      ))}
+                    </select>
+                    {plan.details.disasterConfig.type && (
+                      <p className="text-xs text-rose-600 mt-1 italic">
+                        {DISASTERS[plan.details.disasterConfig.type as DisasterType]?.historicalContext}
+                      </p>
+                    )}
+                  </div>
+                  <div className="space-y-2">
+                    <Label className="text-sm font-medium text-rose-800">Start Year</Label>
+                    <select
+                      value={plan.details.disasterConfig.startYear || 'random'}
+                      onChange={(e) => handleDisasterChange('startYear', e.target.value === 'random' ? 'random' : Number(e.target.value))}
+                      className="flex h-10 w-full rounded-md border border-input bg-white px-3 py-2 text-sm ring-offset-background border-rose-200"
+                    >
+                      <option value="random">Random (Surprise Me!)</option>
+                      <option value="0">Year 1 (Immediate)</option>
+                      <option value="5">Year 5</option>
+                      <option value="10">Year 10</option>
+                      <option value="20">Year 20 (Just before retirement)</option>
+                    </select>
+                  </div>
+                </div>
+              )}
             </div>
           </CardContent>
           <CardFooter className="bg-white border-t py-4">

@@ -1,8 +1,10 @@
 import { useCallback } from 'react';
-import { IncomePlan, SavingsPlan, CollegePlan, CollegeChartData } from '@/types/chart';
+import { IncomePlan, SavingsPlan, CollegePlan, CollegeChartData, GlobalSettings } from '@/types/chart';
+import { calculateTaxes } from '@/lib/taxes/engine';
+import { DISASTERS, DisasterType } from '@/lib/simulators/disasters';
 
 export function useIncomeCalculations() {
-  const calculateIncomeData = useCallback((plan: IncomePlan) => {
+  const calculateIncomeData = useCallback((plan: IncomePlan, globalSettings?: GlobalSettings | null) => {
     const {
       income: initialIncome,
       raiseRate: initialRaise,
@@ -14,8 +16,24 @@ export function useIncomeCalculations() {
       escalationRate = 0.01,
       saveMode = 'rate',
       saveAmount = 0,
-      withdrawalRate = 0.04
+      withdrawalRate = 0.04,
+      useGlobalSettings,
+      employerMatchLimit = 0,
+      employerMatchRate = 0,
+      disasterConfig
     } = plan.details;
+
+    // Use dynamic tax rate if using global settings
+    let effectiveTaxRate = taxRate;
+    if (useGlobalSettings !== false && globalSettings) {
+      const result = calculateTaxes(
+        initialIncome, 
+        globalSettings.filingStatus || 'Single', 
+        globalSettings.stateOfResidence || 'TX', 
+        globalSettings.dependents || 0
+      );
+      effectiveTaxRate = result.effectiveTaxRate;
+    }
 
     const years = 25;
     const data = [];
@@ -25,18 +43,54 @@ export function useIncomeCalculations() {
     let currentBalance = initialBalance;
 
     const isFixed = saveMode === 'fixed';
+    
+    // Resolve random start year if needed
+    let resolvedStartYear: number | null = null;
+    if (disasterConfig?.active && disasterConfig.type) {
+      if (disasterConfig.startYear === 'random') {
+        // Pick a random year between 1 and 20 (so it happens during the plan)
+        resolvedStartYear = Math.floor(Math.random() * 20) + 1;
+      } else {
+        resolvedStartYear = Number(disasterConfig.startYear);
+      }
+    }
 
     for (let year = 2024; year < 2024 + years; year++) {
+      const yearOffset = year - 2024;
+      
+      let currentYearReturnRate = portfolioReturn;
+      // Check for disaster shock
+      if (disasterConfig?.active && resolvedStartYear !== null) {
+        const disaster = DISASTERS[disasterConfig.type as DisasterType];
+        if (disaster) {
+          const shockIndex = yearOffset - resolvedStartYear;
+          if (shockIndex >= 0 && shockIndex < disaster.duration) {
+            const shock = disaster.shocks.find(s => s.yearOffset === shockIndex);
+            if (shock) {
+              currentYearReturnRate = shock.returnModifier;
+              // we don't have inflation in income planner currently, but we could add it
+            }
+          }
+        }
+      }
+
       const netContribution = isFixed 
         ? Math.min(saveAmount, currentIncome) 
         : currentSavingsRate * currentIncome;
       
-      const takeHome = (currentIncome - netContribution) * (1 - taxRate);
-      currentBalance = currentBalance * (1 + portfolioReturn) + netContribution;
-      const capitalIncome = currentBalance * portfolioReturn;
-      const conservativeIncome = currentBalance * withdrawalRate;
-
       const effectiveSavingsRate = isFixed ? (netContribution / currentIncome) : currentSavingsRate;
+
+      // Calculate Employer Match
+      // Match applies to the % of base income contributed, up to the limit
+      const eligibleContributionRate = Math.min(effectiveSavingsRate, employerMatchLimit);
+      const employerMatchAmount = eligibleContributionRate * currentIncome * employerMatchRate;
+      
+      const takeHome = (currentIncome - netContribution) * (1 - effectiveTaxRate);
+      
+      // Both employee netContribution and employerMatchAmount go into the portfolio
+      currentBalance = currentBalance * (1 + currentYearReturnRate) + netContribution + employerMatchAmount;
+      const capitalIncome = currentBalance * currentYearReturnRate;
+      const conservativeIncome = currentBalance * withdrawalRate;
 
       data.push({
         year,
@@ -44,12 +98,13 @@ export function useIncomeCalculations() {
         takeHome: Math.round(takeHome),
         raiseRate: currentRaise,
         saveRate: effectiveSavingsRate,
-        taxRate,
+        taxRate: effectiveTaxRate,
         netContribution: Math.round(netContribution),
-        portfolioReturn,
+        portfolioReturn: currentYearReturnRate,
         balance: Math.round(currentBalance),
         capitalIncome: Math.round(capitalIncome),
-        conservativeIncome: Math.round(conservativeIncome)
+        conservativeIncome: Math.round(conservativeIncome),
+        employerMatchAmount: Math.round(employerMatchAmount)
       });
 
       currentIncome *= (1 + currentRaise);
@@ -65,7 +120,7 @@ export function useIncomeCalculations() {
 }
 
 export function useSavingsCalculations() {
-  const calculateSavingsData = useCallback((plan: SavingsPlan) => {
+  const calculateSavingsData = useCallback((plan: SavingsPlan, globalSettings?: GlobalSettings | null) => {
     const {
       desiredIncome,
       currentAge,
@@ -73,8 +128,22 @@ export function useSavingsCalculations() {
       currentBalance,
       taxRate,
       returnRate,
-      withdrawalRate
+      withdrawalRate,
+      useGlobalSettings
     } = plan.details;
+
+    // Use dynamic tax rate if using global settings
+    let effectiveTaxRate = taxRate;
+    if (useGlobalSettings !== false && globalSettings) {
+      // In savings, desired income is used as a proxy for gross need
+      const result = calculateTaxes(
+        desiredIncome, 
+        globalSettings.filingStatus || 'Single', 
+        globalSettings.stateOfResidence || 'TX', 
+        globalSettings.dependents || 0
+      );
+      effectiveTaxRate = result.effectiveTaxRate;
+    }
 
     const years = retirementAge - currentAge;
     const data = [];
@@ -85,7 +154,7 @@ export function useSavingsCalculations() {
     const swr = withdrawalRate ?? returnRate;
 
     // Calculate required savings
-    const totalRequired = desiredIncome / (swr * (1 - taxRate));
+    const totalRequired = desiredIncome / (swr * (1 - effectiveTaxRate));
     const yearlySavings = (totalRequired - currentBalance * Math.pow(1 + returnRate, years)) / 
                           ((Math.pow(1 + returnRate, years) - 1) / returnRate);
 
@@ -98,7 +167,7 @@ export function useSavingsCalculations() {
         balance: Math.round(balance),
         savingsRate: Math.round(yearlySavings),
         totalSaved: Math.round(currentSavings),
-        projectedIncome: Math.round(balance * swr * (1 - taxRate)),
+        projectedIncome: Math.round(balance * swr * (1 - effectiveTaxRate)),
       });
     }
 

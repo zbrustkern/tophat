@@ -1,6 +1,10 @@
 // types/chart.ts
 
-// Global Settings
+export interface GlobalIncome {
+  payorId: string;
+  amount: number;
+}
+
 export interface GlobalSettings {
   taxRate: number;
   returnRate: number;
@@ -8,16 +12,27 @@ export interface GlobalSettings {
   inflationRate: number;
   currentAge: number;
   retirementAge: number;
+  payors: string[]; // e.g., ['Zeke', 'Natalie', 'Joint']
+  incomes: GlobalIncome[];
+  filingStatus?: 'Single' | 'MarriedJointly';
+  stateOfResidence?: string;
+  dependents?: number;
 }
 
 // Plan Types
-export type PlanType = 'income' | 'savings' | 'house' | 'car' | 'college' | 'debt' | 'rebalance';
+export type PlanType = 'income' | 'savings' | 'house' | 'car' | 'college' | 'debt' | 'rebalance' | 'budget';
 
 export interface BasePlan {
   id: string;
   planName: string;
   planType: PlanType;
   lastUpdated: Date;  // Explicitly typed as Date
+}
+
+export interface DisasterConfig {
+  active: boolean;
+  type: string; // matches DisasterType (e.g. 'recession')
+  startYear: number | 'random'; // relative year offset (e.g. 5 for year 5, or 'random')
 }
 
 // Income Plan Types
@@ -34,6 +49,9 @@ export interface IncomeDetails {
   saveAmount?: number;
   withdrawalRate?: number;
   useGlobalSettings?: boolean;
+  employerMatchLimit?: number; // e.g., 0.05 (up to 5% of salary)
+  employerMatchRate?: number; // e.g., 1.0 (100% match)
+  disasterConfig?: DisasterConfig;
 }
 
 export interface IncomePlan extends BasePlan {
@@ -53,6 +71,7 @@ export type IncomeChartData = {
   balance: number;
   capitalIncome: number;
   conservativeIncome: number;
+  employerMatchAmount: number;
 };
 
 // Savings Plan Types
@@ -132,9 +151,30 @@ export interface RebalancePlan extends BasePlan {
   details: RebalanceDetails;
 }
 
+// Budget Plan Types
+export interface BudgetLineItem {
+  id: string;
+  payorId: string; // References a string in GlobalSettings.payors
+  bill: string;
+  company: string;
+  category: string;
+  notes?: string;
+  monthlyAmount: number;
+}
+
+export interface BudgetDetails {
+  lineItems: BudgetLineItem[];
+  useGlobalSettings?: boolean;
+}
+
+export interface BudgetPlan extends BasePlan {
+  planType: 'budget';
+  details: BudgetDetails;
+}
+
 // Union type for all plans
-export type Plan = IncomePlan | SavingsPlan | CollegePlan | RebalancePlan;
+export type Plan = IncomePlan | SavingsPlan | CollegePlan | RebalancePlan | BudgetPlan;
 
 // Optional: You might want to add these helper types for future use
-export type PlanDetails = IncomeDetails | SavingsDetails | CollegeDetails | RebalanceDetails;
+export type PlanDetails = IncomeDetails | SavingsDetails | CollegeDetails | RebalanceDetails | BudgetDetails;
 export type ChartData = IncomeChartData | SavingsChartData | CollegeChartData;

@@ -20,6 +20,14 @@ const defaultSettings: GlobalSettings = {
   inflationRate: 0.03,
   currentAge: 35,
   retirementAge: 65,
+  payors: ['Person 1', 'Person 2', 'Joint'],
+  incomes: [
+    { payorId: 'Person 1', amount: 100000 },
+    { payorId: 'Person 2', amount: 0 }
+  ],
+  filingStatus: 'Single',
+  stateOfResidence: 'TX',
+  dependents: 0
 };
 
 const SettingsContext = createContext<SettingsContextType | undefined>(undefined);
@@ -45,7 +53,8 @@ export const SettingsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     
     const unsubscribe = onSnapshot(docRef, (docSnap) => {
       if (docSnap.exists()) {
-        setSettings(docSnap.data() as GlobalSettings);
+        const data = docSnap.data() as Partial<GlobalSettings>;
+        setSettings({ ...defaultSettings, ...data });
       } else {
         // If it doesn't exist, provide the default settings
         setSettings(defaultSettings);

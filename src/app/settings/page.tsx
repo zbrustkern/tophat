@@ -7,6 +7,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { GlobalSettings } from '@/types/chart';
+import { calculateTaxes } from '@/lib/taxes/engine';
+import { SUPPORTED_STATES, FilingStatus } from '@/lib/taxes/brackets';
 
 export default function SettingsPage() {
   const { settings, loading, error, updateSettings } = useSettings();
@@ -28,6 +30,62 @@ export default function SettingsPage() {
       console.error("Failed to save settings:", err);
     }
     setIsSaving(false);
+  };
+
+  const handleUpdatePayor = (oldName: string, newName: string) => {
+    if (!formData) return;
+    setFormData(prev => {
+      if (!prev) return prev;
+      return {
+        ...prev,
+        payors: prev.payors.map(p => p === oldName ? newName : p),
+        incomes: prev.incomes.map(inc => inc.payorId === oldName ? { ...inc, payorId: newName } : inc)
+      };
+    });
+  };
+
+  const handleUpdateIncome = (payorId: string, amount: number) => {
+    if (!formData) return;
+    setFormData(prev => {
+      if (!prev) return prev;
+      const exists = prev.incomes.find(inc => inc.payorId === payorId);
+      if (exists) {
+        return {
+          ...prev,
+          incomes: prev.incomes.map(inc => inc.payorId === payorId ? { ...inc, amount } : inc)
+        };
+      } else {
+        return {
+          ...prev,
+          incomes: [...prev.incomes, { payorId, amount }]
+        };
+      }
+    });
+  };
+
+  const handleAddPayor = () => {
+    if (!formData) return;
+    const newName = `Person ${formData.payors.length + 1}`;
+    setFormData(prev => {
+      if (!prev) return prev;
+      return {
+        ...prev,
+        payors: [...prev.payors, newName],
+        incomes: [...prev.incomes, { payorId: newName, amount: 0 }]
+      };
+    });
+  };
+
+  const handleRemovePayor = (payorName: string) => {
+    if (!formData) return;
+    setFormData(prev => {
+      if (!prev) return prev;
+      return {
+        ...prev,
+        payors: prev.payors.filter(p => p !== payorName),
+        incomes: prev.incomes.filter(inc => inc.payorId !== payorName)
+      };
+    });
   };
 
   if (loading || !formData) {
@@ -57,19 +115,9 @@ export default function SettingsPage() {
         <Card>
           <CardHeader>
             <CardTitle>Economic Assumptions</CardTitle>
-            <CardDescription>Default rates for markets and taxes.</CardDescription>
+            <CardDescription>Default rates for markets and inflation.</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="taxRate">Effective Tax Rate (%)</Label>
-              <Input 
-                id="taxRate" 
-                type="number" 
-                step="0.1"
-                value={formData.taxRate * 100} 
-                onChange={(e) => setFormData({ ...formData, taxRate: Number(e.target.value) / 100 })} 
-              />
-            </div>
             <div className="space-y-2">
               <Label htmlFor="returnRate">Expected Portfolio Return (%)</Label>
               <Input 
@@ -127,6 +175,119 @@ export default function SettingsPage() {
                 onChange={(e) => setFormData({ ...formData, withdrawalRate: Number(e.target.value) / 100 })} 
               />
             </div>
+          </CardContent>
+        </Card>
+
+        {/* Tax Profile */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Tax Profile</CardTitle>
+            <CardDescription>Used by the Tax Engine to calculate dynamic effective rates.</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="filingStatus">Filing Status</Label>
+              <select
+                id="filingStatus"
+                value={formData.filingStatus || 'Single'}
+                onChange={(e) => setFormData({ ...formData, filingStatus: e.target.value as FilingStatus })}
+                className="h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
+              >
+                <option value="Single">Single</option>
+                <option value="MarriedJointly">Married Filing Jointly</option>
+              </select>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="stateOfResidence">State of Residence</Label>
+              <select
+                id="stateOfResidence"
+                value={formData.stateOfResidence || 'TX'}
+                onChange={(e) => setFormData({ ...formData, stateOfResidence: e.target.value })}
+                className="h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
+              >
+                {SUPPORTED_STATES.map(state => (
+                  <option key={state} value={state}>{state}</option>
+                ))}
+              </select>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="dependents">Dependents (Child Tax Credit)</Label>
+              <Input 
+                id="dependents" 
+                type="number" 
+                value={formData.dependents || 0} 
+                onChange={(e) => setFormData({ ...formData, dependents: Number(e.target.value) })} 
+              />
+            </div>
+            
+            {(() => {
+              const totalIncome = (formData.incomes || []).reduce((sum, inc) => sum + inc.amount, 0) * 12; // Annualize monthly income
+              if (totalIncome === 0) return null;
+              
+              const taxResult = calculateTaxes(
+                totalIncome, 
+                formData.filingStatus || 'Single', 
+                formData.stateOfResidence || 'TX', 
+                formData.dependents || 0
+              );
+              
+              return (
+                <div className="mt-4 p-4 bg-slate-50 border rounded-md">
+                  <Label className="text-slate-500">Calculated Effective Tax Rate</Label>
+                  <div className="text-2xl font-bold text-slate-800">
+                    {(taxResult.effectiveTaxRate * 100).toFixed(1)}%
+                  </div>
+                  <p className="text-xs text-slate-400 mt-1">Based on household annual income of ${totalIncome.toLocaleString()}</p>
+                </div>
+              );
+            })()}
+          </CardContent>
+        </Card>
+
+        <Card className="md:col-span-2">
+          <CardHeader className="flex flex-row justify-between items-start">
+            <div>
+              <CardTitle>Household & Incomes</CardTitle>
+              <CardDescription>Manage the people in your household and their baseline monthly income.</CardDescription>
+            </div>
+            <Button onClick={handleAddPayor} variant="outline" size="sm">Add Person</Button>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            {formData.payors && formData.payors.length > 0 ? (
+              <div className="space-y-4">
+                {formData.payors.map((payorName, idx) => {
+                  const incomeEntry = formData.incomes?.find(inc => inc.payorId === payorName);
+                  const incomeAmount = incomeEntry ? incomeEntry.amount : 0;
+                  return (
+                    <div key={idx} className="flex flex-col sm:flex-row items-end gap-4 p-4 border rounded-md bg-slate-50">
+                      <div className="space-y-2 flex-1 w-full">
+                        <Label>Name / Identifier</Label>
+                        <Input 
+                          value={payorName} 
+                          onChange={(e) => handleUpdatePayor(payorName, e.target.value)} 
+                        />
+                      </div>
+                      <div className="space-y-2 flex-1 w-full">
+                        <Label>Monthly Income ($)</Label>
+                        <Input 
+                          type="number"
+                          value={incomeAmount} 
+                          onChange={(e) => handleUpdateIncome(payorName, Number(e.target.value))} 
+                        />
+                      </div>
+                      <Button 
+                        variant="destructive" 
+                        onClick={() => handleRemovePayor(payorName)}
+                      >
+                        Remove
+                      </Button>
+                    </div>
+                  );
+                })}
+              </div>
+            ) : (
+              <p className="text-sm text-muted-foreground">No household members configured.</p>
+            )}
           </CardContent>
         </Card>
       </div>

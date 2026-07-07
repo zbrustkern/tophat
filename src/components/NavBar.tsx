@@ -63,16 +63,18 @@ export function NavBar() {
       {/* Desktop Sidebar */}
       <div className="hidden md:flex fixed left-0 top-0 h-screen w-64 border-r bg-background flex-col z-30">
         <div className="flex flex-col items-center py-6 border-b">
-          <img
-            src="/tophat_logo.png"
-            width={120}
-            height={120}
-            alt="Tophat logo"
-            className="mb-2"
-          />
-          <span className="text-xl font-semibold text-orange-300">
-            Tophat Financial
-          </span>
+          <Link href="/" className="flex flex-col items-center group">
+            <img
+              src="/tophat_logo.png"
+              width={120}
+              height={120}
+              alt="Tophat logo"
+              className="mb-2 transition-transform group-hover:scale-105"
+            />
+            <span className="text-xl font-semibold text-orange-300 transition-colors group-hover:text-orange-400">
+              Tophat Financial
+            </span>
+          </Link>
         </div>
 
         <nav className="flex-1 space-y-1 p-4">
@@ -110,7 +112,9 @@ export function NavBar() {
             >
               <Menu className="h-6 w-6" />
             </button>
-            <span className="text-lg font-semibold text-orange-300">Tophat</span>
+            <Link href="/" className="text-lg font-semibold text-orange-300 hover:text-orange-400">
+              Tophat
+            </Link>
           </div>
           <SignInButton />
         </div>

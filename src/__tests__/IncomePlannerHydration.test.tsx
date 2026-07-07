@@ -12,9 +12,13 @@ vi.mock('@/contexts/PlansContext', () => ({
 vi.mock('@/hooks/useIncomePlan', () => ({
   useIncomePlan: vi.fn(),
 }));
+vi.mock('@/contexts/SettingsContext', () => ({
+  useSettings: vi.fn(),
+}));
 
 import { useAuth } from '@/contexts/AuthContext';
 import { usePlans } from '@/contexts/PlansContext';
+import { useSettings } from '@/contexts/SettingsContext';
 
 describe('User Story: Income Planner Hydration', () => {
   beforeEach(() => {
@@ -38,10 +42,27 @@ describe('User Story: Income Planner Hydration', () => {
           balance: 500000,
           returnRate: 0.07,
           autoEscalateSavings: true,
-          escalationRate: 0.02
+          escalationRate: 0.02,
+          useGlobalSettings: false
         }
       }], 
       loading: false 
+    });
+
+    (useSettings as any).mockReturnValue({
+      settings: {
+        taxRate: 0.24,
+        returnRate: 0.07,
+        withdrawalRate: 0.04,
+        inflationRate: 0.03,
+        currentAge: 35,
+        retirementAge: 65,
+        payors: [],
+        incomes: []
+      },
+      loading: false,
+      error: null,
+      updateSettings: vi.fn()
     });
 
     render(<IncomePlanner planId="plan-123" />);
