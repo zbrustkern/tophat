@@ -1,3 +1,10 @@
+## [1.7.1](https://github.com/zbrustkern/tophat/compare/v1.7.0...v1.7.1) (2026-07-07)
+
+
+### Bug Fixes
+
+* PlanPreview renders Budget plans and Settings ui configures activePlans ([5a3807c](https://github.com/zbrustkern/tophat/commit/5a3807c814c73608fb67b0c26092f7d2ae2ba4c9))
+
 # [1.7.0](https://github.com/zbrustkern/tophat/compare/v1.6.0...v1.7.0) (2026-07-07)
 
 
