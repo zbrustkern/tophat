@@ -1,3 +1,10 @@
+# [1.8.0](https://github.com/zbrustkern/tophat/compare/v1.7.1...v1.8.0) (2026-07-07)
+
+
+### Features
+
+* master dashboard supports multiple college plans, portfolio, and automatic plan resolution ([a7b611f](https://github.com/zbrustkern/tophat/commit/a7b611f92600ce4ea95e5ee76fe4dfd7f8c6bdf3))
+
 ## [1.7.1](https://github.com/zbrustkern/tophat/compare/v1.7.0...v1.7.1) (2026-07-07)
 
 
