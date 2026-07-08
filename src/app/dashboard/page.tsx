@@ -74,7 +74,7 @@ export default function DashboardPage() {
   const savingsM = (waterfall.preTaxSavings + waterfall.postTaxSavings) / 12;
   const surplusM = waterfall.netCashFlow / 12;
 
-  const cashFlowData = [
+  const cashFlowData: any[] = [
     { name: 'Income', blank: 0, Income: grossM, fill: '#10b981' },
     { name: 'Taxes', blank: grossM - taxesM, Taxes: taxesM, fill: '#ef4444' },
     { name: 'Expenses', blank: grossM - taxesM - expensesM, Expenses: expensesM, fill: '#f59e0b' },
