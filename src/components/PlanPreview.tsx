@@ -66,13 +66,15 @@ const PlanPreview = ({ plan, onDelete }: PlanPreviewProps) => {
         secondaryLabel: isFixed ? 'Savings Amount' : 'Savings Rate'
       };
     } else if (plan.planType === 'savings') {
-      const { chartData } = calculateSavingsData(plan as SavingsPlan);
+      const savingsPlan = plan as SavingsPlan;
+      const { chartData } = calculateSavingsData(savingsPlan);
+      const isTargetAmount = savingsPlan.details.goalType === 'target_amount';
       return {
         chart: <SavingsChart chartData={chartData} isThumbnail={true} />,
-        mainValue: formatCurrency(plan.details.desiredIncome),
-        mainLabel: 'Target Income',
-        secondaryValue: plan.details.retirementAge,
-        secondaryLabel: 'Retirement Age'
+        mainValue: formatCurrency(isTargetAmount ? (savingsPlan.details.targetAmount ?? 0) : (savingsPlan.details.desiredIncome ?? 0)),
+        mainLabel: isTargetAmount ? 'Target Amount' : 'Target Income',
+        secondaryValue: isTargetAmount ? (savingsPlan.details.timelineYears ?? 5) : (savingsPlan.details.retirementAge ?? 65),
+        secondaryLabel: isTargetAmount ? 'Years' : 'Retirement Age'
       };
     } else if (plan.planType === 'college') {
       const { chartData, finalTargetAmount, calculatedMonthlyContribution } = calculateCollegeData(plan as CollegePlan);
@@ -173,15 +175,7 @@ const PlanPreview = ({ plan, onDelete }: PlanPreviewProps) => {
       className="w-full hover:shadow-lg transition-shadow cursor-pointer relative group"
       onClick={() => router.push(`${planPath}?plan=${plan.id}`)}
     >
-      {onDelete && (
-        <button
-          onClick={handleDelete}
-          className="absolute top-4 right-12 p-2 text-slate-300 hover:text-red-500 hover:bg-red-50 rounded-full transition-colors opacity-0 group-hover:opacity-100 z-10"
-          title="Delete Plan"
-        >
-          <Trash2 size={18} />
-        </button>
-      )}
+
       <CardHeader className="pb-2">
         <div className="flex justify-between items-center">
           <div>
@@ -190,13 +184,24 @@ const PlanPreview = ({ plan, onDelete }: PlanPreviewProps) => {
               Last updated: {formatDate(plan.lastUpdated)}
             </CardDescription>
           </div>
-          <Button 
-            variant="ghost" 
-            size="icon"
-            onClick={() => router.push(`${planPath}?plan=${plan.id}`)}
-          >
-            <ChevronRight className="h-5 w-5" />
-          </Button>
+          <div className="flex items-center gap-1">
+            {onDelete && (
+              <button
+                onClick={handleDelete}
+                className="p-2 text-slate-300 hover:text-red-500 hover:bg-red-50 rounded-full transition-colors opacity-0 group-hover:opacity-100"
+                title="Delete Plan"
+              >
+                <Trash2 size={18} />
+              </button>
+            )}
+            <Button 
+              variant="ghost" 
+              size="icon"
+              onClick={() => router.push(`${planPath}?plan=${plan.id}`)}
+            >
+              <ChevronRight className="h-5 w-5" />
+            </Button>
+          </div>
         </div>
       </CardHeader>
       <CardContent>

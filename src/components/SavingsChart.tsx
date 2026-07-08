@@ -15,7 +15,7 @@ interface SavingsChartProps {
   chartData: {
     year: number;
     balance: number;
-    targetBalance: number;
+    targetBalance?: number;
     totalSaved: number;
     projectedIncome: number;
   }[];

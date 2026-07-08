@@ -257,21 +257,21 @@ export default function SavingsPlanner({
             <div className="grid md:grid-cols-3 gap-4">
               {plan.details.goalType === 'income_stream' ? (
                 <>
-                  <FormField label="Desired Annual Income ($)" name="desiredIncome" value={plan.details.desiredIncome} onChange={handleChange} placeholder="100000" />
-                  <FormField label="Current Age" name="currentAge" value={effectiveDetails.currentAge} onChange={handleChange} placeholder="30" disabled={plan.details.useGlobalSettings !== false} />
-                  <FormField label="Retirement Age" name="retirementAge" value={effectiveDetails.retirementAge} onChange={handleChange} placeholder="65" disabled={plan.details.useGlobalSettings !== false} />
+                  <FormField label="Desired Annual Income ($)" name="desiredIncome" value={plan.details.desiredIncome ?? 0} onChange={handleChange} placeholder="100000" />
+                  <FormField label="Current Age" name="currentAge" value={effectiveDetails.currentAge ?? 0} onChange={handleChange} placeholder="30" disabled={plan.details.useGlobalSettings !== false} />
+                  <FormField label="Retirement Age" name="retirementAge" value={effectiveDetails.retirementAge ?? 0} onChange={handleChange} placeholder="65" disabled={plan.details.useGlobalSettings !== false} />
                   <FormField label="Safe Withdrawal Rate (%)" name="withdrawalRate" value={effectiveDetails.withdrawalRate ?? 0.04} onChange={handleChange} placeholder="4" isPercentage disabled={plan.details.useGlobalSettings !== false} />
                 </>
               ) : (
                 <>
-                  <FormField label="Target Amount ($)" name="targetAmount" value={plan.details.targetAmount} onChange={handleChange} placeholder="50000" />
-                  <FormField label="Timeline (Years)" name="timelineYears" value={plan.details.timelineYears} onChange={handleChange} placeholder="5" />
+                  <FormField label="Target Amount ($)" name="targetAmount" value={plan.details.targetAmount ?? 0} onChange={handleChange} placeholder="50000" />
+                  <FormField label="Timeline (Years)" name="timelineYears" value={plan.details.timelineYears ?? 0} onChange={handleChange} placeholder="5" />
                 </>
               )}
               
-              <FormField label="Current Balance ($)" name="currentBalance" value={plan.details.currentBalance} onChange={handleChange} placeholder="25000" />
-              <FormField label="Estimated Portfolio Return (%)" name="returnRate" value={effectiveDetails.returnRate} onChange={handleChange} placeholder="8" isPercentage disabled={plan.details.useGlobalSettings !== false} />
-              <FormField label="Expected Tax Rate (%)" name="taxRate" value={effectiveDetails.taxRate} onChange={handleChange} placeholder="40" isPercentage disabled={plan.details.useGlobalSettings !== false} />
+              <FormField label="Current Balance ($)" name="currentBalance" value={plan.details.currentBalance ?? 0} onChange={handleChange} placeholder="25000" />
+              <FormField label="Estimated Portfolio Return (%)" name="returnRate" value={effectiveDetails.returnRate ?? 0} onChange={handleChange} placeholder="8" isPercentage disabled={plan.details.useGlobalSettings !== false} />
+              <FormField label="Expected Tax Rate (%)" name="taxRate" value={effectiveDetails.taxRate ?? 0} onChange={handleChange} placeholder="40" isPercentage disabled={plan.details.useGlobalSettings !== false} />
             </div>
             
             {plan.details.goalType === 'income_stream' && (

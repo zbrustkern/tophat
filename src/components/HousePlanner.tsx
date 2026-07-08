@@ -132,13 +132,27 @@ export default function HousePlanner({ planId }: { planId: string | null }) {
     }
   };
 
-          <div className="grid md:grid-cols-3 gap-6">
-            <FormField label="Current Home Value ($)" name="currentValue" value={plan.details.currentValue} onChange={handleChange} placeholder="600000" />
-            <FormField label="Current Loan Balance ($)" name="currentLoanBalance" value={plan.details.currentLoanBalance} onChange={handleChange} placeholder="400000" />
-            <FormField label="Interest Rate (%)" name="interestRate" value={plan.details.interestRate} onChange={handleChange} isPercentage placeholder="5" />
-            <FormField label="Remaining Term (Months)" name="remainingTermMonths" value={plan.details.remainingTermMonths} onChange={handleChange} placeholder="360" />
-            <FormField label="Annual Home Insurance ($)" name="annualHomeInsurance" value={plan.details.annualHomeInsurance} onChange={handleChange} placeholder="1500" />
-            <FormField label="Annual Maintenance ($)" name="annualMaintenance" value={plan.details.annualMaintenance} onChange={handleChange} placeholder="2000" />
+  return (
+    <main className="flex flex-col gap-6">
+      <Card className="bg-white shadow-lg border-none">
+        <CardHeader>
+          <CardTitle className="text-2xl font-bold bg-gradient-to-r from-teal-600 to-teal-400 bg-clip-text text-transparent">
+            Real Estate Planner
+          </CardTitle>
+          <CardDescription>
+            Manage your mortgage and home equity
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <PlanNameField value={plan.planName} onChange={handleChange} />
+
+          <div className="grid md:grid-cols-3 gap-6 mt-6">
+            <FormField label="Current Home Value ($)" name="currentValue" value={plan.details.currentValue ?? 0} onChange={handleChange} placeholder="600000" />
+            <FormField label="Current Loan Balance ($)" name="currentLoanBalance" value={plan.details.currentLoanBalance ?? 0} onChange={handleChange} placeholder="400000" />
+            <FormField label="Interest Rate (%)" name="interestRate" value={plan.details.interestRate ?? 0} onChange={handleChange} isPercentage placeholder="5" />
+            <FormField label="Remaining Term (Months)" name="remainingTermMonths" value={plan.details.remainingTermMonths ?? 0} onChange={handleChange} placeholder="360" />
+            <FormField label="Annual Home Insurance ($)" name="annualHomeInsurance" value={plan.details.annualHomeInsurance ?? 0} onChange={handleChange} placeholder="1500" />
+            <FormField label="Annual Maintenance ($)" name="annualMaintenance" value={plan.details.annualMaintenance ?? 0} onChange={handleChange} placeholder="2000" />
 
             <div className="flex flex-col gap-1.5">
               <Label className="text-sm font-medium text-gray-700">State</Label>
@@ -153,16 +167,16 @@ export default function HousePlanner({ planId }: { planId: string | null }) {
               />
             </div>
             
-            <FormField label="Annual Property Tax Rate (%)" name="annualPropertyTaxRate" value={plan.details.annualPropertyTaxRate} onChange={handleChange} isPercentage placeholder="2.08" />
+            <FormField label="Annual Property Tax Rate (%)" name="annualPropertyTaxRate" value={plan.details.annualPropertyTaxRate ?? 0} onChange={handleChange} isPercentage placeholder="2.08" />
             <FormField label="Annual Appreciation (%)" name="appreciationRate" value={plan.details.appreciationRate ?? 0.03} onChange={handleChange} isPercentage placeholder="3" />
           </div>
 
           <div className="mt-8 p-4 bg-slate-50 rounded-lg border border-slate-200">
             <h3 className="text-lg font-semibold text-slate-800 mb-4">Scenario Analysis</h3>
             <div className="grid md:grid-cols-3 gap-6">
-              <FormField label="Extra Monthly Principal ($)" name="extraMonthlyPayment" value={plan.details.extraMonthlyPayment} onChange={handleChange} placeholder="200" />
-              <FormField label="Refinance Rate (%)" name="refinanceRate" value={plan.details.refinanceRate} onChange={handleChange} isPercentage placeholder="4.5" />
-              <FormField label="Refinance Term (Months)" name="refinanceTermMonths" value={plan.details.refinanceTermMonths} onChange={handleChange} placeholder="360" />
+              <FormField label="Extra Monthly Principal ($)" name="extraMonthlyPayment" value={plan.details.extraMonthlyPayment ?? 0} onChange={handleChange} placeholder="200" />
+              <FormField label="Refinance Rate (%)" name="refinanceRate" value={plan.details.refinanceRate ?? 0} onChange={handleChange} isPercentage placeholder="4.5" />
+              <FormField label="Refinance Term (Months)" name="refinanceTermMonths" value={plan.details.refinanceTermMonths ?? 0} onChange={handleChange} placeholder="360" />
             </div>
           </div>
         </CardContent>
