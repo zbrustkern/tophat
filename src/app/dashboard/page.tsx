@@ -74,15 +74,17 @@ export default function DashboardPage() {
   const savingsM = (waterfall.preTaxSavings + waterfall.postTaxSavings) / 12;
   const surplusM = waterfall.netCashFlow / 12;
 
+  const bottomOfExpenses = grossM - taxesM - expensesM;
+
   const cashFlowData: any[] = [
-    { name: 'Income', blank: 0, value: grossM, fill: '#10b981' },
-    { name: 'Taxes', blank: grossM - taxesM, value: taxesM, fill: '#ef4444' },
-    { name: 'Expenses', blank: grossM - taxesM - expensesM, value: expensesM, fill: '#f59e0b' },
-    { name: 'Savings', blank: Math.max(0, grossM - taxesM - expensesM - savingsM), value: savingsM, fill: '#0ea5e9' }
+    { name: 'Income', value: [0, grossM], fill: '#10b981' },
+    { name: 'Taxes', value: [grossM - taxesM, grossM], fill: '#ef4444' },
+    { name: 'Expenses', value: [bottomOfExpenses, grossM - taxesM], fill: '#f59e0b' },
+    { name: 'Savings', value: [Math.max(0, bottomOfExpenses - savingsM), bottomOfExpenses], fill: '#0ea5e9' }
   ];
 
   if (surplusM > 0) {
-    cashFlowData.push({ name: 'Surplus', blank: 0, value: surplusM, fill: '#8b5cf6' });
+    cashFlowData.push({ name: 'Surplus', value: [0, surplusM], fill: '#8b5cf6' });
   }
 
   return (
@@ -102,7 +104,7 @@ export default function DashboardPage() {
               <DollarSign className="h-6 w-6" />
             </div>
             <div>
-              <p className="text-sm font-medium text-slate-500">Total Liquid Assets</p>
+              <p className="text-sm font-medium text-slate-500">Total Net Worth</p>
               <h2 className="text-3xl font-bold text-slate-800">${Math.round(totalAssets).toLocaleString()}</h2>
             </div>
           </CardContent>
@@ -202,7 +204,7 @@ export default function DashboardPage() {
                       ))}
                     </Pie>
                     <Tooltip formatter={(value: number) => `$${Math.round(value).toLocaleString()}`} />
-                    <Legend verticalAlign="bottom" height={36} />
+                    <Legend verticalAlign="bottom" wrapperStyle={{ paddingTop: '20px' }} />
                   </PieChart>
                 </ResponsiveContainer>
               ) : (
@@ -227,8 +229,7 @@ export default function DashboardPage() {
                   <YAxis tickFormatter={formatCurrency} fontSize={12} />
                   <Tooltip formatter={(value: number) => `$${Math.round(value).toLocaleString()}`} cursor={{fill: 'transparent'}} />
                   
-                  <Bar dataKey="blank" stackId="a" fill="transparent" />
-                  <Bar dataKey="value" stackId="a" radius={[4, 4, 0, 0]}>
+                  <Bar dataKey="value" radius={[4, 4, 0, 0]}>
                     {cashFlowData.map((entry, index) => (
                       <Cell key={`cell-${index}`} fill={entry.fill} />
                     ))}
