@@ -75,14 +75,14 @@ export default function DashboardPage() {
   const surplusM = waterfall.netCashFlow / 12;
 
   const cashFlowData: any[] = [
-    { name: 'Income', blank: 0, Income: grossM, fill: '#10b981' },
-    { name: 'Taxes', blank: grossM - taxesM, Taxes: taxesM, fill: '#ef4444' },
-    { name: 'Expenses', blank: grossM - taxesM - expensesM, Expenses: expensesM, fill: '#f59e0b' },
-    { name: 'Savings', blank: Math.max(0, grossM - taxesM - expensesM - savingsM), Savings: savingsM, fill: '#0ea5e9' }
+    { name: 'Income', blank: 0, value: grossM, fill: '#10b981' },
+    { name: 'Taxes', blank: grossM - taxesM, value: taxesM, fill: '#ef4444' },
+    { name: 'Expenses', blank: grossM - taxesM - expensesM, value: expensesM, fill: '#f59e0b' },
+    { name: 'Savings', blank: Math.max(0, grossM - taxesM - expensesM - savingsM), value: savingsM, fill: '#0ea5e9' }
   ];
 
   if (surplusM > 0) {
-    cashFlowData.push({ name: 'Surplus', blank: 0, Surplus: surplusM, fill: '#8b5cf6' });
+    cashFlowData.push({ name: 'Surplus', blank: 0, value: surplusM, fill: '#8b5cf6' });
   }
 
   return (
@@ -228,11 +228,11 @@ export default function DashboardPage() {
                   <Tooltip formatter={(value: number) => `$${Math.round(value).toLocaleString()}`} cursor={{fill: 'transparent'}} />
                   
                   <Bar dataKey="blank" stackId="a" fill="transparent" />
-                  <Bar dataKey="Income" stackId="a" fill="#10b981" radius={[4, 4, 0, 0]} />
-                  <Bar dataKey="Taxes" stackId="a" fill="#ef4444" radius={[4, 4, 0, 0]} />
-                  <Bar dataKey="Expenses" stackId="a" fill="#f59e0b" radius={[4, 4, 0, 0]} />
-                  <Bar dataKey="Savings" stackId="a" fill="#0ea5e9" radius={[4, 4, 0, 0]} />
-                  {surplusM > 0 && <Bar dataKey="Surplus" stackId="a" fill="#8b5cf6" radius={[4, 4, 0, 0]} />}
+                  <Bar dataKey="value" stackId="a" radius={[4, 4, 0, 0]}>
+                    {cashFlowData.map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={entry.fill} />
+                    ))}
+                  </Bar>
                 </BarChart>
               </ResponsiveContainer>
             </CardContent>
