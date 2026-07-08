@@ -167,30 +167,44 @@ export function useSavingsCalculations() {
     if (goalType === 'income_stream') {
       const startAge = currentAge || 30;
       const endAge = retirementAge || 65;
-      const years = endAge - startAge;
+      const yearsToRetirement = Math.max(0, endAge - startAge);
+      const lifeExpectancy = 95;
+      const totalYearsToSimulate = Math.max(yearsToRetirement, lifeExpectancy - startAge);
+      
       const swr = withdrawalRate ?? 0.04;
 
       const totalRequired = (desiredIncome || 0) / (swr * (1 - futureTaxRate));
       
-      if (years > 0) {
-        yearlySavings = (totalRequired - currentBalance * Math.pow(1 + returnRate, years)) / 
-                        ((Math.pow(1 + returnRate, years) - 1) / returnRate);
+      if (yearsToRetirement > 0) {
+        yearlySavings = (totalRequired - currentBalance * Math.pow(1 + returnRate, yearsToRetirement)) / 
+                        ((Math.pow(1 + returnRate, yearsToRetirement) - 1) / returnRate);
       } else {
         yearlySavings = totalRequired - currentBalance;
       }
       
       yearlySavings = Math.max(0, yearlySavings); // Graceful handling if already enough
 
-      for (let i = 0; i <= years; i++) {
-        balance = balance * (1 + returnRate) + yearlySavings;
-        currentSavings += yearlySavings;
+      for (let i = 0; i <= totalYearsToSimulate; i++) {
+        const isRetired = (startAge + i) >= endAge;
+        
+        if (isRetired) {
+          // Draw down the balance
+          const withdrawalAmount = balance * swr;
+          balance = balance * (1 + returnRate) - withdrawalAmount;
+          // Prevent negative balance
+          balance = Math.max(0, balance);
+        } else {
+          // Accumulate
+          balance = balance * (1 + returnRate) + yearlySavings;
+          currentSavings += yearlySavings;
+        }
 
         data.push({
           year: currentYear + i,
           age: startAge + i,
           balance: Math.round(balance),
           targetBalance: Math.round(totalRequired),
-          savingsRate: Math.round(yearlySavings),
+          savingsRate: Math.round(isRetired ? 0 : yearlySavings),
           totalSaved: Math.round(currentSavings),
           projectedIncome: Math.round(balance * swr * (1 - futureTaxRate)),
         });

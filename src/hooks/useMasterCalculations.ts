@@ -111,8 +111,22 @@ export function useMasterCalculations() {
     }
 
     // 3. Compute Current Assets & Allocations
-    let savingsCurrentBalance = savingsPlans.reduce((sum, sp) => sum + ((sp.details as any).currentBalance || 0), 0);
-    let collegeCurrentBalance = collegePlans.reduce((sum, cp) => sum + ((cp.details as any).currentBalance || 0), 0);
+    let savingsCurrentBalance = 0;
+    savingsPlans.forEach(sp => {
+      const isLinkedToActivePortfolio = portfolioPlan && (sp.details as any).linkedPortfolioId === portfolioPlan.id;
+      if (!isLinkedToActivePortfolio) {
+        savingsCurrentBalance += ((sp.details as any).currentBalance || 0);
+      }
+    });
+
+    let collegeCurrentBalance = 0;
+    collegePlans.forEach(cp => {
+      const isLinkedToActivePortfolio = portfolioPlan && (cp.details as any).linkedPortfolioId === portfolioPlan.id;
+      if (!isLinkedToActivePortfolio) {
+        collegeCurrentBalance += ((cp.details as any).currentBalance || 0);
+      }
+    });
+
     let portfolioCurrentBalance = portfolioPlan ? ((portfolioPlan.details as any).currentCash || 0) + ((portfolioPlan.details as any).currentEquity || 0) : 0;
     
     let homeEquityCurrent = 0;
@@ -131,11 +145,13 @@ export function useMasterCalculations() {
     const allocations = [];
     savingsPlans.forEach(sp => {
       const bal = (sp.details as any).currentBalance || 0;
-      if (bal > 0) allocations.push({ name: sp.planName, value: bal });
+      const isLinkedToActivePortfolio = portfolioPlan && (sp.details as any).linkedPortfolioId === portfolioPlan.id;
+      if (bal > 0 && !isLinkedToActivePortfolio) allocations.push({ name: sp.planName, value: bal });
     });
     collegePlans.forEach(cp => {
       const bal = (cp.details as any).currentBalance || 0;
-      if (bal > 0) allocations.push({ name: cp.planName, value: bal });
+      const isLinkedToActivePortfolio = portfolioPlan && (cp.details as any).linkedPortfolioId === portfolioPlan.id;
+      if (bal > 0 && !isLinkedToActivePortfolio) allocations.push({ name: cp.planName, value: bal });
     });
     
     if (homeEquityCurrent > 0) {

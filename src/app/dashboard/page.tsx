@@ -68,16 +68,22 @@ export default function DashboardPage() {
 
   const { waterfall, totalAssets, allocations, trajectory } = masterData;
 
+  const grossM = waterfall.grossIncome / 12;
+  const taxesM = waterfall.taxes / 12;
+  const expensesM = waterfall.annualCoreBudget / 12;
+  const savingsM = (waterfall.preTaxSavings + waterfall.postTaxSavings) / 12;
+  const surplusM = waterfall.netCashFlow / 12;
+
   const cashFlowData = [
-    {
-      name: 'Cash Flow',
-      Income: waterfall.grossIncome / 12,
-      Taxes: waterfall.taxes / 12,
-      Expenses: waterfall.annualCoreBudget / 12,
-      Savings: (waterfall.preTaxSavings + waterfall.postTaxSavings) / 12,
-      Net: waterfall.netCashFlow / 12
-    }
+    { name: 'Income', blank: 0, Income: grossM, fill: '#10b981' },
+    { name: 'Taxes', blank: grossM - taxesM, Taxes: taxesM, fill: '#ef4444' },
+    { name: 'Expenses', blank: grossM - taxesM - expensesM, Expenses: expensesM, fill: '#f59e0b' },
+    { name: 'Savings', blank: Math.max(0, grossM - taxesM - expensesM - savingsM), Savings: savingsM, fill: '#0ea5e9' }
   ];
+
+  if (surplusM > 0) {
+    cashFlowData.push({ name: 'Surplus', blank: 0, Surplus: surplusM, fill: '#8b5cf6' });
+  }
 
   return (
     <main className="max-w-7xl mx-auto space-y-6">
@@ -217,14 +223,16 @@ export default function DashboardPage() {
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={cashFlowData} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
                   <CartesianGrid strokeDasharray="3 3" vertical={false} />
-                  <XAxis dataKey="name" hide />
+                  <XAxis dataKey="name" />
                   <YAxis tickFormatter={formatCurrency} fontSize={12} />
                   <Tooltip formatter={(value: number) => `$${Math.round(value).toLocaleString()}`} cursor={{fill: 'transparent'}} />
-                  <Legend />
-                  <Bar dataKey="Income" fill="#10b981" radius={[4, 4, 0, 0]} />
-                  <Bar dataKey="Taxes" fill="#ef4444" radius={[4, 4, 0, 0]} />
-                  <Bar dataKey="Expenses" fill="#f59e0b" radius={[4, 4, 0, 0]} />
-                  <Bar dataKey="Savings" fill="#0ea5e9" radius={[4, 4, 0, 0]} />
+                  
+                  <Bar dataKey="blank" stackId="a" fill="transparent" />
+                  <Bar dataKey="Income" stackId="a" fill="#10b981" radius={[4, 4, 0, 0]} />
+                  <Bar dataKey="Taxes" stackId="a" fill="#ef4444" radius={[4, 4, 0, 0]} />
+                  <Bar dataKey="Expenses" stackId="a" fill="#f59e0b" radius={[4, 4, 0, 0]} />
+                  <Bar dataKey="Savings" stackId="a" fill="#0ea5e9" radius={[4, 4, 0, 0]} />
+                  {surplusM > 0 && <Bar dataKey="Surplus" stackId="a" fill="#8b5cf6" radius={[4, 4, 0, 0]} />}
                 </BarChart>
               </ResponsiveContainer>
             </CardContent>
