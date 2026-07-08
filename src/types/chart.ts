@@ -31,7 +31,7 @@ export interface GlobalSettings {
 }
 
 // Plan Types
-export type PlanType = 'income' | 'savings' | 'house' | 'car' | 'college' | 'debt' | 'rebalance' | 'budget';
+export type PlanType = 'income' | 'savings' | 'house' | 'car' | 'college' | 'debt' | 'rebalance' | 'budget' | 'inheritance';
 
 export interface BasePlan {
   id: string;
@@ -230,9 +230,19 @@ export interface HousePlan extends BasePlan {
   details: HouseDetails;
 }
 
+// Inheritance Plan Types (Placeholder)
+export interface InheritanceDetails {
+  placeholder?: boolean;
+}
+
+export interface InheritancePlan extends BasePlan {
+  planType: 'inheritance';
+  details: InheritanceDetails;
+}
+
 // Union type for all plans
-export type Plan = IncomePlan | SavingsPlan | CollegePlan | RebalancePlan | BudgetPlan | HousePlan;
+export type Plan = IncomePlan | SavingsPlan | CollegePlan | RebalancePlan | BudgetPlan | HousePlan | InheritancePlan;
 
 // Optional: You might want to add these helper types for future use
-export type PlanDetails = IncomeDetails | SavingsDetails | CollegeDetails | RebalanceDetails | BudgetDetails | HouseDetails;
+export type PlanDetails = IncomeDetails | SavingsDetails | CollegeDetails | RebalanceDetails | BudgetDetails | HouseDetails | InheritanceDetails;
 export type ChartData = IncomeChartData | SavingsChartData | CollegeChartData;

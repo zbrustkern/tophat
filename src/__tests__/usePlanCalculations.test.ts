@@ -66,7 +66,7 @@ describe('usePlanCalculations', () => {
 
       const { chartData, requiredSavings } = calculateSavingsData(mockPlan);
       
-      expect(chartData.length).toBe(36); // 30 to 65 inclusive
+      expect(chartData.length).toBe(66); // 30 to 95 inclusive
       expect(requiredSavings).toBeGreaterThan(0);
       
       const finalYear = chartData[chartData.length - 1];

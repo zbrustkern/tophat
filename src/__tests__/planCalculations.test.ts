@@ -98,7 +98,7 @@ describe('useSavingsCalculations', () => {
 
     const { chartData, requiredSavings } = result.current.calculateSavingsData(plan);
     
-    expect(chartData).toHaveLength(36); // age 30 to 65 inclusive
+    expect(chartData).toHaveLength(66); // age 30 to 95 inclusive
     
     expect(requiredSavings).toBeGreaterThan(0);
     // At age 64 (index 34, 35 compounding periods), the projected income should be very close to 80000
@@ -127,7 +127,7 @@ describe('useSavingsCalculations', () => {
 
     const { chartData, requiredSavings } = result.current.calculateSavingsData(plan);
     
-    expect(chartData).toHaveLength(36);
+    expect(chartData).toHaveLength(66);
     
     expect(requiredSavings).toBeGreaterThan(0);
     // At age 64 (index 34, 35 compounding periods), the projected income should be very close to 80000
