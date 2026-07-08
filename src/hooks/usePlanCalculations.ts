@@ -223,15 +223,20 @@ export function useSavingsCalculations() {
 
       yearlySavings = Math.max(0, yearlySavings);
 
-      for (let i = 0; i <= years; i++) {
-        balance = balance * (1 + returnRate) + yearlySavings;
-        currentSavings += yearlySavings;
+      for (let i = 0; i <= 40; i++) {
+        if (i <= years) {
+          balance = balance * (1 + returnRate) + yearlySavings;
+          currentSavings += yearlySavings;
+        } else {
+          // After the goal timeline is reached, the balance continues to grow without new contributions
+          balance = balance * (1 + returnRate);
+        }
 
         data.push({
           year: currentYear + i,
           balance: Math.round(balance),
           targetBalance: Math.round(target),
-          savingsRate: Math.round(yearlySavings),
+          savingsRate: Math.round(i <= years ? yearlySavings : 0),
           totalSaved: Math.round(currentSavings),
           projectedIncome: 0,
         });
@@ -286,14 +291,22 @@ export function useCollegeCalculations() {
       calculatedMonthlyContribution = Math.max(0, calculatedMonthlyContribution);
     }
 
-    // Now generate chart data year by year
-    for (let age = childAge; age <= collegeAge; age++) {
-      if (age > childAge) {
+    // Now generate chart data year by year, up to age + 4 for college drawdown, and carry forward to max projection
+    for (let age = childAge; age <= childAge + 40; age++) {
+      if (age > childAge && age <= collegeAge) {
         // Apply 12 months of growth and contributions
         for (let m = 0; m < 12; m++) {
           balance = balance * (1 + monthlyReturnRate) + calculatedMonthlyContribution;
           totalSaved += calculatedMonthlyContribution;
         }
+      } else if (age > collegeAge && age <= collegeAge + 4) {
+        // Draw down over 4 years of college
+        const drawDownAmount = finalTargetAmount / 4;
+        balance = balance * (1 + annualReturnRate) - drawDownAmount;
+        balance = Math.max(0, balance);
+      } else if (age > collegeAge + 4) {
+        // Carry forward
+        balance = balance * (1 + annualReturnRate);
       }
 
       data.push({
