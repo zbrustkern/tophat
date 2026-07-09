@@ -98,7 +98,7 @@ export default function DashboardPage() {
 
       {/* KPI Row */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <Card className="bg-gradient-to-br from-sky-50 to-white border-sky-100 shadow-sm">
+        <Card onClick={() => router.push('/tactical-allocation')} className="bg-gradient-to-br from-sky-50 to-white border-sky-100 shadow-sm cursor-pointer hover:shadow-md transition-all">
           <CardContent className="p-6 flex items-center gap-4">
             <div className="p-3 bg-sky-100 text-sky-600 rounded-lg">
               <DollarSign className="h-6 w-6" />
@@ -110,7 +110,7 @@ export default function DashboardPage() {
           </CardContent>
         </Card>
         
-        <Card className="bg-gradient-to-br from-emerald-50 to-white border-emerald-100 shadow-sm">
+        <Card onClick={() => router.push('/budget')} className="bg-gradient-to-br from-emerald-50 to-white border-emerald-100 shadow-sm cursor-pointer hover:shadow-md transition-all">
           <CardContent className="p-6 flex items-center gap-4">
             <div className="p-3 bg-emerald-100 text-emerald-600 rounded-lg">
               <TrendingUp className="h-6 w-6" />
@@ -126,7 +126,7 @@ export default function DashboardPage() {
           </CardContent>
         </Card>
 
-        <Card className="bg-gradient-to-br from-indigo-50 to-white border-indigo-100 shadow-sm">
+        <Card onClick={() => router.push('/tactical-allocation')} className="bg-gradient-to-br from-indigo-50 to-white border-indigo-100 shadow-sm cursor-pointer hover:shadow-md transition-all">
           <CardContent className="p-6 flex items-center gap-4">
             <div className="p-3 bg-indigo-100 text-indigo-600 rounded-lg">
               <PieIcon className="h-6 w-6" />
@@ -143,7 +143,7 @@ export default function DashboardPage() {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         
         {/* Net Worth Trajectory (Spans 2 columns) */}
-        <Card className="lg:col-span-2 shadow-sm">
+        <Card onClick={() => router.push('/tactical-allocation')} className="lg:col-span-2 shadow-sm cursor-pointer hover:shadow-md transition-all">
           <CardHeader>
             <CardTitle>Net Worth Trajectory</CardTitle>
             <CardDescription>Projected growth of your combined asset accounts over time.</CardDescription>
@@ -181,7 +181,7 @@ export default function DashboardPage() {
 
         <div className="space-y-6 flex flex-col">
           {/* Current Asset Allocation */}
-          <Card className="flex-1 shadow-sm flex flex-col">
+          <Card onClick={() => router.push('/tactical-allocation')} className="flex-1 shadow-sm flex flex-col cursor-pointer hover:shadow-md transition-all">
             <CardHeader>
               <CardTitle>Asset Allocation</CardTitle>
               <CardDescription>Current balance distribution.</CardDescription>
@@ -216,7 +216,7 @@ export default function DashboardPage() {
           </Card>
 
           {/* Cash Flow Summary */}
-          <Card className="flex-1 shadow-sm flex flex-col">
+          <Card onClick={() => router.push('/budget')} className="flex-1 shadow-sm flex flex-col cursor-pointer hover:shadow-md transition-all">
             <CardHeader>
               <CardTitle>Monthly Cash Flow</CardTitle>
               <CardDescription>Income vs Destinations</CardDescription>

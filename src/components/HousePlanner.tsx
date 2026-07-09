@@ -11,6 +11,7 @@ import { usePlanManagement } from '@/hooks/usePlanManagement';
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { FormField, PlanNameField } from "@/components/PlanFormElements";
+import { PlanSelector } from "@/components/PlanSelector";
 import { getPropertyTaxRateForState } from '@/lib/taxes/propertyTaxes';
 import {
   Card,
@@ -134,6 +135,7 @@ export default function HousePlanner({ planId }: { planId: string | null }) {
 
   return (
     <main className="flex flex-col gap-6">
+      <PlanSelector planType="house" currentPlanId={planId || null} basePath="/house" />
       <Card className="bg-white shadow-lg border-none">
         <CardHeader>
           <CardTitle className="text-2xl font-bold bg-gradient-to-r from-teal-600 to-teal-400 bg-clip-text text-transparent">

@@ -11,6 +11,7 @@ import { IncomeChart } from "@/components/IncomeChart";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { FormField, PlanNameField } from "@/components/PlanFormElements";
+import { PlanSelector } from "@/components/PlanSelector";
 import { DISASTERS, DisasterType } from "@/lib/simulators/disasters";
 import {
   Card,
@@ -218,6 +219,7 @@ export default function IncomePlanner({
 
   return (
     <main className="flex flex-col">
+      <PlanSelector planType="income" currentPlanId={planId || null} basePath="/income" />
       <div className="m-1">
         <Card className="bg-white shadow-lg hover:shadow-xl transition-all duration-200 border-none">
           <CardHeader className="space-y-1 pb-4">

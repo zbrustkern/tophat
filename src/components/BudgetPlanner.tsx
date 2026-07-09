@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react";
+import { useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
 import { usePlans } from "@/contexts/PlansContext";
 import { useSettings } from "@/contexts/SettingsContext";
@@ -11,6 +12,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { PlanNameField } from "@/components/PlanFormElements";
+import { PlanSelector } from "@/components/PlanSelector";
 import { Switch } from "@/components/ui/switch";
 import {
   Card,
@@ -51,16 +53,34 @@ const defaultPlan: BudgetPlan = {
   }
 };
 
-export default function BudgetPlanner() {
+export default function BudgetPlanner({ planId }: { planId?: string | null }) {
   const { user } = useAuth();
   const { plans } = usePlans();
   const { settings } = useSettings();
+  const router = useRouter();
   
   const [plan, setPlan] = useState<BudgetPlan>(() => {
-    const existing = plans.find(p => p.planType === 'budget');
-    if (existing) return existing as BudgetPlan;
+    if (planId && planId !== 'new') {
+      const existing = plans.find(p => p.id === planId);
+      if (existing) return existing as BudgetPlan;
+    } else if (!planId) {
+      const existing = plans.find(p => p.planType === 'budget');
+      if (existing) return existing as BudgetPlan;
+    }
     return defaultPlan;
   });
+
+  const [hydratedPlanId, setHydratedPlanId] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (planId && planId !== hydratedPlanId && plans.length > 0) {
+      const existing = plans.find(p => p.id === planId);
+      if (existing && existing.planType === 'budget') {
+        setPlan(existing as BudgetPlan);
+        setHydratedPlanId(planId);
+      }
+    }
+  }, [planId, plans, hydratedPlanId]);
 
   const { loading, savePlan } = usePlanManagement<BudgetPlan>();
   const { calculateBudgetData } = useBudgetCalculations();
@@ -136,6 +156,9 @@ export default function BudgetPlanner() {
       const savedPlan = await savePlan(plan);
       setPlan(savedPlan);
       setIsDirty(false);
+      if (plan.id === 'new') {
+        router.push(`/budget?plan=${savedPlan.id}`);
+      }
     } catch (error) {
       console.error("Error saving budget:", error);
     }
@@ -146,7 +169,9 @@ export default function BudgetPlanner() {
   const data = calculateBudgetData(plan, settings, plans, activePayorView);
 
   return (
-    <div className="flex flex-col gap-6">
+    <div className="space-y-6">
+      <PlanSelector planType="budget" currentPlanId={planId || null} basePath="/budget" />
+      <div className="flex flex-col lg:flex-row gap-6">
       {/* Waterfall Summary Graphic */}
       <div className="flex flex-col gap-2">
         <div className="flex flex-col sm:flex-row justify-between sm:items-end gap-2">
@@ -345,6 +370,7 @@ export default function BudgetPlanner() {
           </Button>
         </CardFooter>
       </Card>
+      </div>
     </div>
   );
 }

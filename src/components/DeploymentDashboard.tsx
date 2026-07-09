@@ -8,6 +8,7 @@ import { RebalancePlan, Asset } from '@/types/chart';
 import { usePortfolioLogic } from '@/hooks/usePortfolioLogic';
 import { usePlanManagement } from '@/hooks/usePlanManagement';
 import { Button } from "@/components/ui/button";
+import { PlanSelector } from "@/components/PlanSelector";
 import { FormField, PlanNameField } from "@/components/PlanFormElements";
 import {
   Card,
@@ -296,6 +297,7 @@ export default function DeploymentDashboard({ planId }: { planId?: string | null
 
   return (
     <main className="flex flex-col gap-6">
+      <PlanSelector planType="rebalance" currentPlanId={planId || null} basePath="/tactical-allocation" />
       <div className="m-1">
         <Card className="bg-white shadow-lg hover:shadow-xl transition-all duration-200 border-none">
           <CardHeader className="space-y-1 pb-4">

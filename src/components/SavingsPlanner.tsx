@@ -13,6 +13,7 @@ import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { FormField, PlanNameField } from "@/components/PlanFormElements";
+import { PlanSelector } from "@/components/PlanSelector";
 import {
   Card,
   CardContent,
@@ -171,6 +172,7 @@ export default function SavingsPlanner({
 
   return (
     <main className="flex flex-col">
+      <PlanSelector planType="savings" currentPlanId={planId || null} basePath="/savings" />
       <div className="m-1">
         <Card className="bg-white shadow-lg hover:shadow-xl transition-all duration-200 border-none">
           <CardHeader className="space-y-1 pb-4">

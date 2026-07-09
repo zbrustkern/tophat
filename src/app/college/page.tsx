@@ -4,9 +4,13 @@ import { Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import CollegePlanner from '@/components/CollegePlanner';
 
+import { usePlanNavigation } from '@/hooks/usePlanNavigation';
+
 function CollegeContent() {
-  const searchParams = useSearchParams();
-  const planId = searchParams.get('plan');
+  const { planId, isReady } = usePlanNavigation('college', '/college');
+  
+  if (!isReady) return <div>Loading...</div>;
+  
   return <CollegePlanner planId={planId} />;
 }
 

@@ -12,6 +12,7 @@ import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { FormField, PlanNameField } from "@/components/PlanFormElements";
+import { PlanSelector } from "@/components/PlanSelector";
 import {
   Card,
   CardContent,
@@ -154,6 +155,7 @@ export default function CollegePlanner({ planId }: { planId: string | null }) {
 
   return (
     <main className="flex flex-col">
+      <PlanSelector planType="college" currentPlanId={planId || null} basePath="/college" />
       <div className="m-1">
         <Card className="bg-white shadow-lg hover:shadow-xl transition-all duration-200 border-none">
           <CardHeader className="space-y-1 pb-4">

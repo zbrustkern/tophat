@@ -4,9 +4,12 @@ import { Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import HousePlanner from '@/components/HousePlanner';
 
+import { usePlanNavigation } from '@/hooks/usePlanNavigation';
+
 function HouseContent() {
-  const searchParams = useSearchParams();
-  const planId = searchParams.get('plan');
+  const { planId, isReady } = usePlanNavigation('house', '/house');
+  
+  if (!isReady) return <div>Loading...</div>;
   
   return (
     <div className="p-4 md:p-8 space-y-6">

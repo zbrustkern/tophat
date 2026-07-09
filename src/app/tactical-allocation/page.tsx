@@ -4,9 +4,13 @@ import { Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import DeploymentDashboard from '@/components/DeploymentDashboard';
 
+import { usePlanNavigation } from '@/hooks/usePlanNavigation';
+
 function TacticalAllocationContent() {
-  const searchParams = useSearchParams();
-  const planId = searchParams.get('plan');
+  const { planId, isReady } = usePlanNavigation('rebalance', '/tactical-allocation');
+  
+  if (!isReady) return <div>Loading...</div>;
+  
   return <DeploymentDashboard planId={planId} />;
 }
 
