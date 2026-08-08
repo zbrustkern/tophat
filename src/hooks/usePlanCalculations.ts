@@ -1,5 +1,17 @@
 import { useCallback } from 'react';
-import { IncomePlan, SavingsPlan, CollegePlan, CollegeChartData, GlobalSettings } from '@/types/chart';
+import { IncomePlan, SavingsPlan, CollegePlan, CollegeChartData, GlobalSettings, Plan, RebalanceDetails } from '@/types/chart';
+
+export function getEffectiveBalance(linkedPortfolioIds: string[] | undefined, fallbackBalance: number, allPlans?: Plan[]) {
+  if (!linkedPortfolioIds || linkedPortfolioIds.length === 0 || !allPlans) return fallbackBalance;
+  
+  const linkedPortfolios = allPlans.filter(p => p.planType === 'rebalance' && linkedPortfolioIds.includes(p.id));
+  if (linkedPortfolios.length === 0) return fallbackBalance;
+
+  return linkedPortfolios.reduce((sum, p) => {
+    const details = p.details as RebalanceDetails;
+    return sum + (details.currentCash || 0) + (details.currentEquity || 0);
+  }, 0);
+}
 import { calculateTaxes } from '@/lib/taxes/engine';
 import { DISASTERS, DisasterType } from '@/lib/simulators/disasters';
 
@@ -124,7 +136,7 @@ export function useIncomeCalculations() {
 }
 
 export function useSavingsCalculations() {
-  const calculateSavingsData = useCallback((plan: SavingsPlan, globalSettings?: GlobalSettings | null) => {
+  const calculateSavingsData = useCallback((plan: SavingsPlan, globalSettings?: GlobalSettings | null, allPlans?: Plan[]) => {
     const {
       goalType,
       desiredIncome,
@@ -137,8 +149,11 @@ export function useSavingsCalculations() {
       returnRate,
       withdrawalRate,
       futureTaxRateScenario,
-      useGlobalSettings
+      useGlobalSettings,
+      linkedPortfolioIds
     } = plan.details;
+
+    const effectiveCurrentBalance = getEffectiveBalance(linkedPortfolioIds, currentBalance, allPlans);
 
     const currentYear = new Date().getFullYear();
 
@@ -161,7 +176,7 @@ export function useSavingsCalculations() {
 
     const data = [];
     let currentSavings = 0;
-    let balance = currentBalance;
+    let balance = effectiveCurrentBalance;
     let yearlySavings = 0;
 
     if (goalType === 'income_stream') {
@@ -176,10 +191,10 @@ export function useSavingsCalculations() {
       const totalRequired = (desiredIncome || 0) / (swr * (1 - futureTaxRate));
       
       if (yearsToRetirement > 0) {
-        yearlySavings = (totalRequired - currentBalance * Math.pow(1 + returnRate, yearsToRetirement)) / 
+        yearlySavings = (totalRequired - effectiveCurrentBalance * Math.pow(1 + returnRate, yearsToRetirement)) / 
                         ((Math.pow(1 + returnRate, yearsToRetirement) - 1) / returnRate);
       } else {
-        yearlySavings = totalRequired - currentBalance;
+        yearlySavings = totalRequired - effectiveCurrentBalance;
       }
       
       yearlySavings = Math.max(0, yearlySavings); // Graceful handling if already enough
@@ -250,7 +265,7 @@ export function useSavingsCalculations() {
 }
 
 export function useCollegeCalculations() {
-  const calculateCollegeData = useCallback((plan: CollegePlan) => {
+  const calculateCollegeData = useCallback((plan: CollegePlan, globalSettings?: GlobalSettings | null, allPlans?: Plan[]) => {
     const {
       calculationMode,
       childAge,
@@ -258,43 +273,61 @@ export function useCollegeCalculations() {
       currentBalance,
       returnRate,
       targetAmount,
-      monthlyContribution
+      monthlyContribution,
+      linkedPortfolioIds
     } = plan.details;
 
-    const years = collegeAge - childAge;
+    const effectiveCurrentBalance = getEffectiveBalance(linkedPortfolioIds, currentBalance, allPlans);
+
+    const yearsToCollege = Math.max(0, collegeAge - childAge);
     const data: CollegeChartData[] = [];
-    let balance = currentBalance;
-    let totalSaved = currentBalance;
+    let balance = effectiveCurrentBalance;
+    let totalContributions = effectiveCurrentBalance;
     
-    // We do yearly loop, but contributions are monthly
-    const annualReturnRate = returnRate;
-    const monthlyReturnRate = Math.pow(1 + annualReturnRate, 1/12) - 1;
+    // We calculate a fixed expected growth of the cost of college (inflation)
+    // using a static 5% as a heuristic for tuition inflation.
+    const collegeInflation = 0.05;
+    const projectedCost = targetAmount * Math.pow(1 + collegeInflation, yearsToCollege);
 
     let calculatedMonthlyContribution = monthlyContribution;
-    let finalTargetAmount = targetAmount;
-
-    if (years <= 0) {
-      return { chartData: [], calculatedMonthlyContribution: 0, finalTargetAmount: balance };
-    }
-
+    let finalTargetAmount = projectedCost; // For drawdown phase
+    let totalSaved = effectiveCurrentBalance;
+    const annualReturnRate = returnRate;
     if (calculationMode === 'contribution') {
       // Solve for monthly contribution required to hit targetAmount
       // FV = PV * (1 + r)^n + PMT * [((1 + r)^n - 1) / r]
-      const totalMonths = years * 12;
-      const fvPv = currentBalance * Math.pow(1 + monthlyReturnRate, totalMonths);
+      const totalMonths = yearsToCollege * 12;
+      const monthlyReturnRate = Math.pow(1 + returnRate, 1/12) - 1;
+      const fvPv = effectiveCurrentBalance * Math.pow(1 + monthlyReturnRate, totalMonths);
       
       if (monthlyReturnRate > 0) {
-        calculatedMonthlyContribution = (targetAmount - fvPv) * monthlyReturnRate / (Math.pow(1 + monthlyReturnRate, totalMonths) - 1);
+        calculatedMonthlyContribution = (projectedCost - fvPv) * monthlyReturnRate / (Math.pow(1 + monthlyReturnRate, totalMonths) - 1);
       } else {
-        calculatedMonthlyContribution = (targetAmount - fvPv) / totalMonths;
+        calculatedMonthlyContribution = (projectedCost - fvPv) / totalMonths;
       }
       calculatedMonthlyContribution = Math.max(0, calculatedMonthlyContribution);
+    } else if (calculationMode === 'goal') {
+      if (yearsToCollege > 0) {
+        // PMT = FV * r / ((1 + r)^n - 1)
+        const r = returnRate / 12;
+        const n = yearsToCollege * 12;
+        if (r === 0) {
+          calculatedMonthlyContribution = (projectedCost - effectiveCurrentBalance) / n;
+        } else {
+          const fvOfPv = effectiveCurrentBalance * Math.pow(1 + r, n);
+          const deficit = projectedCost - fvOfPv;
+          calculatedMonthlyContribution = deficit * r / (Math.pow(1 + r, n) - 1);
+        }
+      } else {
+        calculatedMonthlyContribution = projectedCost - effectiveCurrentBalance;
+      }
     }
 
     // Now generate chart data year by year, up to age + 4 for college drawdown, and carry forward to max projection
     for (let age = childAge; age <= childAge + 40; age++) {
       if (age > childAge && age <= collegeAge) {
         // Apply 12 months of growth and contributions
+        const monthlyReturnRate = Math.pow(1 + returnRate, 1/12) - 1;
         for (let m = 0; m < 12; m++) {
           balance = balance * (1 + monthlyReturnRate) + calculatedMonthlyContribution;
           totalSaved += calculatedMonthlyContribution;

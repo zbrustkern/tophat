@@ -20,6 +20,19 @@ export interface HouseChartData {
   scenarioTotalInterestPaid: number;
 }
 
+export function calculateAnnualPropertyTax(details: any): number {
+  const homeValue = details.currentValue || 0;
+  let annualPropertyTax = homeValue * (details.annualPropertyTaxRate || 0.011);
+
+  if (details.useAdvancedPropertyTax && details.assessmentRatio && details.localTaxRate) {
+    const assessedValue = homeValue * details.assessmentRatio;
+    const taxableValue = Math.max(0, assessedValue - (details.homesteadExemption || 0));
+    annualPropertyTax = taxableValue * details.localTaxRate;
+  }
+
+  return annualPropertyTax;
+}
+
 export function useHouseCalculations() {
   const calculateHouseData = (plan: HousePlan, settings: GlobalSettings | null): HouseChartData[] => {
     const data: HouseChartData[] = [];

@@ -354,6 +354,44 @@ export default function BudgetPlanner({ planId }: { planId?: string | null }) {
                 </div>
               </div>
             )})}
+
+            {/* Auto-Injected Line Items */}
+            {data.injectedLineItems && data.injectedLineItems.length > 0 && (
+              <>
+                <div className="my-6 border-t border-slate-200" />
+                <h4 className="text-sm font-semibold text-slate-500 mb-2 px-2">Auto-Synced from Active Plans</h4>
+                {data.injectedLineItems.map((item) => {
+                  const isExcluded = activePayorView !== 'All' && item.payorId !== activePayorView;
+                  if (isExcluded) return null;
+                  
+                  return (
+                    <div key={item.id} className="grid grid-cols-1 md:grid-cols-[1fr_1.5fr_1fr_1fr_1fr_auto] gap-3 p-3 md:p-0 md:bg-transparent bg-slate-50 border md:border-0 rounded-lg md:rounded-none items-center opacity-70 cursor-not-allowed">
+                      <div className="flex flex-col md:block">
+                        <span className="md:hidden text-xs font-semibold text-slate-500 mb-1">Who Pays?</span>
+                        <Input value={item.payorId} disabled className="bg-slate-100 font-medium text-slate-500" />
+                      </div>
+                      <div className="flex flex-col md:block">
+                        <span className="md:hidden text-xs font-semibold text-slate-500 mb-1">Bill / Expense</span>
+                        <Input value={item.bill} disabled className="bg-slate-100 font-medium text-slate-500" />
+                      </div>
+                      <div className="flex flex-col md:block">
+                        <span className="md:hidden text-xs font-semibold text-slate-500 mb-1">Company</span>
+                        <Input value="Auto-Linked" disabled className="bg-slate-100 italic text-slate-400" />
+                      </div>
+                      <div className="flex flex-col md:block">
+                        <span className="md:hidden text-xs font-semibold text-slate-500 mb-1">Category</span>
+                        <Input value={item.category} disabled className="bg-slate-100 font-medium text-slate-500" />
+                      </div>
+                      <div className="flex flex-col md:block">
+                        <span className="md:hidden text-xs font-semibold text-slate-500 mb-1">Monthly Amount ($)</span>
+                        <Input value={Math.round(item.monthlyAmount)} disabled className="bg-slate-100 font-bold text-slate-600" />
+                      </div>
+                      <div className="w-10"></div>
+                    </div>
+                  );
+                })}
+              </>
+            )}
           </div>
 
           <Button onClick={addLineItem} variant="secondary" className="w-full mt-4 border-dashed border-2 bg-transparent hover:bg-slate-50">

@@ -5,17 +5,20 @@ import { usePathname } from "next/navigation"
 import SignInButton from "./SignInButton"
 import { useState } from 'react'
 import { Menu, LayoutDashboard, DollarSign, PiggyBank, GraduationCap, Target, CreditCard, Plane, Calculator, Settings, Home } from 'lucide-react'
+import { useSettings } from '@/contexts/SettingsContext'
 
 export function NavBar() {
   const pathname = usePathname()
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
+  const { settings } = useSettings()
+  const isHolistic = settings?.holisticModeEnabled !== false // defaults to true
   
   const routes = [
-    {
+    ...(isHolistic ? [{
       href: "/dashboard",
       label: "Master Dashboard",
       icon: <LayoutDashboard className="h-5 w-5" />
-    },
+    }] : []),
     {
       href: "/",
       label: "My Plans",
@@ -73,7 +76,7 @@ export function NavBar() {
       {/* Desktop Sidebar */}
       <div className="hidden md:flex fixed left-0 top-0 h-screen w-64 border-r bg-background flex-col z-30">
         <div className="flex flex-col items-center py-6 border-b">
-          <Link href="/" className="flex flex-col items-center group">
+          <Link href={isHolistic ? "/dashboard" : "/"} className="flex flex-col items-center group">
             <img
               src="/tophat_logo.png"
               width={120}
@@ -122,7 +125,7 @@ export function NavBar() {
             >
               <Menu className="h-6 w-6" />
             </button>
-            <Link href="/" className="text-lg font-semibold text-orange-300 hover:text-orange-400">
+            <Link href={isHolistic ? "/dashboard" : "/"} className="text-lg font-semibold text-orange-300 hover:text-orange-400">
               Tophat
             </Link>
           </div>

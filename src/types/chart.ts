@@ -17,6 +17,7 @@ export interface GlobalSettings {
   filingStatus?: 'Single' | 'MarriedJointly';
   stateOfResidence?: string;
   dependents?: number;
+  holisticModeEnabled?: boolean;
   activePlans?: {
     incomePlanId?: string;
     incomePlanIds?: string[];
@@ -104,7 +105,7 @@ export interface SavingsDetails {
   
   // Common funding
   currentBalance: number;
-  linkedPortfolioId?: string; // If null, uses cash logic
+  linkedPortfolioIds?: string[]; // Multiple portfolios can fund a single goal
   
   taxRate: number;
   returnRate: number;
@@ -138,6 +139,7 @@ export interface CollegeDetails {
   monthlyContribution: number;
   useGlobalSettings?: boolean;
   taxType?: 'preTax' | 'postTax';
+  linkedPortfolioIds?: string[]; // Multiple portfolios can fund a single goal
 }
 
 export interface CollegePlan extends BasePlan {
@@ -173,6 +175,9 @@ export interface RebalanceDetails {
   monthsElapsed: number; // Keep for backward compatibility/fallback
   startDate?: string;    // YYYY-MM-DD
   assets?: Asset[];
+  institution?: string;
+  taxType?: 'preTax' | 'postTax' | 'taxable' | 'crypto';
+  portfolioPurpose?: 'Core Wealth' | 'Play Money' | 'Cash Reserve';
 }
 
 export interface RebalancePlan extends BasePlan {
@@ -203,7 +208,7 @@ export interface BudgetPlan extends BasePlan {
 
 // House Plan Types
 export interface HouseDetails {
-  status: 'owned'; // Removed 'planning' as it's now a Savings Goal
+  status: 'owned'; 
   
   // For 'owned'
   currentValue?: number;
@@ -217,12 +222,20 @@ export interface HouseDetails {
   state?: string; 
   annualHomeInsurance?: number;
   annualMaintenance?: number;
-  appreciationRate?: number; // default 0.03
+  appreciationRate?: number; 
   
   // Scenarios
   extraMonthlyPayment?: number;
   refinanceRate?: number;
   refinanceTermMonths?: number;
+
+  // Advanced Property Tax
+  useAdvancedPropertyTax?: boolean;
+  assessmentRatio?: number; 
+  homesteadExemption?: number; 
+  localTaxRate?: number; 
+
+  linkedPortfolioIds?: string[]; // Multiple portfolios can fund a single goal
 }
 
 export interface HousePlan extends BasePlan {

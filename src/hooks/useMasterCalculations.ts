@@ -80,7 +80,8 @@ export function useMasterCalculations() {
     }
 
     const budgetPlan = resolvePlan(activePlans.budgetPlanId, 'budget');
-    const portfolioPlan = resolvePlan(activePlans.portfolioPlanId, 'rebalance');
+    const portfolioPlans = plans.filter(p => p.planType === 'rebalance');
+    const portfolioPlan = resolvePlan(activePlans.portfolioPlanId, 'rebalance'); // Legacy, keeping just in case
     const housePlan = resolvePlan(activePlans.housePlanId, 'house');
 
     let collegePlans: Plan[] = [];
@@ -111,48 +112,56 @@ export function useMasterCalculations() {
     }
 
     // 3. Compute Current Assets & Allocations
-    let savingsCurrentBalance = 0;
+    let totalAssets = 0;
+    const allocations: { name: string; value: number }[] = [];
+
+    // All Portfolios are physical money, add them
+    portfolioPlans.forEach(p => {
+      const details = p.details as any;
+      const bal = (details.currentCash || 0) + (details.currentEquity || 0);
+      if (bal > 0) {
+        allocations.push({ name: p.planName, value: bal });
+        totalAssets += bal;
+      }
+    });
+
+    // Goals that are NOT linked to a portfolio are assumed to be manual cash piles
     savingsPlans.forEach(sp => {
-      const isLinkedToActivePortfolio = portfolioPlan && (sp.details as any).linkedPortfolioId === portfolioPlan.id;
-      if (!isLinkedToActivePortfolio) {
-        savingsCurrentBalance += ((sp.details as any).currentBalance || 0);
+      const details = sp.details as any;
+      const hasLinks = details.linkedPortfolioIds && details.linkedPortfolioIds.length > 0;
+      if (!hasLinks) {
+        const bal = details.currentBalance || 0;
+        if (bal > 0) {
+          allocations.push({ name: sp.planName, value: bal });
+          totalAssets += bal;
+        }
       }
     });
 
-    let collegeCurrentBalance = 0;
     collegePlans.forEach(cp => {
-      const isLinkedToActivePortfolio = portfolioPlan && (cp.details as any).linkedPortfolioId === portfolioPlan.id;
-      if (!isLinkedToActivePortfolio) {
-        collegeCurrentBalance += ((cp.details as any).currentBalance || 0);
+      const details = cp.details as any;
+      const hasLinks = details.linkedPortfolioIds && details.linkedPortfolioIds.length > 0;
+      if (!hasLinks) {
+        const bal = details.currentBalance || 0;
+        if (bal > 0) {
+          allocations.push({ name: cp.planName, value: bal });
+          totalAssets += bal;
+        }
       }
     });
 
-    let portfolioCurrentBalance = portfolioPlan ? ((portfolioPlan.details as any).currentCash || 0) + ((portfolioPlan.details as any).currentEquity || 0) : 0;
-    
+    // Home Equity
     let homeEquityCurrent = 0;
     if (housePlan) {
-      if ((housePlan.details as any).status === 'owned') {
-        const val = (housePlan.details as any).currentValue || 0;
-        const loan = (housePlan.details as any).currentLoanBalance || 0;
+      const details = housePlan.details as any;
+      if (details.status === 'owned') {
+        const val = details.currentValue || 0;
+        const loan = details.currentLoanBalance || 0;
         homeEquityCurrent = val - loan;
       } else {
-        homeEquityCurrent = (housePlan.details as any).currentSavings || 0;
+        homeEquityCurrent = details.currentSavings || 0;
       }
     }
-    
-    const totalAssets = savingsCurrentBalance + collegeCurrentBalance + portfolioCurrentBalance + homeEquityCurrent;
-
-    const allocations = [];
-    savingsPlans.forEach(sp => {
-      const bal = (sp.details as any).currentBalance || 0;
-      const isLinkedToActivePortfolio = portfolioPlan && (sp.details as any).linkedPortfolioId === portfolioPlan.id;
-      if (bal > 0 && !isLinkedToActivePortfolio) allocations.push({ name: sp.planName, value: bal });
-    });
-    collegePlans.forEach(cp => {
-      const bal = (cp.details as any).currentBalance || 0;
-      const isLinkedToActivePortfolio = portfolioPlan && (cp.details as any).linkedPortfolioId === portfolioPlan.id;
-      if (bal > 0 && !isLinkedToActivePortfolio) allocations.push({ name: cp.planName, value: bal });
-    });
     
     if (homeEquityCurrent > 0) {
       if (housePlan && (housePlan.details as any).status === 'planning') {
@@ -160,29 +169,20 @@ export function useMasterCalculations() {
       } else {
         allocations.push({ name: 'Home Equity', value: homeEquityCurrent });
       }
+      totalAssets += homeEquityCurrent;
     }
-    
-    if (portfolioPlan && (portfolioPlan.details as any).assets) {
-      let core = 0;
-      let growth = 0;
-      let speculative = 0;
-      let unallocatedCash = (portfolioPlan.details as any).currentCash || 0;
+
+    let unlinkedPortfoliosBalance = 0;
+    portfolioPlans.forEach(p => {
+      // Check if it's linked to ANY active savings or college plan or house plan
+      const isLinkedToSavings = savingsPlans.some(sp => ((sp.details as any).linkedPortfolioIds || []).includes(p.id));
+      const isLinkedToCollege = collegePlans.some(cp => ((cp.details as any).linkedPortfolioIds || []).includes(p.id));
+      const isLinkedToHouse = housePlan && ((housePlan.details as any).linkedPortfolioIds || []).includes(p.id);
       
-      (portfolioPlan.details as any).assets.forEach((asset: any) => {
-        const val = (asset.price || 0) * (asset.shares || 0);
-        if (asset.type === 'cash') unallocatedCash += val;
-        else if (asset.riskTier === 'growth') growth += val;
-        else if (asset.riskTier === 'speculative') speculative += val;
-        else core += val; // Default to core
-      });
-      
-      if (core > 0) allocations.push({ name: 'Core Portfolio', value: core });
-      if (growth > 0) allocations.push({ name: 'Growth Portfolio', value: growth });
-      if (speculative > 0) allocations.push({ name: 'Speculative Portfolio', value: speculative });
-      if (unallocatedCash > 0) allocations.push({ name: 'Portfolio Cash', value: unallocatedCash });
-    } else if (portfolioCurrentBalance > 0) {
-      allocations.push({ name: 'Investment Portfolio', value: portfolioCurrentBalance });
-    }
+      if (!isLinkedToSavings && !isLinkedToCollege && !isLinkedToHouse) {
+        unlinkedPortfoliosBalance += ((p.details as any).currentCash || 0) + ((p.details as any).currentEquity || 0);
+      }
+    });
 
     // 4. Compute Net Worth Trajectory (Projecting forward)
     const trajectory: MasterTrajectoryPoint[] = [];
@@ -194,14 +194,14 @@ export function useMasterCalculations() {
     const incomeDataObjs = incomePlans.map(ip => calculateIncomeData(ip as any, settings));
     const savingsDataObjs = savingsPlans.map(sp => ({
       plan: sp,
-      data: calculateSavingsData(sp as any, settings)
+      data: calculateSavingsData(sp as any, settings, plans)
     }));
     const houseData = housePlan ? calculateHouseData(housePlan as any, settings) : [];
     
     // College data for all active college plans
     const collegeDataObjs = collegePlans.map(cp => ({
       plan: cp,
-      data: calculateCollegeData(cp as any)
+      data: calculateCollegeData(cp as any, settings, plans)
     }));
 
     // Create lookup maps by Year
@@ -306,7 +306,7 @@ export function useMasterCalculations() {
           savingsBalance: lastPoint.savingsBalance,
           collegeBalance: lastPoint.collegeBalance,
           homeEquity: lastPoint.homeEquity,
-          totalNetWorth: lastPoint.savingsBalance + lastPoint.collegeBalance + portfolioCurrentBalance + lastPoint.homeEquity
+          totalNetWorth: lastPoint.savingsBalance + lastPoint.collegeBalance + unlinkedPortfoliosBalance + lastPoint.homeEquity
         });
         continue;
       }
@@ -323,7 +323,7 @@ export function useMasterCalculations() {
         savingsBalance: savBal,
         collegeBalance: colBal,
         homeEquity: hEquity,
-        totalNetWorth: savBal + colBal + portfolioCurrentBalance + hEquity
+        totalNetWorth: savBal + colBal + unlinkedPortfoliosBalance + hEquity
       });
     }
 

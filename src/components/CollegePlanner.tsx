@@ -13,6 +13,7 @@ import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { FormField, PlanNameField } from "@/components/PlanFormElements";
 import { PlanSelector } from "@/components/PlanSelector";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import {
   Card,
   CardContent,
@@ -63,7 +64,7 @@ export default function CollegePlanner({ planId }: { planId: string | null }) {
       const existing = plans.find(p => p.id === planId);
       if (existing && existing.planType === 'college') {
         setPlan(existing as CollegePlan);
-        const result = calculateCollegeData(existing as CollegePlan);
+        const result = calculateCollegeData(existing as CollegePlan, settings, plans);
         setChartData(result.chartData);
         if (existing.details.calculationMode === 'goal') {
           setCalculatedValue(result.finalTargetAmount);
@@ -90,7 +91,7 @@ export default function CollegePlanner({ planId }: { planId: string | null }) {
     // Handle percentage fields
     if (["returnRate"].includes(name)) {
       newValue = parseFloat(value) / 100; // Convert from percentage to decimal
-    } else if (name !== "planName" && name !== "calculationMode") {
+    } else if (name !== "planName" && name !== "calculationMode" && name !== "linkedPortfolioIds") {
       newValue = Number(value);
     }
 
@@ -101,6 +102,31 @@ export default function CollegePlanner({ planId }: { planId: string | null }) {
         : { details: { ...prev.details, [name]: newValue } }
       )
     }));
+  };
+
+  const handleSelectChange = (name: string, value: string) => {
+    setIsDirty(true);
+    setPlan(prev => ({
+      ...prev,
+      details: {
+        ...prev.details,
+        [name]: value
+      }
+    }));
+  };
+
+  const handlePortfolioToggle = (portfolioId: string) => {
+    setIsDirty(true);
+    setPlan(prev => {
+      const currentIds = prev.details.linkedPortfolioIds || [];
+      const newIds = currentIds.includes(portfolioId) 
+        ? currentIds.filter(id => id !== portfolioId)
+        : [...currentIds, portfolioId];
+      return {
+        ...prev,
+        details: { ...prev.details, linkedPortfolioIds: newIds }
+      };
+    });
   };
 
   const handleModeChange = (mode: 'goal' | 'contribution') => {
@@ -124,7 +150,7 @@ export default function CollegePlanner({ planId }: { planId: string | null }) {
 
   const updateChart = () => {
     setIsDirty(false);
-    const result = calculateCollegeData({ ...plan, details: effectiveDetails });
+    const result = calculateCollegeData({ ...plan, details: effectiveDetails }, settings, plans);
     setChartData(result.chartData);
     if (plan.details.calculationMode === 'goal') {
       setCalculatedValue(result.finalTargetAmount);
@@ -246,6 +272,30 @@ export default function CollegePlanner({ planId }: { planId: string | null }) {
                   placeholder="100000"
                 />
               )}
+
+              <div className="flex flex-col gap-2">
+                <Label className="text-sm font-medium text-gray-700">Linked Portfolios</Label>
+                <div className="flex flex-col gap-1.5 p-3 border rounded-md bg-white max-h-40 overflow-y-auto">
+                  {plans.filter(p => p.planType === 'rebalance').length === 0 && (
+                    <span className="text-xs text-slate-500 italic">No portfolios available.</span>
+                  )}
+                  {plans.filter(p => p.planType === 'rebalance').map(p => {
+                    const isChecked = (plan.details.linkedPortfolioIds || []).includes(p.id);
+                    return (
+                      <label key={p.id} className="flex items-center gap-2 text-sm cursor-pointer hover:bg-slate-50 p-1 rounded">
+                        <input 
+                          type="checkbox" 
+                          checked={isChecked} 
+                          onChange={() => handlePortfolioToggle(p.id)}
+                          className="rounded border-slate-300 w-4 h-4 text-blue-600 focus:ring-blue-500"
+                        />
+                        <span className="font-medium text-slate-700">{p.planName}</span>
+                        {(p as any).details?.institution && <span className="text-xs text-slate-400">({(p as any).details.institution})</span>}
+                      </label>
+                    );
+                  })}
+                </div>
+              </div>
             </div>
           </CardContent>
           <CardFooter className="bg-white border-t py-4">

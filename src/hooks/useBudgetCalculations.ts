@@ -1,5 +1,6 @@
 import { BudgetPlan, BudgetLineItem, GlobalSettings, Plan, IncomePlan, SavingsPlan, CollegePlan, HousePlan } from '@/types/chart';
 import { useIncomeCalculations, useSavingsCalculations, useCollegeCalculations } from './usePlanCalculations';
+import { calculateAnnualPropertyTax } from './useHouseCalculations';
 
 export function useBudgetCalculations() {
   const { calculateIncomeData } = useIncomeCalculations();
@@ -24,6 +25,8 @@ export function useBudgetCalculations() {
       filteredMonthlyExpenses += item.monthlyAmount;
     });
     const annualCoreBudget = filteredMonthlyExpenses * 12;
+
+    const injectedLineItems: BudgetLineItem[] = [];
 
     const resolvePlan = (planId: string | undefined, planType: string): Plan | undefined => {
       if (planId) return allPlans.find(p => p.id === planId && p.planType === planType);
@@ -96,11 +99,20 @@ export function useBudgetCalculations() {
         }
         
         const mortgagePayment = basePayment + extraPay;
-        const annualPropertyTax = (housePlan.details.currentValue || p) * (housePlan.details.annualPropertyTaxRate || 0.011);
+        const annualPropertyTax = calculateAnnualPropertyTax(housePlan.details);
         const homeInsurance = housePlan.details.annualHomeInsurance || 0;
         const maintenance = housePlan.details.annualMaintenance || 0;
         
         houseMonthlyExpense = mortgagePayment + (annualPropertyTax + homeInsurance + maintenance) / 12;
+
+        injectedLineItems.push({
+          id: `auto-house-${housePlan.id}`,
+          bill: 'Housing Costs (PITI + Maint)',
+          company: 'Auto-Linked',
+          category: 'Housing',
+          monthlyAmount: houseMonthlyExpense,
+          payorId: 'Joint'
+        });
       }
     }
     
@@ -147,12 +159,23 @@ export function useBudgetCalculations() {
 
     // Process Savings Plans (target_amount goals are deducted from cash flow)
     savingsPlans.forEach(sp => {
-      if (sp.details.goalType === 'target_amount') {
+      if (sp.details.goalType === 'target_amount' || sp.details.goalType === 'income_stream') {
         const { requiredSavings } = calculateSavingsData(sp, globalSettings);
         if (sp.details.taxType === 'preTax') {
           preTaxSavings += requiredSavings;
         } else {
           postTaxSavings += requiredSavings;
+        }
+
+        if (requiredSavings > 0) {
+          injectedLineItems.push({
+            id: `auto-savings-${sp.id}`,
+            bill: `${sp.planName} Contribution`,
+            company: 'Auto-Linked',
+            category: 'Savings & Investments',
+            monthlyAmount: requiredSavings / 12,
+            payorId: 'Joint'
+          });
         }
       }
     });
@@ -164,6 +187,17 @@ export function useBudgetCalculations() {
         preTaxSavings += annualCollege;
       } else {
         postTaxSavings += annualCollege;
+      }
+
+      if (calculatedMonthlyContribution > 0) {
+        injectedLineItems.push({
+          id: `auto-college-${cp.id}`,
+          bill: `${cp.planName} Contribution`,
+          company: 'Auto-Linked',
+          category: 'Savings & Investments',
+          monthlyAmount: calculatedMonthlyContribution,
+          payorId: 'Joint'
+        });
       }
     });
 
@@ -185,7 +219,8 @@ export function useBudgetCalculations() {
         postTaxSavings,
         netCashFlow
       },
-      totalExpenses: totalHouseholdMonthlyExpenses
+      totalExpenses: totalHouseholdMonthlyExpenses,
+      injectedLineItems
     };
   };
 

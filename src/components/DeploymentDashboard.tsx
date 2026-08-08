@@ -10,6 +10,7 @@ import { usePlanManagement } from '@/hooks/usePlanManagement';
 import { Button } from "@/components/ui/button";
 import { PlanSelector } from "@/components/PlanSelector";
 import { FormField, PlanNameField } from "@/components/PlanFormElements";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import {
   Card,
   CardContent,
@@ -147,6 +148,17 @@ export default function DeploymentDashboard({ planId }: { planId?: string | null
     }));
   };
 
+  const handleSelectChange = (name: string, value: string) => {
+    setIsDirty(true);
+    setPlan(prev => ({
+      ...prev,
+      details: {
+        ...prev.details,
+        [name]: value
+      }
+    }));
+  };
+
   const handleAssetChange = (id: string, field: keyof Asset, value: string | number) => {
     setIsDirty(true);
     setPlan(prev => {
@@ -277,6 +289,13 @@ export default function DeploymentDashboard({ planId }: { planId?: string | null
     }
   };
 
+  const linkedGoal = plans.find(p => {
+    if (p.planType === 'savings' || p.planType === 'college' || p.planType === 'house') {
+      return (p as any).details.linkedPortfolioId === plan.id;
+    }
+    return false;
+  });
+
   if (planId && planId !== 'new' && hydratedPlanId !== planId) {
     return (
       <main className="flex flex-col gap-6 animate-pulse">
@@ -311,6 +330,18 @@ export default function DeploymentDashboard({ planId }: { planId?: string | null
           <CardContent className="bg-gray-50/50 space-y-6">
             <PlanNameField value={plan.planName} onChange={handleChange} />
             
+            {linkedGoal && (
+              <div className="mb-6 p-4 bg-amber-50 border-amber-200 border rounded-lg text-amber-800 shadow-sm">
+                <h4 className="font-bold flex items-center gap-2">
+                  <span className="text-xl">🔗</span> Linked to Goal: {linkedGoal.planName}
+                </h4>
+                <p className="mt-1 text-sm">
+                  This portfolio is linked to your <strong>{linkedGoal.planName}</strong> goal planner. 
+                  Only input your current cash and asset holdings here. Target amounts and required contributions are managed automatically by your goal planner.
+                </p>
+              </div>
+            )}
+
             <div className="grid md:grid-cols-3 gap-4">
               <div className="col-span-1 md:col-span-3">
                 <h3 className="text-lg font-semibold text-gray-700 mb-2 border-b pb-2">Global Parameters</h3>
@@ -341,6 +372,49 @@ export default function DeploymentDashboard({ planId }: { planId?: string | null
                   onChange={handleChange}
                   className="p-2 border rounded-md"
                 />
+              </div>
+            </div>
+
+            <div className="grid md:grid-cols-3 gap-4 border-t pt-4">
+              <div className="col-span-1 md:col-span-3">
+                <h3 className="text-lg font-semibold text-gray-700 mb-2 border-b pb-2">Account Configuration</h3>
+              </div>
+
+              <FormField
+                label="Institution (e.g. Schwab, Fidelity)"
+                name="institution"
+                value={plan.details.institution || ''}
+                onChange={handleChange}
+                placeholder="Institution Name"
+              />
+
+              <div className="flex flex-col gap-1.5">
+                <label className="text-sm font-semibold text-slate-700">Tax Type</label>
+                <Select value={plan.details.taxType || 'taxable'} onValueChange={(val) => handleSelectChange('taxType', val)}>
+                  <SelectTrigger className="bg-white">
+                    <SelectValue placeholder="Select Tax Type" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="taxable">Taxable Brokerage</SelectItem>
+                    <SelectItem value="preTax">Pre-Tax (Traditional 401k/IRA)</SelectItem>
+                    <SelectItem value="postTax">Post-Tax (Roth 401k/IRA)</SelectItem>
+                    <SelectItem value="crypto">Crypto / Alternative</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="flex flex-col gap-1.5">
+                <label className="text-sm font-semibold text-slate-700">Portfolio Purpose</label>
+                <Select value={plan.details.portfolioPurpose || 'Core Wealth'} onValueChange={(val) => handleSelectChange('portfolioPurpose', val)}>
+                  <SelectTrigger className="bg-white">
+                    <SelectValue placeholder="Select Purpose" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="Core Wealth">Core Wealth (Retirement)</SelectItem>
+                    <SelectItem value="Play Money">Play Money (Speculative)</SelectItem>
+                    <SelectItem value="Cash Reserve">Cash Reserve (Liquidity)</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
             </div>
 

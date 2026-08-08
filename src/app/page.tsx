@@ -43,6 +43,12 @@ export default function Home() {
   const { plans, loading, error } = usePlans();
   const { deletePlan } = usePlanManagement<Plan>();
 
+  useEffect(() => {
+    if (!loading && plans.length === 0) {
+      router.push('/onboarding');
+    }
+  }, [plans, loading, router]);
+
   const handleDelete = async (planId: string) => {
     try {
       await deletePlan(planId);
@@ -58,6 +64,12 @@ export default function Home() {
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
           <h1 className="text-2xl font-bold">Your Financial Plans</h1>
           <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
+            <Button 
+              onClick={() => router.push('/onboarding')}
+              className="w-full sm:w-auto justify-center bg-sky-600 hover:bg-sky-700 text-white"
+            >
+              Start Onboarding Wizard
+            </Button>
             <Button 
               onClick={() => router.push('/dashboard')}
               className="w-full sm:w-auto justify-center bg-indigo-600 hover:bg-indigo-700 text-white"

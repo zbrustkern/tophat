@@ -12,6 +12,8 @@ import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { FormField, PlanNameField } from "@/components/PlanFormElements";
 import { PlanSelector } from "@/components/PlanSelector";
+import { Switch } from "@/components/ui/switch";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { getPropertyTaxRateForState } from '@/lib/taxes/propertyTaxes';
 import {
   Card,
@@ -47,7 +49,11 @@ const defaultPlan: HousePlan = {
     annualMaintenance: 2000,
     appreciationRate: 0.03,
     state: 'IL',
-    annualPropertyTaxRate: 0.0208
+    annualPropertyTaxRate: 0.0208,
+    useAdvancedPropertyTax: false,
+    assessmentRatio: 0.3333,
+    homesteadExemption: 8000,
+    localTaxRate: 0.06
   }
 };
 
@@ -109,7 +115,30 @@ export default function HousePlanner({ planId }: { planId: string | null }) {
     });
   };
 
+  const handleSelectChange = (name: string, value: string) => {
+    setIsDirty(true);
+    setPlan(prev => ({
+      ...prev,
+      details: {
+        ...prev.details,
+        [name]: value
+      }
+    }));
+  };
 
+  const handlePortfolioToggle = (portfolioId: string) => {
+    setIsDirty(true);
+    setPlan(prev => {
+      const currentIds = prev.details.linkedPortfolioIds || [];
+      const newIds = currentIds.includes(portfolioId) 
+        ? currentIds.filter(id => id !== portfolioId)
+        : [...currentIds, portfolioId];
+      return {
+        ...prev,
+        details: { ...prev.details, linkedPortfolioIds: newIds }
+      };
+    });
+  };
 
   const updateChart = () => {
     setIsDirty(false);
@@ -169,8 +198,60 @@ export default function HousePlanner({ planId }: { planId: string | null }) {
               />
             </div>
             
-            <FormField label="Annual Property Tax Rate (%)" name="annualPropertyTaxRate" value={plan.details.annualPropertyTaxRate ?? 0} onChange={handleChange} isPercentage placeholder="2.08" />
             <FormField label="Annual Appreciation (%)" name="appreciationRate" value={plan.details.appreciationRate ?? 0.03} onChange={handleChange} isPercentage placeholder="3" />
+            
+            <div className="flex flex-col gap-2">
+              <Label className="text-sm font-medium text-gray-700">Linked Portfolios</Label>
+              <div className="flex flex-col gap-1.5 p-3 border rounded-md bg-white max-h-40 overflow-y-auto">
+                {plans.filter(p => p.planType === 'rebalance').length === 0 && (
+                  <span className="text-xs text-slate-500 italic">No portfolios available.</span>
+                )}
+                {plans.filter(p => p.planType === 'rebalance').map(p => {
+                  const isChecked = (plan.details.linkedPortfolioIds || []).includes(p.id);
+                  return (
+                    <label key={p.id} className="flex items-center gap-2 text-sm cursor-pointer hover:bg-slate-50 p-1 rounded">
+                      <input 
+                        type="checkbox" 
+                        checked={isChecked} 
+                        onChange={() => handlePortfolioToggle(p.id)}
+                        className="rounded border-slate-300 w-4 h-4 text-blue-600 focus:ring-blue-500"
+                      />
+                      <span className="font-medium text-slate-700">{p.planName}</span>
+                      {(p as any).details?.institution && <span className="text-xs text-slate-400">({(p as any).details.institution})</span>}
+                    </label>
+                  );
+                })}
+              </div>
+            </div>
+          </div>
+
+          <div className="mt-8 p-4 bg-slate-50 rounded-lg border border-slate-200">
+            <div className="flex flex-row items-center justify-between mb-4">
+              <h3 className="text-lg font-semibold text-slate-800">Property Tax Configuration</h3>
+              <div className="flex items-center space-x-2">
+                <Switch
+                  id="advanced-tax"
+                  checked={plan.details.useAdvancedPropertyTax || false}
+                  onCheckedChange={(checked) => {
+                    setPlan(p => ({ ...p, details: { ...p.details, useAdvancedPropertyTax: checked } }));
+                    setIsDirty(true);
+                  }}
+                />
+                <Label htmlFor="advanced-tax" className="font-medium text-slate-700 cursor-pointer">Advanced (e.g. IL EAV) Mode</Label>
+              </div>
+            </div>
+            
+            {plan.details.useAdvancedPropertyTax ? (
+              <div className="grid md:grid-cols-3 gap-6">
+                <FormField label="Assessment Ratio (e.g., 33.33%)" name="assessmentRatio" value={plan.details.assessmentRatio ?? 0.3333} onChange={handleChange} isPercentage placeholder="33.33" />
+                <FormField label="Homestead Exemption ($)" name="homesteadExemption" value={plan.details.homesteadExemption ?? 8000} onChange={handleChange} placeholder="8000" />
+                <FormField label="Local Tax Rate (%)" name="localTaxRate" value={plan.details.localTaxRate ?? 0.06} onChange={handleChange} isPercentage placeholder="6.5" />
+              </div>
+            ) : (
+              <div className="grid md:grid-cols-3 gap-6">
+                <FormField label="Annual Property Tax Rate (%)" name="annualPropertyTaxRate" value={plan.details.annualPropertyTaxRate ?? 0} onChange={handleChange} isPercentage placeholder="2.08" />
+              </div>
+            )}
           </div>
 
           <div className="mt-8 p-4 bg-slate-50 rounded-lg border border-slate-200">

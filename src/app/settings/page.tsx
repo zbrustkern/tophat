@@ -114,6 +114,33 @@ export default function SettingsPage() {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        {/* Application Mode */}
+        <Card className="md:col-span-2 border-indigo-200 shadow-sm bg-indigo-50/30">
+          <CardHeader>
+            <CardTitle>Application Mode</CardTitle>
+            <CardDescription>Choose how you want to experience TopHat.</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="flex items-center space-x-3">
+              <input
+                type="checkbox"
+                id="holisticMode"
+                checked={formData.holisticModeEnabled !== false}
+                onChange={(e) => setFormData({ ...formData, holisticModeEnabled: e.target.checked })}
+                className="h-5 w-5 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500 cursor-pointer"
+              />
+              <div className="grid gap-1.5 leading-none">
+                <Label htmlFor="holisticMode" className="text-base font-semibold cursor-pointer">
+                  Enable Holistic Mode (Master Dashboard)
+                </Label>
+                <p className="text-sm text-muted-foreground">
+                  If enabled, TopHat will tie all your active plans together into a unified, interconnected Master Dashboard. If disabled, you can use the individual planners in Classic Mode.
+                </p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
         <Card>
           <CardHeader>
             <CardTitle>Economic Assumptions</CardTitle>

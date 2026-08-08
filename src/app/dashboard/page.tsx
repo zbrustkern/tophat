@@ -14,13 +14,15 @@ import {
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useRouter } from "next/navigation";
+import { NextDollarRecommendations } from "@/components/NextDollarRecommendations";
 import { 
   AreaChart, Area, 
   BarChart, Bar, 
   PieChart, Pie, Cell, 
   XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend 
 } from 'recharts';
-import { ArrowRight, TrendingUp, DollarSign, PieChart as PieIcon } from 'lucide-react';
+import { ArrowRight, TrendingUp, DollarSign, PieChart as PieIcon, Settings as SettingsIcon } from 'lucide-react';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 const COLORS = ['#0ea5e9', '#8b5cf6', '#10b981', '#f59e0b', '#ef4444'];
 
@@ -34,13 +36,26 @@ export default function DashboardPage() {
   const router = useRouter();
   const { user } = useAuth();
   const { plans } = usePlans();
-  const { settings } = useSettings();
+  const { settings, updateSettings } = useSettings();
   const { calculateMasterData } = useMasterCalculations();
+
+  const incomePlans = useMemo(() => plans.filter(p => p.planType === 'income'), [plans]);
 
   const masterData = useMemo(() => {
     if (!settings || !plans.length) return null;
     return calculateMasterData(plans, settings);
   }, [plans, settings, calculateMasterData]);
+
+  const handleScenarioChange = async (incomePlanId: string) => {
+    if (!settings) return;
+    await updateSettings({
+      ...settings,
+      activePlans: {
+        ...settings.activePlans,
+        incomePlanIds: [incomePlanId]
+      }
+    });
+  };
 
   if (!settings?.activePlans) {
     return (
@@ -93,6 +108,27 @@ export default function DashboardPage() {
         <div>
           <h1 className="text-3xl font-bold tracking-tight text-slate-900">Master Dashboard</h1>
           <p className="text-slate-500 mt-1">Your complete financial picture, aggregated from your active plans.</p>
+        </div>
+        
+        {/* Scenario Tester UI */}
+        <div className="flex items-center gap-3 bg-white px-4 py-2 rounded-lg border shadow-sm">
+          <span className="text-sm font-semibold text-slate-600 whitespace-nowrap">Active Scenario:</span>
+          <Select 
+            value={settings?.activePlans?.incomePlanIds?.[0] || ''} 
+            onValueChange={handleScenarioChange}
+          >
+            <SelectTrigger className="w-[200px] h-8 text-sm">
+              <SelectValue placeholder="Select Income Plan" />
+            </SelectTrigger>
+            <SelectContent>
+              {incomePlans.map(plan => (
+                <SelectItem key={plan.id} value={plan.id}>{plan.planName}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <Button variant="ghost" size="icon" onClick={() => router.push('/settings')} className="h-8 w-8 text-slate-400 hover:text-slate-600">
+            <SettingsIcon className="h-4 w-4" />
+          </Button>
         </div>
       </div>
 
@@ -240,6 +276,10 @@ export default function DashboardPage() {
           </Card>
         </div>
 
+      </div>
+
+      <div className="mt-8">
+        <NextDollarRecommendations netCashFlow={waterfall.netCashFlow} globalSettings={settings} plans={plans} />
       </div>
     </main>
   );
