@@ -1,3 +1,10 @@
+# [1.10.0](https://github.com/zbrustkern/tophat/compare/v1.9.0...v1.10.0) (2026-08-08)
+
+
+### Features
+
+* implement onboarding wizard and holistic mode ([bccbb84](https://github.com/zbrustkern/tophat/commit/bccbb845e56dea6cdebda96d0eac6f625f35456f))
+
 # [1.9.0](https://github.com/zbrustkern/tophat/compare/v1.8.0...v1.9.0) (2026-07-07)
 
 
