@@ -27,6 +27,8 @@ function GoogleIcon() {
   );
 }
 
+import { LogOut } from 'lucide-react';
+
 export default function SignInButton({ variant = 'navbar' }: { variant?: 'navbar' | 'hero' }) {
   const { user } = useAuth();
   const { toast } = useToast();
@@ -47,6 +49,10 @@ export default function SignInButton({ variant = 'navbar' }: { variant?: 'navbar
   const handleSignOut = async () => {
     try {
       await signOut();
+      toast({
+        title: "Signed Out",
+        description: "You have been signed out safely.",
+      });
     } catch (error) {
       console.error('Error signing out:', error);
     }
@@ -54,16 +60,22 @@ export default function SignInButton({ variant = 'navbar' }: { variant?: 'navbar
 
   if (user) {
     return (
-      <div className="flex items-center gap-3">
-        <span className="text-xs text-muted-foreground truncate max-w-[140px]" title={user.email || ''}>
-          {user.email}
-        </span>
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 w-full">
+        <div className="flex items-center gap-2 min-w-0">
+          <div className="h-6 w-6 rounded-full bg-deco-gold/20 border border-deco-gold/40 flex items-center justify-center text-deco-gold font-display font-semibold text-xs shrink-0">
+            {user.email ? user.email[0].toUpperCase() : 'U'}
+          </div>
+          <span className="text-xs text-white/80 font-medium truncate max-w-[110px] sm:max-w-[130px]" title={user.email || ''}>
+            {user.email}
+          </span>
+        </div>
         <Button 
           variant="outline"
+          size="sm"
           onClick={handleSignOut}
-          className="h-8 text-xs border-white/20 text-foreground hover:bg-white/10"
+          className="h-8 text-xs border-deco-gold/30 text-deco-gold hover:bg-deco-gold/10 hover:text-white font-display uppercase tracking-wider font-semibold shrink-0"
         >
-          Sign Out
+          <LogOut className="h-3.5 w-3.5 mr-1 text-rose-400" /> Sign Out
         </Button>
       </div>
     );
