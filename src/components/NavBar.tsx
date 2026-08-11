@@ -74,32 +74,32 @@ export function NavBar() {
   return (
     <>
       {/* Desktop Sidebar */}
-      <div className="hidden md:flex fixed left-0 top-0 h-screen w-64 border-r bg-background flex-col z-30">
-        <div className="flex flex-col items-center py-6 border-b">
+      <div className="hidden md:flex fixed left-0 top-0 h-screen w-64 border-r bg-background flex-col z-30 shadow-2xl">
+        <div className="flex flex-col items-center py-4 border-b shrink-0">
           <Link href={isHolistic ? "/dashboard" : "/"} className="flex flex-col items-center group">
             <img
               src="/tophat_logo.png"
-              width={120}
-              height={120}
+              width={72}
+              height={72}
               alt="Tophat logo"
-              className="mb-2 transition-transform group-hover:scale-105"
+              className="mb-1 transition-transform group-hover:scale-105 drop-shadow-[0_0_12px_rgba(212,175,55,0.3)]"
             />
-            <span className="text-xl font-display font-semibold uppercase tracking-widest text-deco-gold transition-colors group-hover:text-deco-brass mt-4">
+            <span className="text-sm font-display font-semibold uppercase tracking-widest text-deco-gold transition-colors group-hover:text-deco-brass mt-1">
               Tophat Financial
             </span>
           </Link>
         </div>
 
-        <nav className="flex-1 space-y-1 p-4">
+        <nav className="flex-1 space-y-1 p-3 overflow-y-auto min-h-0 scrollbar-thin scrollbar-thumb-white/10">
           {routes.map((route) => {
             const isActive = pathname === route.href;
             return (
               <Link
                 key={route.href}
                 href={route.href}
-                className={`flex h-10 items-center gap-3 rounded-md px-3 text-sm font-medium transition-colors
+                className={`flex h-9 items-center gap-3 rounded-sm px-3 text-xs font-medium transition-colors
                   ${isActive 
-                    ? 'bg-deco-gold/10 text-deco-gold border-r-2 border-deco-gold' 
+                    ? 'bg-deco-gold/15 text-deco-gold border-r-2 border-deco-gold font-semibold' 
                     : 'text-muted-foreground hover:bg-deco-gold/5 hover:text-deco-gold'
                   }`}
               >
@@ -110,7 +110,7 @@ export function NavBar() {
           })}
         </nav>
 
-        <div className="p-4 border-t">
+        <div className="p-3 border-t bg-slate-950/80 shrink-0">
           <SignInButton />
         </div>
       </div>
@@ -134,8 +134,8 @@ export function NavBar() {
 
         {/* Mobile Menu Dropdown */}
         {isMobileMenuOpen && (
-          <div className="absolute top-full left-0 right-0 bg-background border-b shadow-lg">
-            <nav className="flex flex-col p-2">
+          <div className="absolute top-full left-0 right-0 bg-slate-950 border-b shadow-2xl max-h-[calc(100vh-3.5rem)] overflow-y-auto">
+            <nav className="flex flex-col p-3 space-y-1">
               {routes.map((route) => {
                 const isActive = pathname === route.href;
                 return (
@@ -143,9 +143,9 @@ export function NavBar() {
                     key={route.href}
                     href={route.href}
                     onClick={() => setIsMobileMenuOpen(false)}
-                    className={`flex items-center gap-3 px-4 py-3 rounded-md text-sm font-medium transition-colors
+                    className={`flex items-center gap-3 px-4 py-2.5 rounded-sm text-xs font-medium transition-colors
                       ${isActive 
-                        ? 'bg-deco-gold/10 text-deco-gold border-l-2 border-deco-gold' 
+                        ? 'bg-deco-gold/15 text-deco-gold border-l-2 border-deco-gold font-semibold' 
                         : 'text-muted-foreground hover:bg-deco-gold/5 hover:text-deco-gold'
                       }`}
                   >
@@ -155,6 +155,9 @@ export function NavBar() {
                 )
               })}
             </nav>
+            <div className="p-4 border-t border-white/10 bg-slate-900">
+              <SignInButton />
+            </div>
           </div>
         )}
       </div>
