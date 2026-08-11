@@ -1,3 +1,10 @@
+# [1.12.0](https://github.com/zbrustkern/tophat/compare/v1.11.0...v1.12.0) (2026-08-11)
+
+
+### Features
+
+* **design:** implement Tuxedo Deco theme 2.0 ([6bab853](https://github.com/zbrustkern/tophat/commit/6bab8538887e4d688224a5863cd261a38e181b5b))
+
 # [1.11.0](https://github.com/zbrustkern/tophat/compare/v1.10.0...v1.11.0) (2026-08-11)
 
 
