@@ -20,10 +20,23 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [role, setRoleState] = useState<UserRole>('guest');
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged((user) => {
+    const unsubscribe = onAuthStateChanged(async (user) => {
       setUser(user);
       if (user) {
-        setRoleState(getUserRole(user.email));
+        try {
+          // Read cryptographically signed JWT Custom Claims from Google Auth server
+          const idTokenResult = await user.getIdTokenResult(true); // force refresh
+          const claimRole = idTokenResult.claims.role as UserRole | undefined;
+          
+          if (claimRole) {
+            setRoleState(claimRole);
+          } else {
+            setRoleState(getUserRole(user.email));
+          }
+        } catch (e) {
+          console.error("Error reading Auth JWT Claims:", e);
+          setRoleState(getUserRole(user.email));
+        }
       } else {
         setRoleState('guest');
       }
