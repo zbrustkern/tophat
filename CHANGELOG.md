@@ -1,3 +1,18 @@
+# [2.0.0](https://github.com/zbrustkern/tophat/compare/v1.12.0...v2.0.0) (2026-08-11)
+
+
+* feat!: launch Tophat Financial 2.0 release and fix semantic release configuration ([2486114](https://github.com/zbrustkern/tophat/commit/2486114c366247e3ccfe6e433786f136e7a0bab5))
+
+
+### Features
+
+* **v2.0:** implement dashboard click-through cues, float maximization engine, and v2.0 release prep ([6c8dd44](https://github.com/zbrustkern/tophat/commit/6c8dd44fc6a37cc8eb7fc0ad7438297f8bba01b6))
+
+
+### BREAKING CHANGES
+
+* Tophat Financial 2.0 Major Architecture & Design System Update
+
 # [1.12.0](https://github.com/zbrustkern/tophat/compare/v1.11.0...v1.12.0) (2026-08-11)
 
 
