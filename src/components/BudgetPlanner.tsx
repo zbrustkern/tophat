@@ -241,6 +241,48 @@ export default function BudgetPlanner({ planId }: { planId?: string | null }) {
         </div>
       </div>
 
+      {/* Float Maximization & Liquidity Buffer Card */}
+      {data.floatMetrics && (
+        <Card className="border-deco-gold/30 bg-card/60 backdrop-blur-md">
+          <CardHeader className="pb-2">
+            <div className="flex items-center justify-between">
+              <div>
+                <CardTitle className="text-lg font-display uppercase tracking-widest text-deco-gold">
+                  Float Maximization & Cash Buffer
+                </CardTitle>
+                <CardDescription className="text-xs text-muted-foreground mt-0.5">
+                  Optimize credit card 30-day interest-free grace periods by holding operating cash in a High-Yield Savings Account (HYSA).
+                </CardDescription>
+              </div>
+              <Button 
+                variant="outline" 
+                size="sm"
+                onClick={() => router.push('/wallet')}
+                className="text-xs border-deco-gold/40 text-deco-gold hover:bg-deco-gold/10"
+              >
+                Configure Wallet ↗
+              </Button>
+            </div>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-2">
+              <div className="p-3 rounded-sm bg-white/5 border border-white/10">
+                <span className="text-xs text-muted-foreground uppercase font-display tracking-wider block">Card-Eligible Monthly Spend</span>
+                <span className="text-xl font-bold text-foreground">${Math.round(data.floatMetrics.eligibleFloatMonthlySpend).toLocaleString()}/mo</span>
+              </div>
+              <div className="p-3 rounded-sm bg-white/5 border border-white/10">
+                <span className="text-xs text-muted-foreground uppercase font-display tracking-wider block">30-Day Retained HYSA Buffer</span>
+                <span className="text-xl font-bold text-deco-gold">${Math.round(data.floatMetrics.retainedFloatBuffer).toLocaleString()}</span>
+              </div>
+              <div className="p-3 rounded-sm bg-white/5 border border-white/10">
+                <span className="text-xs text-muted-foreground uppercase font-display tracking-wider block">Annual Passive Yield (5% HYSA)</span>
+                <span className="text-xl font-bold text-emerald-400">+${Math.round(data.floatMetrics.annualFloatYield).toLocaleString()}/yr</span>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
       {/* The Main Budget Grid */}
       <Card>
         <CardHeader className="flex flex-row justify-between items-center">

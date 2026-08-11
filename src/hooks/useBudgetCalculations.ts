@@ -204,9 +204,22 @@ export function useBudgetCalculations() {
     // Add Income Plan post-tax savings if applicable
     // Already handled in the filteredIncomePlans loop!
 
-    // 5. Calculate Final Net Cash Flow
-    // Note: If preTaxSavings increased from savings/college plans, we should technically recalculate taxes.
-    // For simplicity, we just deduct it from takeHome for now.
+    // 5. Calculate Float Maximization Metrics (Credit card 30-day grace period HYSA yield)
+    // Non-housing expenses can typically be charged to cards and paid on statement due date (30-45 day float)
+    let eligibleFloatMonthlySpend = 0;
+    filteredLineItems.forEach(item => {
+      const catLower = (item.category || '').toLowerCase();
+      const billLower = (item.bill || '').toLowerCase();
+      if (!catLower.includes('housing') && !catLower.includes('house') && !billLower.includes('mortgage') && !billLower.includes('rent')) {
+        eligibleFloatMonthlySpend += item.monthlyAmount;
+      }
+    });
+
+    const hysaApy = 0.05; // 5.0% APY
+    const retainedFloatBuffer = eligibleFloatMonthlySpend; // 30-day average cash buffer
+    const annualFloatYield = retainedFloatBuffer * hysaApy;
+
+    // 6. Calculate Final Net Cash Flow
     const netCashFlow = takeHome - totalAnnualCoreBudget - postTaxSavings;
 
     return {
@@ -220,7 +233,13 @@ export function useBudgetCalculations() {
         netCashFlow
       },
       totalExpenses: totalHouseholdMonthlyExpenses,
-      injectedLineItems
+      injectedLineItems,
+      floatMetrics: {
+        eligibleFloatMonthlySpend,
+        retainedFloatBuffer,
+        hysaApy,
+        annualFloatYield
+      }
     };
   };
 

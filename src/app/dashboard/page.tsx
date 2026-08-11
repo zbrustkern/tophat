@@ -21,7 +21,7 @@ import {
   PieChart, Pie, Cell, 
   XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend 
 } from 'recharts';
-import { ArrowRight, TrendingUp, DollarSign, PieChart as PieIcon, Settings as SettingsIcon } from 'lucide-react';
+import { ArrowRight, TrendingUp, DollarSign, PieChart as PieIcon, Settings as SettingsIcon, ArrowUpRight } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 const COLORS = ['#D4AF37', '#C5A059', '#F9E596', '#7D6A33', '#B89745'];
@@ -134,25 +134,27 @@ export default function DashboardPage() {
 
       {/* KPI Row */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <Card onClick={() => router.push('/tactical-allocation')} className="bg-card hover:bg-white/5 border-deco-gold/20 cursor-pointer transition-all">
+        <Card onClick={() => router.push('/tactical-allocation')} className="bg-card hover:bg-white/5 border-deco-gold/20 cursor-pointer transition-all group relative">
+          <ArrowUpRight className="absolute top-3 right-3 h-4 w-4 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity text-deco-gold" />
           <CardContent className="p-6 flex items-center gap-4">
             <div className="p-3 bg-deco-gold/10 text-deco-gold rounded-sm border border-deco-gold/30">
               <DollarSign className="h-6 w-6" />
             </div>
             <div>
-              <p className="text-sm font-display uppercase tracking-widest text-muted-foreground">Total Net Worth</p>
+              <p className="text-sm font-display uppercase tracking-widest text-muted-foreground flex items-center gap-1">Total Net Worth</p>
               <h2 className="text-3xl font-bold text-foreground">${Math.round(totalAssets).toLocaleString()}</h2>
             </div>
           </CardContent>
         </Card>
         
-        <Card onClick={() => router.push('/budget')} className="bg-card hover:bg-white/5 border-deco-gold/20 cursor-pointer transition-all">
+        <Card onClick={() => router.push('/budget')} className="bg-card hover:bg-white/5 border-deco-gold/20 cursor-pointer transition-all group relative">
+          <ArrowUpRight className="absolute top-3 right-3 h-4 w-4 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity text-deco-gold" />
           <CardContent className="p-6 flex items-center gap-4">
             <div className="p-3 bg-deco-gold/10 text-deco-gold rounded-sm border border-deco-gold/30">
               <TrendingUp className="h-6 w-6" />
             </div>
             <div>
-              <p className="text-sm font-display uppercase tracking-widest text-muted-foreground">Annual Savings Rate</p>
+              <p className="text-sm font-display uppercase tracking-widest text-muted-foreground flex items-center gap-1">Annual Savings Rate</p>
               <h2 className="text-3xl font-bold text-foreground">
                 {waterfall.grossIncome > 0 
                   ? Math.round(((waterfall.preTaxSavings + waterfall.postTaxSavings) / waterfall.grossIncome) * 100) 
@@ -162,13 +164,14 @@ export default function DashboardPage() {
           </CardContent>
         </Card>
 
-        <Card onClick={() => router.push('/tactical-allocation')} className="bg-card hover:bg-white/5 border-deco-gold/20 cursor-pointer transition-all">
+        <Card onClick={() => router.push('/tactical-allocation')} className="bg-card hover:bg-white/5 border-deco-gold/20 cursor-pointer transition-all group relative">
+          <ArrowUpRight className="absolute top-3 right-3 h-4 w-4 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity text-deco-gold" />
           <CardContent className="p-6 flex items-center gap-4">
             <div className="p-3 bg-deco-gold/10 text-deco-gold rounded-sm border border-deco-gold/30">
               <PieIcon className="h-6 w-6" />
             </div>
             <div>
-              <p className="text-sm font-display uppercase tracking-widest text-muted-foreground">Annual Net Cash Flow</p>
+              <p className="text-sm font-display uppercase tracking-widest text-muted-foreground flex items-center gap-1">Annual Net Cash Flow</p>
               <h2 className="text-3xl font-bold text-foreground">${Math.round(waterfall.netCashFlow).toLocaleString()}</h2>
             </div>
           </CardContent>
@@ -179,9 +182,12 @@ export default function DashboardPage() {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         
         {/* Net Worth Trajectory (Spans 2 columns) */}
-        <Card onClick={() => router.push('/tactical-allocation')} className="lg:col-span-2 shadow-sm cursor-pointer hover:shadow-md transition-all">
+        <Card onClick={() => router.push('/tactical-allocation')} className="lg:col-span-2 shadow-sm cursor-pointer hover:shadow-md transition-all group relative">
+          <ArrowUpRight className="absolute top-4 right-4 h-5 w-5 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity text-deco-gold" />
           <CardHeader>
-            <CardTitle>Net Worth Trajectory</CardTitle>
+            <CardTitle className="flex items-center justify-between">
+              <span>Net Worth Trajectory</span>
+            </CardTitle>
             <CardDescription>Projected growth of your combined asset accounts over time.</CardDescription>
           </CardHeader>
           <CardContent>
@@ -217,7 +223,8 @@ export default function DashboardPage() {
 
         <div className="space-y-6 flex flex-col">
           {/* Current Asset Allocation */}
-          <Card onClick={() => router.push('/tactical-allocation')} className="flex-1 shadow-sm flex flex-col cursor-pointer hover:shadow-md transition-all">
+          <Card onClick={() => router.push('/tactical-allocation')} className="flex-1 shadow-sm flex flex-col cursor-pointer hover:shadow-md transition-all group relative">
+            <ArrowUpRight className="absolute top-4 right-4 h-4 w-4 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity text-deco-gold" />
             <CardHeader>
               <CardTitle>Asset Allocation</CardTitle>
               <CardDescription>Current balance distribution.</CardDescription>
@@ -252,7 +259,8 @@ export default function DashboardPage() {
           </Card>
 
           {/* Cash Flow Summary */}
-          <Card onClick={() => router.push('/budget')} className="flex-1 shadow-sm flex flex-col cursor-pointer hover:shadow-md transition-all">
+          <Card onClick={() => router.push('/budget')} className="flex-1 shadow-sm flex flex-col cursor-pointer hover:shadow-md transition-all group relative">
+            <ArrowUpRight className="absolute top-4 right-4 h-4 w-4 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity text-deco-gold" />
             <CardHeader>
               <CardTitle>Monthly Cash Flow</CardTitle>
               <CardDescription>Income vs Destinations</CardDescription>
