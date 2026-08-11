@@ -70,7 +70,7 @@ export default function Step6Goals() {
               <Input 
                 value={name} 
                 onChange={e => setName(e.target.value)}
-                className="bg-white/10 border-white/20 text-white placeholder:text-white/40"
+                className="bg-slate-800 border-slate-700 text-white placeholder:text-slate-400"
                 placeholder="e.g. Dream Home"
               />
             </div>
@@ -78,7 +78,7 @@ export default function Step6Goals() {
             <div className="md:col-span-3 space-y-2">
               <Label className="text-indigo-100">Type</Label>
               <Select value={type} onValueChange={(val: any) => setType(val)}>
-                <SelectTrigger className="bg-white/10 border-white/20 text-white">
+                <SelectTrigger className="bg-slate-800 border-slate-700 text-white">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent className="bg-slate-800 border-slate-700 text-white">
@@ -97,7 +97,7 @@ export default function Step6Goals() {
                   type="number"
                   value={target} 
                   onChange={e => setTarget(e.target.value)}
-                  className="pl-8 bg-white/10 border-white/20 text-white placeholder:text-white/40"
+                  className="pl-8 bg-slate-800 border-slate-700 text-white placeholder:text-slate-400"
                 />
               </div>
             </div>
@@ -108,7 +108,7 @@ export default function Step6Goals() {
                 type="number"
                 value={timeline} 
                 onChange={e => setTimeline(e.target.value)}
-                className="bg-white/10 border-white/20 text-white placeholder:text-white/40"
+                className="bg-slate-800 border-slate-700 text-white placeholder:text-slate-400"
                 placeholder="5"
               />
             </div>

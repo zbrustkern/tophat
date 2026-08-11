@@ -4,11 +4,12 @@ import React, { createContext, useContext, useState, ReactNode } from 'react';
 // @ts-ignore
 import { v4 as uuidv4 } from 'uuid';
 
-export type WizardAsset = { id: string; name: string; type: string; balance: number; purpose: 'Core' | 'Play Money' | 'Cash Reserve'; };
+export type WizardHolding = { id: string; ticker: string; shares: number; price: number; riskTier: 'core' | 'growth' | 'speculative' | 'cash'; };
+export type WizardAsset = { id: string; name: string; type: string; isPlaceholder: boolean; holdings: WizardHolding[]; };
 export type WizardIncome = { id: string; source: string; amount: number; expectedGrowth: number; };
 export type WizardDebt = { id: string; name: string; type: string; balance: number; rate: number; payment: number; };
 export type WizardGoal = { id: string; name: string; type: 'college' | 'house' | 'income_stream'; targetAmount?: number; timelineYears?: number; linkedAssetIds: string[]; };
-export type WizardBudget = { housing: number; living: number; discretionary: number; };
+export type WizardBudget = { housing: number; utilities: number; auto: number; food: number; insurance: number; kids: number; discretionary: number; };
 
 export interface WizardState {
   currentStep: number;
@@ -57,7 +58,7 @@ const initialState: WizardState = {
   incomes: [],
   assets: [],
   debts: [],
-  budget: { housing: 0, living: 0, discretionary: 0 },
+  budget: { housing: 0, utilities: 0, auto: 0, food: 0, insurance: 0, kids: 0, discretionary: 0 },
   goals: [],
 };
 

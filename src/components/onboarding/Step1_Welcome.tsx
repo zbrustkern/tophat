@@ -32,7 +32,7 @@ export default function Step1Welcome() {
                 type="number" 
                 value={state.age || ''} 
                 onChange={e => updateState({ age: parseInt(e.target.value) || 0 })}
-                className="bg-white/10 border-white/20 text-white placeholder:text-white/40 h-12 text-lg"
+                className="bg-slate-800 border-slate-700 text-white placeholder:text-slate-400 h-12 text-lg"
               />
             </div>
             
@@ -42,7 +42,7 @@ export default function Step1Welcome() {
                 type="number" 
                 value={state.retirementAge || ''} 
                 onChange={e => updateState({ retirementAge: parseInt(e.target.value) || 0 })}
-                className="bg-white/10 border-white/20 text-white placeholder:text-white/40 h-12 text-lg"
+                className="bg-slate-800 border-slate-700 text-white placeholder:text-slate-400 h-12 text-lg"
               />
             </div>
 
@@ -52,7 +52,7 @@ export default function Step1Welcome() {
                 value={state.riskTolerance} 
                 onValueChange={(val: any) => updateState({ riskTolerance: val })}
               >
-                <SelectTrigger className="bg-white/10 border-white/20 text-white h-12 text-lg">
+                <SelectTrigger className="bg-slate-800 border-slate-700 text-white h-12 text-lg">
                   <SelectValue placeholder="Select risk tolerance" />
                 </SelectTrigger>
                 <SelectContent className="bg-slate-800 border-slate-700 text-white">

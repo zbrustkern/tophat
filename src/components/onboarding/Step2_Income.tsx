@@ -59,7 +59,7 @@ export default function Step2Income() {
               <Input 
                 value={source} 
                 onChange={e => setSource(e.target.value)}
-                className="bg-white/10 border-white/20 text-white placeholder:text-white/40"
+                className="bg-slate-800 border-slate-700 text-white placeholder:text-slate-400"
               />
             </div>
             <div className="md:col-span-4 space-y-2">
@@ -70,7 +70,7 @@ export default function Step2Income() {
                   type="number"
                   value={amount} 
                   onChange={e => setAmount(e.target.value)}
-                  className="pl-8 bg-white/10 border-white/20 text-white placeholder:text-white/40"
+                  className="pl-8 bg-slate-800 border-slate-700 text-white placeholder:text-slate-400"
                   placeholder="100000"
                 />
               </div>
@@ -82,7 +82,7 @@ export default function Step2Income() {
                   type="number"
                   value={growth} 
                   onChange={e => setGrowth(e.target.value)}
-                  className="pr-8 bg-white/10 border-white/20 text-white placeholder:text-white/40"
+                  className="pr-8 bg-slate-800 border-slate-700 text-white placeholder:text-slate-400"
                 />
                 <span className="absolute right-3 top-1/2 -translate-y-1/2 text-white/50">%</span>
               </div>

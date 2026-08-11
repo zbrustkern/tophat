@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { ArrowLeft, ArrowRight } from 'lucide-react';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
-import { Card, CardContent } from '@/components/ui/card';
+import { Card } from '@/components/ui/card';
 
 export default function Step5Budget() {
   const { state, updateState, nextStep, prevStep } = useWizard();
@@ -17,57 +17,117 @@ export default function Step5Budget() {
     });
   };
 
-  const total = state.budget.housing + state.budget.living + state.budget.discretionary;
+  const baseHousing = state.debts.filter(d => d.type === 'Mortgage').reduce((sum, d) => sum + d.payment, 0);
+  const baseAuto = state.debts.filter(d => d.type === 'Auto Loan').reduce((sum, d) => sum + d.payment, 0);
+
+  const total = 
+    baseHousing + state.budget.housing + 
+    state.budget.utilities + 
+    baseAuto + state.budget.auto + 
+    state.budget.food + 
+    state.budget.insurance + 
+    state.budget.kids + 
+    state.budget.discretionary;
 
   return (
     <div className="space-y-8 animate-in fade-in slide-in-from-right-4 duration-500">
       <div className="text-center space-y-3">
         <h2 className="text-3xl sm:text-4xl font-bold tracking-tight text-white">Monthly Budget</h2>
-        <p className="text-indigo-200/80">Give us a rough estimate of your monthly spending. You can refine this line-by-line later.</p>
+        <p className="text-indigo-200/80">Give us a rough estimate of your monthly spending across these categories. Mortgage and auto loan payments have been pre-filled from your debts.</p>
       </div>
 
       <Card className="bg-white/5 border-white/10 backdrop-blur-md shadow-xl overflow-hidden">
         <div className="p-6 md:p-10 space-y-8">
           
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            
             <div className="space-y-4">
-              <div className="h-12 w-12 rounded-2xl bg-sky-500/20 text-sky-400 flex items-center justify-center mx-auto mb-4">
-                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path></svg>
-              </div>
-              <Label className="text-indigo-100 text-center block text-lg">Housing & Utilities</Label>
+              <Label className="text-indigo-100 text-center block text-lg">Housing (Extra)</Label>
+              {baseHousing > 0 && <div className="text-center text-sm text-indigo-300">Base Mortgage: ${baseHousing}/mo</div>}
               <div className="relative">
                 <span className="absolute left-4 top-1/2 -translate-y-1/2 text-white/50 text-xl">$</span>
                 <Input 
                   type="number"
                   value={state.budget.housing || ''} 
                   onChange={e => handleUpdate('housing', e.target.value)}
-                  className="pl-10 bg-white/10 border-white/20 text-white placeholder:text-white/40 h-14 text-xl text-center"
-                  placeholder="2500"
+                  className="pl-10 bg-slate-800 border-slate-700 text-white placeholder:text-slate-400 h-14 text-xl text-center"
+                  placeholder="HOA, Maintenance"
                 />
               </div>
             </div>
 
             <div className="space-y-4">
-              <div className="h-12 w-12 rounded-2xl bg-emerald-500/20 text-emerald-400 flex items-center justify-center mx-auto mb-4">
-                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"></path></svg>
-              </div>
-              <Label className="text-indigo-100 text-center block text-lg">Living (Food, Auto)</Label>
+              <Label className="text-indigo-100 text-center block text-lg">Utilities</Label>
               <div className="relative">
                 <span className="absolute left-4 top-1/2 -translate-y-1/2 text-white/50 text-xl">$</span>
                 <Input 
                   type="number"
-                  value={state.budget.living || ''} 
-                  onChange={e => handleUpdate('living', e.target.value)}
-                  className="pl-10 bg-white/10 border-white/20 text-white placeholder:text-white/40 h-14 text-xl text-center"
-                  placeholder="1500"
+                  value={state.budget.utilities || ''} 
+                  onChange={e => handleUpdate('utilities', e.target.value)}
+                  className="pl-10 bg-slate-800 border-slate-700 text-white placeholder:text-slate-400 h-14 text-xl text-center"
+                  placeholder="Electric, Water, Internet"
                 />
               </div>
             </div>
 
             <div className="space-y-4">
-              <div className="h-12 w-12 rounded-2xl bg-rose-500/20 text-rose-400 flex items-center justify-center mx-auto mb-4">
-                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M14.828 14.828a4 4 0 01-5.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+              <Label className="text-indigo-100 text-center block text-lg">Auto (Extra)</Label>
+              {baseAuto > 0 && <div className="text-center text-sm text-indigo-300">Base Loan: ${baseAuto}/mo</div>}
+              <div className="relative">
+                <span className="absolute left-4 top-1/2 -translate-y-1/2 text-white/50 text-xl">$</span>
+                <Input 
+                  type="number"
+                  value={state.budget.auto || ''} 
+                  onChange={e => handleUpdate('auto', e.target.value)}
+                  className="pl-10 bg-slate-800 border-slate-700 text-white placeholder:text-slate-400 h-14 text-xl text-center"
+                  placeholder="Gas, Tolls, Maint"
+                />
               </div>
+            </div>
+
+            <div className="space-y-4">
+              <Label className="text-indigo-100 text-center block text-lg">Food & Dining</Label>
+              <div className="relative">
+                <span className="absolute left-4 top-1/2 -translate-y-1/2 text-white/50 text-xl">$</span>
+                <Input 
+                  type="number"
+                  value={state.budget.food || ''} 
+                  onChange={e => handleUpdate('food', e.target.value)}
+                  className="pl-10 bg-slate-800 border-slate-700 text-white placeholder:text-slate-400 h-14 text-xl text-center"
+                  placeholder="Groceries, Restaurants"
+                />
+              </div>
+            </div>
+
+            <div className="space-y-4">
+              <Label className="text-indigo-100 text-center block text-lg">Insurance & Healthcare</Label>
+              <div className="relative">
+                <span className="absolute left-4 top-1/2 -translate-y-1/2 text-white/50 text-xl">$</span>
+                <Input 
+                  type="number"
+                  value={state.budget.insurance || ''} 
+                  onChange={e => handleUpdate('insurance', e.target.value)}
+                  className="pl-10 bg-slate-800 border-slate-700 text-white placeholder:text-slate-400 h-14 text-xl text-center"
+                  placeholder="Health, Life, Home"
+                />
+              </div>
+            </div>
+
+            <div className="space-y-4">
+              <Label className="text-indigo-100 text-center block text-lg">Kids & Pets (Other)</Label>
+              <div className="relative">
+                <span className="absolute left-4 top-1/2 -translate-y-1/2 text-white/50 text-xl">$</span>
+                <Input 
+                  type="number"
+                  value={state.budget.kids || ''} 
+                  onChange={e => handleUpdate('kids', e.target.value)}
+                  className="pl-10 bg-slate-800 border-slate-700 text-white placeholder:text-slate-400 h-14 text-xl text-center"
+                  placeholder="Daycare, Vet, Supplies"
+                />
+              </div>
+            </div>
+
+            <div className="space-y-4 lg:col-span-3 max-w-sm mx-auto w-full">
               <Label className="text-indigo-100 text-center block text-lg">Discretionary (Fun)</Label>
               <div className="relative">
                 <span className="absolute left-4 top-1/2 -translate-y-1/2 text-white/50 text-xl">$</span>
@@ -75,11 +135,12 @@ export default function Step5Budget() {
                   type="number"
                   value={state.budget.discretionary || ''} 
                   onChange={e => handleUpdate('discretionary', e.target.value)}
-                  className="pl-10 bg-white/10 border-white/20 text-white placeholder:text-white/40 h-14 text-xl text-center"
-                  placeholder="800"
+                  className="pl-10 bg-slate-800 border-slate-700 text-white placeholder:text-slate-400 h-14 text-xl text-center"
+                  placeholder="Shopping, Travel, Hobbies"
                 />
               </div>
             </div>
+
           </div>
           
           <div className="pt-8 text-center border-t border-white/10">
