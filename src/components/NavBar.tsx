@@ -84,7 +84,7 @@ export function NavBar() {
               alt="Tophat logo"
               className="mb-2 transition-transform group-hover:scale-105"
             />
-            <span className="text-xl font-semibold text-orange-300 transition-colors group-hover:text-orange-400">
+            <span className="text-xl font-display font-semibold uppercase tracking-widest text-deco-gold transition-colors group-hover:text-deco-brass mt-4">
               Tophat Financial
             </span>
           </Link>
@@ -99,8 +99,8 @@ export function NavBar() {
                 href={route.href}
                 className={`flex h-10 items-center gap-3 rounded-md px-3 text-sm font-medium transition-colors
                   ${isActive 
-                    ? 'bg-sky-100 text-blue-600' 
-                    : 'hover:bg-sky-100 hover:text-blue-600'
+                    ? 'bg-deco-gold/10 text-deco-gold border-r-2 border-deco-gold' 
+                    : 'text-muted-foreground hover:bg-deco-gold/5 hover:text-deco-gold'
                   }`}
               >
                 {route.icon}
@@ -125,7 +125,7 @@ export function NavBar() {
             >
               <Menu className="h-6 w-6" />
             </button>
-            <Link href={isHolistic ? "/dashboard" : "/"} className="text-lg font-semibold text-orange-300 hover:text-orange-400">
+            <Link href={isHolistic ? "/dashboard" : "/"} className="text-lg font-display font-semibold uppercase tracking-widest text-deco-gold hover:text-deco-brass">
               Tophat
             </Link>
           </div>
@@ -145,8 +145,8 @@ export function NavBar() {
                     onClick={() => setIsMobileMenuOpen(false)}
                     className={`flex items-center gap-3 px-4 py-3 rounded-md text-sm font-medium transition-colors
                       ${isActive 
-                        ? 'bg-sky-100 text-blue-600' 
-                        : 'hover:bg-sky-100 hover:text-blue-600'
+                        ? 'bg-deco-gold/10 text-deco-gold border-l-2 border-deco-gold' 
+                        : 'text-muted-foreground hover:bg-deco-gold/5 hover:text-deco-gold'
                       }`}
                   >
                     {route.icon}

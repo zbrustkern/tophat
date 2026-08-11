@@ -59,20 +59,21 @@ export default function Home() {
 
   // Render the main dashboard layout
   return (
-      <main data-version="1.1.3">
+      <main className="bg-deco-pattern min-h-screen pb-12" data-version="1.1.3">
         {/* Header Section */}
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
-          <h1 className="text-2xl font-bold">Your Financial Plans</h1>
+          <h1 className="text-2xl font-display uppercase tracking-widest text-deco-gold">Your Financial Plans</h1>
           <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
             <Button 
               onClick={() => router.push('/onboarding')}
-              className="w-full sm:w-auto justify-center bg-sky-600 hover:bg-sky-700 text-white"
+              className="w-full sm:w-auto justify-center"
             >
               Start Onboarding Wizard
             </Button>
             <Button 
               onClick={() => router.push('/dashboard')}
-              className="w-full sm:w-auto justify-center bg-indigo-600 hover:bg-indigo-700 text-white"
+              variant="outline"
+              className="w-full sm:w-auto justify-center"
             >
               Master Dashboard
             </Button>

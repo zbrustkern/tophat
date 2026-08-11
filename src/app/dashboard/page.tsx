@@ -24,7 +24,7 @@ import {
 import { ArrowRight, TrendingUp, DollarSign, PieChart as PieIcon, Settings as SettingsIcon } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
-const COLORS = ['#0ea5e9', '#8b5cf6', '#10b981', '#f59e0b', '#ef4444'];
+const COLORS = ['#D4AF37', '#C5A059', '#F9E596', '#7D6A33', '#B89745'];
 
 const formatCurrency = (value: number) => {
   if (value >= 1000000) return `$${(value / 1000000).toFixed(1)}M`;
@@ -92,27 +92,27 @@ export default function DashboardPage() {
   const bottomOfExpenses = grossM - taxesM - expensesM;
 
   const cashFlowData: any[] = [
-    { name: 'Income', value: [0, grossM], fill: '#10b981' },
-    { name: 'Taxes', value: [grossM - taxesM, grossM], fill: '#ef4444' },
-    { name: 'Expenses', value: [bottomOfExpenses, grossM - taxesM], fill: '#f59e0b' },
-    { name: 'Savings', value: [Math.max(0, bottomOfExpenses - savingsM), bottomOfExpenses], fill: '#0ea5e9' }
+    { name: 'Income', value: [0, grossM], fill: '#D4AF37' },
+    { name: 'Taxes', value: [grossM - taxesM, grossM], fill: '#7D6A33' },
+    { name: 'Expenses', value: [bottomOfExpenses, grossM - taxesM], fill: '#C5A059' },
+    { name: 'Savings', value: [Math.max(0, bottomOfExpenses - savingsM), bottomOfExpenses], fill: '#F9E596' }
   ];
 
   if (surplusM > 0) {
-    cashFlowData.push({ name: 'Surplus', value: [0, surplusM], fill: '#8b5cf6' });
+    cashFlowData.push({ name: 'Surplus', value: [0, surplusM], fill: '#B89745' });
   }
 
   return (
-    <main className="max-w-7xl mx-auto space-y-6">
+    <main className="max-w-7xl mx-auto space-y-6 bg-deco-pattern min-h-screen">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight text-slate-900">Master Dashboard</h1>
-          <p className="text-slate-500 mt-1">Your complete financial picture, aggregated from your active plans.</p>
+          <h1 className="text-3xl font-display uppercase tracking-widest text-deco-gold">Master Dashboard</h1>
+          <p className="text-muted-foreground mt-1">Your complete financial picture, aggregated from your active plans.</p>
         </div>
         
         {/* Scenario Tester UI */}
-        <div className="flex items-center gap-3 bg-white px-4 py-2 rounded-lg border shadow-sm">
-          <span className="text-sm font-semibold text-slate-600 whitespace-nowrap">Active Scenario:</span>
+        <div className="flex items-center gap-3 bg-card px-4 py-2 rounded-sm border border-white/10 shadow-sm backdrop-blur-md">
+          <span className="text-sm font-semibold text-muted-foreground whitespace-nowrap">Active Scenario:</span>
           <Select 
             value={settings?.activePlans?.incomePlanIds?.[0] || ''} 
             onValueChange={handleScenarioChange}
@@ -134,26 +134,26 @@ export default function DashboardPage() {
 
       {/* KPI Row */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <Card onClick={() => router.push('/tactical-allocation')} className="bg-gradient-to-br from-sky-50 to-white border-sky-100 shadow-sm cursor-pointer hover:shadow-md transition-all">
+        <Card onClick={() => router.push('/tactical-allocation')} className="bg-card hover:bg-white/5 border-deco-gold/20 cursor-pointer transition-all">
           <CardContent className="p-6 flex items-center gap-4">
-            <div className="p-3 bg-sky-100 text-sky-600 rounded-lg">
+            <div className="p-3 bg-deco-gold/10 text-deco-gold rounded-sm border border-deco-gold/30">
               <DollarSign className="h-6 w-6" />
             </div>
             <div>
-              <p className="text-sm font-medium text-slate-500">Total Net Worth</p>
-              <h2 className="text-3xl font-bold text-slate-800">${Math.round(totalAssets).toLocaleString()}</h2>
+              <p className="text-sm font-display uppercase tracking-widest text-muted-foreground">Total Net Worth</p>
+              <h2 className="text-3xl font-bold text-foreground">${Math.round(totalAssets).toLocaleString()}</h2>
             </div>
           </CardContent>
         </Card>
         
-        <Card onClick={() => router.push('/budget')} className="bg-gradient-to-br from-emerald-50 to-white border-emerald-100 shadow-sm cursor-pointer hover:shadow-md transition-all">
+        <Card onClick={() => router.push('/budget')} className="bg-card hover:bg-white/5 border-deco-gold/20 cursor-pointer transition-all">
           <CardContent className="p-6 flex items-center gap-4">
-            <div className="p-3 bg-emerald-100 text-emerald-600 rounded-lg">
+            <div className="p-3 bg-deco-gold/10 text-deco-gold rounded-sm border border-deco-gold/30">
               <TrendingUp className="h-6 w-6" />
             </div>
             <div>
-              <p className="text-sm font-medium text-slate-500">Annual Savings Rate</p>
-              <h2 className="text-3xl font-bold text-slate-800">
+              <p className="text-sm font-display uppercase tracking-widest text-muted-foreground">Annual Savings Rate</p>
+              <h2 className="text-3xl font-bold text-foreground">
                 {waterfall.grossIncome > 0 
                   ? Math.round(((waterfall.preTaxSavings + waterfall.postTaxSavings) / waterfall.grossIncome) * 100) 
                   : 0}%
@@ -162,14 +162,14 @@ export default function DashboardPage() {
           </CardContent>
         </Card>
 
-        <Card onClick={() => router.push('/tactical-allocation')} className="bg-gradient-to-br from-indigo-50 to-white border-indigo-100 shadow-sm cursor-pointer hover:shadow-md transition-all">
+        <Card onClick={() => router.push('/tactical-allocation')} className="bg-card hover:bg-white/5 border-deco-gold/20 cursor-pointer transition-all">
           <CardContent className="p-6 flex items-center gap-4">
-            <div className="p-3 bg-indigo-100 text-indigo-600 rounded-lg">
+            <div className="p-3 bg-deco-gold/10 text-deco-gold rounded-sm border border-deco-gold/30">
               <PieIcon className="h-6 w-6" />
             </div>
             <div>
-              <p className="text-sm font-medium text-slate-500">Annual Net Cash Flow</p>
-              <h2 className="text-3xl font-bold text-slate-800">${Math.round(waterfall.netCashFlow).toLocaleString()}</h2>
+              <p className="text-sm font-display uppercase tracking-widest text-muted-foreground">Annual Net Cash Flow</p>
+              <h2 className="text-3xl font-bold text-foreground">${Math.round(waterfall.netCashFlow).toLocaleString()}</h2>
             </div>
           </CardContent>
         </Card>
@@ -190,25 +190,25 @@ export default function DashboardPage() {
                 <AreaChart data={trajectory} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
                   <defs>
                     <linearGradient id="colorSav" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="#0ea5e9" stopOpacity={0.8}/>
-                      <stop offset="95%" stopColor="#0ea5e9" stopOpacity={0.1}/>
+                      <stop offset="5%" stopColor="#D4AF37" stopOpacity={0.8}/>
+                      <stop offset="95%" stopColor="#D4AF37" stopOpacity={0.1}/>
                     </linearGradient>
                     <linearGradient id="colorCol" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="#8b5cf6" stopOpacity={0.8}/>
-                      <stop offset="95%" stopColor="#8b5cf6" stopOpacity={0.1}/>
+                      <stop offset="5%" stopColor="#F9E596" stopOpacity={0.8}/>
+                      <stop offset="95%" stopColor="#F9E596" stopOpacity={0.1}/>
                     </linearGradient>
                   </defs>
-                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" />
-                  <XAxis dataKey="age" tickFormatter={(val) => `Age ${val}`} stroke="#64748b" fontSize={12} />
-                  <YAxis tickFormatter={formatCurrency} stroke="#64748b" fontSize={12} />
+                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#333" />
+                  <XAxis dataKey="age" tickFormatter={(val) => `Age ${val}`} stroke="#888" fontSize={12} />
+                  <YAxis tickFormatter={formatCurrency} stroke="#888" fontSize={12} />
                   <Tooltip 
                     formatter={(value: number) => `$${Math.round(value).toLocaleString()}`}
                     labelFormatter={(label) => `Age ${label}`}
-                    contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
+                    contentStyle={{ borderRadius: '0.125rem', border: '1px solid #D4AF37', backgroundColor: '#0A0A0A', color: '#fff' }}
                   />
                   <Legend />
-                  <Area type="monotone" dataKey="savingsBalance" name="Retirement" stackId="1" stroke="#0ea5e9" fill="url(#colorSav)" />
-                  <Area type="monotone" dataKey="collegeBalance" name="College" stackId="1" stroke="#8b5cf6" fill="url(#colorCol)" />
+                  <Area type="monotone" dataKey="savingsBalance" name="Retirement" stackId="1" stroke="#D4AF37" fill="url(#colorSav)" />
+                  <Area type="monotone" dataKey="collegeBalance" name="College" stackId="1" stroke="#F9E596" fill="url(#colorCol)" />
                 </AreaChart>
               </ResponsiveContainer>
             </div>
