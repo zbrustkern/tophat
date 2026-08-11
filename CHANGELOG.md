@@ -1,3 +1,10 @@
+# [1.13.0](https://github.com/zbrustkern/tophat/compare/v1.12.0...v1.13.0) (2026-08-11)
+
+
+### Features
+
+* **v2.0:** implement dashboard click-through cues, float maximization engine, and v2.0 release prep ([6c8dd44](https://github.com/zbrustkern/tophat/commit/6c8dd44fc6a37cc8eb7fc0ad7438297f8bba01b6))
+
 # [1.12.0](https://github.com/zbrustkern/tophat/compare/v1.11.0...v1.12.0) (2026-08-11)
 
 
