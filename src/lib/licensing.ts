@@ -23,6 +23,23 @@ const PAID_FEATURES: FeatureKey[] = [
   'demo_mode'
 ];
 
+export const ADMIN_EMAILS: string[] = (
+  process.env.NEXT_PUBLIC_ADMIN_EMAILS || ''
+).split(',').map(e => e.trim().toLowerCase()).filter(Boolean);
+
+export function getUserRole(userEmail?: string | null, customRoleOverride?: UserRole | null): UserRole {
+  if (customRoleOverride) return customRoleOverride;
+  if (!userEmail) return 'guest';
+  
+  const normalizedEmail = userEmail.toLowerCase();
+  if (ADMIN_EMAILS.length > 0 && ADMIN_EMAILS.includes(normalizedEmail)) {
+    return 'admin';
+  }
+  
+  // Default logged-in user role
+  return 'paid';
+}
+
 export function hasFeatureAccess(role: UserRole = 'free', feature: FeatureKey): boolean {
   if (role === 'admin') return true;
   if (role === 'paid') return PAID_FEATURES.includes(feature);
