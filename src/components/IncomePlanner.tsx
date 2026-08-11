@@ -218,25 +218,25 @@ export default function IncomePlanner({
   if (error) return <div>Error: {error}</div>;
 
   return (
-    <main className="flex flex-col">
+    <main className="flex flex-col space-y-6">
       <PlanSelector planType="income" currentPlanId={planId || null} basePath="/income" />
       <div className="m-1">
-        <Card className="bg-white shadow-lg hover:shadow-xl transition-all duration-200 border-none">
-          <CardHeader className="space-y-1 pb-4">
-            <CardTitle className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-blue-400 bg-clip-text text-transparent">
+        <Card className="bg-card/60 backdrop-blur-md border border-deco-gold/20 shadow-2xl rounded-sm">
+          <CardHeader className="space-y-1 pb-4 border-b border-white/10">
+            <CardTitle className="text-2xl font-display font-semibold uppercase tracking-widest text-deco-gold">
               Income Planner
             </CardTitle>
-            <CardDescription className="text-gray-500 font-medium">
+            <CardDescription className="text-muted-foreground font-light text-sm">
               How are you preparing currently?
             </CardDescription>
           </CardHeader>
-          <CardContent className="bg-gray-50/50">
+          <CardContent className="pt-6 space-y-6">
             <PlanNameField value={plan.planName} onChange={handleChange} />
             
-            <div className="mb-6 p-4 bg-sky-50 rounded-lg border border-sky-100 shadow-sm flex items-center justify-between">
+            <div className="mb-6 p-4 bg-slate-900/80 rounded-sm border border-deco-gold/30 shadow-sm flex items-center justify-between">
               <div>
-                <Label className="text-base font-semibold text-sky-900">Use Global Settings</Label>
-                <p className="text-sm text-sky-700">Sync Tax Rate, Return Rate, and Withdrawal Rate with your global defaults.</p>
+                <Label className="text-sm font-display uppercase tracking-widest text-deco-gold">Use Global Settings</Label>
+                <p className="text-xs text-muted-foreground mt-0.5">Sync Tax Rate, Return Rate, and Withdrawal Rate with your global defaults.</p>
               </div>
               <Switch 
                 checked={plan.details.useGlobalSettings !== false} 

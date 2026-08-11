@@ -13,19 +13,7 @@ export default function Step7Processing() {
     let mounted = true;
 
     const run = async () => {
-      // Fake delays for the "AI illusion"
-      await new Promise(r => setTimeout(r, 1500));
-      if (!mounted) return;
-      setStatus('Generating interconnected plans...');
-      
-      await new Promise(r => setTimeout(r, 1500));
-      if (!mounted) return;
-      setStatus('Optimizing tax implications...');
-      
-      await new Promise(r => setTimeout(r, 1000));
-      if (!mounted) return;
-      setStatus('Finalizing Master Dashboard...');
-      
+      setStatus('Building your Master Plan...');
       try {
         await generateAndSave();
         if (mounted) {

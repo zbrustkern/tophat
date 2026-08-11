@@ -15,47 +15,47 @@ export default function Step1Welcome() {
   return (
     <div className="space-y-8 animate-in fade-in duration-500">
       <div className="text-center space-y-3">
-        <h1 className="text-4xl sm:text-5xl font-bold tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-white to-white/70">
-          Welcome to TopHat
+        <h1 className="text-4xl sm:text-5xl font-display font-semibold uppercase tracking-widest text-deco-gold">
+          Welcome to Tophat
         </h1>
-        <p className="text-lg text-indigo-200/80 max-w-xl mx-auto">
+        <p className="text-base text-muted-foreground max-w-xl mx-auto font-light">
           Let&apos;s build your holistic financial plan. We&apos;ll ask a few questions about your income, assets, debts, and goals to generate a complete projection of your future wealth.
         </p>
       </div>
 
-      <Card className="bg-white/5 border-white/10 backdrop-blur-md shadow-2xl">
+      <Card className="bg-card/60 border-deco-gold/30 backdrop-blur-md shadow-2xl rounded-sm">
         <CardContent className="p-8 space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="space-y-2">
-              <Label className="text-indigo-100">Current Age</Label>
+              <Label className="text-xs uppercase font-display tracking-widest text-muted-foreground">Current Age</Label>
               <Input 
                 type="number" 
                 value={state.age || ''} 
                 onChange={e => updateState({ age: parseInt(e.target.value) || 0 })}
-                className="bg-slate-800 border-slate-700 text-white placeholder:text-slate-400 h-12 text-lg"
+                className="bg-slate-900 border-white/20 text-white placeholder:text-slate-500 h-12 text-base font-sans focus:border-deco-gold focus:ring-1 focus:ring-deco-gold"
               />
             </div>
             
             <div className="space-y-2">
-              <Label className="text-indigo-100">Retirement Age</Label>
+              <Label className="text-xs uppercase font-display tracking-widest text-muted-foreground">Retirement Age</Label>
               <Input 
                 type="number" 
                 value={state.retirementAge || ''} 
                 onChange={e => updateState({ retirementAge: parseInt(e.target.value) || 0 })}
-                className="bg-slate-800 border-slate-700 text-white placeholder:text-slate-400 h-12 text-lg"
+                className="bg-slate-900 border-white/20 text-white placeholder:text-slate-500 h-12 text-base font-sans focus:border-deco-gold focus:ring-1 focus:ring-deco-gold"
               />
             </div>
 
             <div className="space-y-2 md:col-span-2">
-              <Label className="text-indigo-100">Investment Risk Tolerance</Label>
+              <Label className="text-xs uppercase font-display tracking-widest text-muted-foreground">Investment Risk Tolerance</Label>
               <Select 
                 value={state.riskTolerance} 
                 onValueChange={(val: any) => updateState({ riskTolerance: val })}
               >
-                <SelectTrigger className="bg-slate-800 border-slate-700 text-white h-12 text-lg">
+                <SelectTrigger className="bg-slate-900 border-white/20 text-white h-12 text-base font-sans focus:border-deco-gold">
                   <SelectValue placeholder="Select risk tolerance" />
                 </SelectTrigger>
-                <SelectContent className="bg-slate-800 border-slate-700 text-white">
+                <SelectContent className="bg-slate-900 border-white/20 text-white">
                   <SelectItem value="conservative">Conservative (Focus on preservation, lower return)</SelectItem>
                   <SelectItem value="moderate">Moderate (Balanced growth and stability)</SelectItem>
                   <SelectItem value="aggressive">Aggressive (Focus on maximum growth, higher volatility)</SelectItem>
@@ -68,7 +68,7 @@ export default function Step1Welcome() {
             <Button 
               onClick={nextStep} 
               size="lg" 
-              className="bg-indigo-500 hover:bg-indigo-600 text-white px-8 text-lg rounded-full shadow-[0_0_20px_rgba(99,102,241,0.4)]"
+              className="bg-deco-gold hover:bg-deco-brass text-slate-950 font-display uppercase tracking-widest font-semibold px-8 py-6 text-sm rounded-sm shadow-lg shadow-deco-gold/20"
             >
               Let&apos;s Go <ArrowRight className="ml-2 h-5 w-5" />
             </Button>

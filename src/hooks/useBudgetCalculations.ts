@@ -11,19 +11,21 @@ export function useBudgetCalculations() {
     const { lineItems, useGlobalSettings } = plan.details;
     
     // 1. Calculate Core Budget Expenses (Monthly -> Annual)
-    const filteredLineItems = (activePayorId && activePayorId !== 'All')
-      ? lineItems.filter(item => item.payorId === activePayorId)
-      : lineItems;
-
-    let totalHouseholdMonthlyExpenses = 0;
-    lineItems.forEach((item) => {
-      totalHouseholdMonthlyExpenses += item.monthlyAmount;
-    });
+    const payorCount = Math.max(1, globalSettings?.payors?.length || 2);
 
     let filteredMonthlyExpenses = 0;
-    filteredLineItems.forEach((item) => {
-      filteredMonthlyExpenses += item.monthlyAmount;
+    lineItems.forEach((item) => {
+      if (!activePayorId || activePayorId === 'All') {
+        filteredMonthlyExpenses += item.monthlyAmount;
+      } else if (item.payorId === activePayorId) {
+        filteredMonthlyExpenses += item.monthlyAmount;
+      } else if (!item.payorId || item.payorId === 'Joint') {
+        // Joint expenses split equally among household payors
+        filteredMonthlyExpenses += (item.monthlyAmount / payorCount);
+      }
     });
+
+    let totalHouseholdMonthlyExpenses = lineItems.reduce((sum, item) => sum + item.monthlyAmount, 0);
     const annualCoreBudget = filteredMonthlyExpenses * 12;
 
     const injectedLineItems: BudgetLineItem[] = [];
@@ -207,7 +209,7 @@ export function useBudgetCalculations() {
     // 5. Calculate Float Maximization Metrics (Credit card 30-day grace period HYSA yield)
     // Non-housing expenses can typically be charged to cards and paid on statement due date (30-45 day float)
     let eligibleFloatMonthlySpend = 0;
-    filteredLineItems.forEach(item => {
+    lineItems.forEach(item => {
       const catLower = (item.category || '').toLowerCase();
       const billLower = (item.bill || '').toLowerCase();
       if (!catLower.includes('housing') && !catLower.includes('house') && !billLower.includes('mortgage') && !billLower.includes('rent')) {

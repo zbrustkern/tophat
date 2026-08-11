@@ -19,6 +19,17 @@ export interface MasterTrajectoryPoint {
   totalNetWorth: number;
 }
 
+export interface RetirementGoalAnalysis {
+  targetAnnualIncome: number;
+  requiredPortfolio: number;
+  projectedNetWorthAtRetirement: number;
+  yearsToRetirement: number;
+  retirementAge: number;
+  isAchieved: boolean;
+  monthlyAdjustmentNeeded: number;
+  statusMessage: string;
+}
+
 export interface MasterDashboardData {
   waterfall: {
     grossIncome: number;
@@ -35,6 +46,7 @@ export interface MasterDashboardData {
     value: number;
   }[];
   trajectory: MasterTrajectoryPoint[];
+  retirementGoal: RetirementGoalAnalysis;
 }
 
 export function useMasterCalculations() {
@@ -327,11 +339,52 @@ export function useMasterCalculations() {
       });
     }
 
+    // 5. Compute Retirement Goal Analysis
+    const retirementAge = settings.retirementAge || 65;
+    const currentAgeVal = settings.currentAge || 30;
+    const yearsToRetirement = Math.max(1, retirementAge - currentAgeVal);
+    const swr = settings.withdrawalRate || 0.04;
+
+    const targetAnnualIncome = waterfall.annualCoreBudget > 0 ? waterfall.annualCoreBudget : 100000;
+    const requiredPortfolio = targetAnnualIncome / swr;
+
+    const retirementPoint = trajectory.find(p => p.age === retirementAge) || trajectory[trajectory.length - 1];
+    const projectedNetWorthAtRetirement = retirementPoint ? retirementPoint.totalNetWorth : 0;
+    
+    const isAchieved = projectedNetWorthAtRetirement >= requiredPortfolio;
+    const deficit = Math.max(0, requiredPortfolio - projectedNetWorthAtRetirement);
+    
+    // Estimate additional monthly savings needed over remaining years to bridge deficit at expected return
+    const returnRate = settings.returnRate || 0.07;
+    const monthlyReturn = returnRate / 12;
+    const totalMonths = yearsToRetirement * 12;
+    const fvFactor = ((Math.pow(1 + monthlyReturn, totalMonths) - 1) / monthlyReturn) || totalMonths;
+    const monthlyAdjustmentNeeded = deficit > 0 ? Math.round(deficit / fvFactor) : 0;
+
+    let statusMessage = '';
+    if (isAchieved) {
+      statusMessage = `At current savings and return expectations, your retirement income goal is fully funded by age ${retirementAge}! Surplus cash flow can be allocated to 529 College or Tactical Growth.`;
+    } else {
+      statusMessage = `To reach your target retirement income of $${targetAnnualIncome.toLocaleString()}/yr by age ${retirementAge}, you need to save an additional $${monthlyAdjustmentNeeded.toLocaleString()}/mo.`;
+    }
+
+    const retirementGoal: RetirementGoalAnalysis = {
+      targetAnnualIncome,
+      requiredPortfolio,
+      projectedNetWorthAtRetirement,
+      yearsToRetirement,
+      retirementAge,
+      isAchieved,
+      monthlyAdjustmentNeeded,
+      statusMessage
+    };
+
     return {
       waterfall,
       totalAssets,
       allocations,
-      trajectory
+      trajectory,
+      retirementGoal
     };
   };
 
