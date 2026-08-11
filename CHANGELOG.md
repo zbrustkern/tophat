@@ -1,3 +1,10 @@
+# [1.11.0](https://github.com/zbrustkern/tophat/compare/v1.10.0...v1.11.0) (2026-08-11)
+
+
+### Features
+
+* refine onboarding UX, asset allocations, and budget categories ([43d6d9b](https://github.com/zbrustkern/tophat/commit/43d6d9b0cf2f8132fe7cc4b7ed3a12622a0face9))
+
 # [1.10.0](https://github.com/zbrustkern/tophat/compare/v1.9.0...v1.10.0) (2026-08-08)
 
 
