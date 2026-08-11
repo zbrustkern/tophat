@@ -9,6 +9,7 @@ interface FormFieldProps {
   type?: string;
   placeholder?: string;
   isPercentage?: boolean;
+  disabled?: boolean;
 }
 
 export function FormField({ 
@@ -18,7 +19,8 @@ export function FormField({
   onChange, 
   type = "number",
   placeholder,
-  isPercentage 
+  isPercentage,
+  disabled
 }: FormFieldProps) {
   // For percentage fields, display as whole numbers (e.g., 40 instead of 0.4)
   const displayValue = isPercentage && typeof value === 'number' ? value * 100 : value;
@@ -34,6 +36,7 @@ export function FormField({
         value={displayValue}
         onChange={onChange}
         placeholder={placeholder}
+        disabled={disabled}
         className="w-full"
       />
     </div>

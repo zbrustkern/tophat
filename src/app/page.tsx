@@ -8,6 +8,8 @@ import { PlusCircle } from 'lucide-react';
 import PlanPreview from '@/components/PlanPreview';
 import { useRouter } from 'next/navigation';
 import { Plan, PlanType } from '@/types/chart';
+import { usePlanManagement } from '@/hooks/usePlanManagement';
+import { usePlans } from '@/contexts/PlansContext';
 import {
   Card,
   CardContent,
@@ -25,7 +27,8 @@ interface APIplan {
   id: string;
   planName: string;
   planType: PlanType;
-  formData: any;
+  formData?: any;
+  details?: any;
   lastUpdated: string | FirebaseTimestamp | null;
 }
 
@@ -37,77 +40,43 @@ interface APIResponse {
 export default function Home() {
   const { user } = useAuth();
   const router = useRouter();
-  const [plans, setPlans] = useState<Plan[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const { plans, loading, error } = usePlans();
+  const { deletePlan } = usePlanManagement<Plan>();
 
-  const parseTimestamp = (timestamp: string | FirebaseTimestamp | null): Date => {
+  useEffect(() => {
+    if (!loading && plans.length === 0) {
+      router.push('/onboarding');
+    }
+  }, [plans, loading, router]);
+
+  const handleDelete = async (planId: string) => {
     try {
-      if (!timestamp) {
-        console.log('No timestamp provided, using current date');
-        return new Date();
-      }
-
-      if (typeof timestamp === 'string') {
-        console.log('Parsing string timestamp:', timestamp);
-        return new Date(timestamp);
-      }
-
-      if ('seconds' in timestamp) {
-        console.log('Converting Firebase timestamp:', timestamp);
-        return new Date(timestamp.seconds * 1000);
-      }
-
-      console.log('Unknown timestamp format:', timestamp);
-      return new Date();
+      await deletePlan(planId);
     } catch (err) {
-      console.error('Error parsing timestamp:', err);
-      return new Date();
+      console.error('Failed to delete plan:', err);
     }
   };
 
-  useEffect(() => {
-    const loadPlans = async () => {
-      if (!user) {
-        setPlans([]);
-        setLoading(false);
-        return;
-      }
-
-      try {
-        const functions = getFunctions();
-        const listPlans = httpsCallable(functions, 'list_plans');
-        const result = await listPlans();
-        const data = result.data as APIResponse;
-        
-        if (data.success) {
-          const transformedPlans = data.plans.map(apiPlan => ({
-            id: apiPlan.id,
-            planName: apiPlan.planName,
-            planType: apiPlan.planType,
-            lastUpdated: parseTimestamp(apiPlan.lastUpdated),
-            details: apiPlan.formData
-          } as Plan));
-
-          setPlans(transformedPlans);
-        }
-      } catch (err) {
-        console.error('Error loading plans:', err);
-        setError('Failed to load plans. Please try again later.');
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    loadPlans();
-  }, [user]);
-
+  // Render the main dashboard layout
   return (
-      <main>
+      <main className="bg-deco-pattern min-h-screen pb-12" data-version="1.1.3">
         {/* Header Section */}
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
-          <h1 className="text-2xl font-bold">Your Financial Plans</h1>
+          <h1 className="text-2xl font-display uppercase tracking-widest text-deco-gold">Your Financial Plans</h1>
           <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
+            <Button 
+              onClick={() => router.push('/onboarding')}
+              className="w-full sm:w-auto justify-center"
+            >
+              Start Onboarding Wizard
+            </Button>
+            <Button 
+              onClick={() => router.push('/dashboard')}
+              variant="outline"
+              className="w-full sm:w-auto justify-center"
+            >
+              Master Dashboard
+            </Button>
             <Button 
               onClick={() => router.push('/income')}
               className="w-full sm:w-auto justify-center"
@@ -128,6 +97,21 @@ export default function Home() {
             >
               <PlusCircle className="mr-2 h-4 w-4" />
               New College Plan
+            </Button>
+            <Button 
+              onClick={() => router.push('/tactical-allocation')}
+              className="w-full sm:w-auto justify-center"
+            >
+              <PlusCircle className="mr-2 h-4 w-4" />
+              New Portfolio
+            </Button>
+            <Button 
+              onClick={() => router.push('/budget')}
+              className="w-full sm:w-auto justify-center"
+              variant="secondary"
+            >
+              <PlusCircle className="mr-2 h-4 w-4" />
+              Budget Planner
             </Button>
           </div>
         </div>
@@ -159,11 +143,10 @@ export default function Home() {
             </CardHeader>
           </Card>
         ) : (
-          // Responsive grid with proper spacing
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             {plans.map((plan) => (
               <div key={plan.id} className="h-full">
-                <PlanPreview plan={plan} />
+                <PlanPreview plan={plan} onDelete={handleDelete} />
               </div>
             ))}
           </div>

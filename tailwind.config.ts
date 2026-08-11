@@ -21,7 +21,9 @@ const config = {
     },
     extend: {
       fontFamily: {
-        sans: ["var(--font-sans)", ...fontFamily.sans],
+        sans: ["var(--font-inter)", ...fontFamily.sans],
+        display: ["var(--font-outfit)", ...fontFamily.sans],
+        heading: ["var(--font-outfit)", ...fontFamily.sans],
       },
       colors: {
         border: "hsl(var(--border))",
@@ -57,6 +59,14 @@ const config = {
           DEFAULT: "hsl(var(--card))",
           foreground: "hsl(var(--card-foreground))",
         },
+        deco: {
+          gold: "#D4AF37",
+          brass: "#C5A059",
+          onyx: "#0A0A0A",
+        }
+      },
+      backgroundImage: {
+        'deco-pattern': "linear-gradient(45deg, rgba(212,175,55,0.03) 25%, transparent 25%, transparent 75%, rgba(212,175,55,0.03) 75%, rgba(212,175,55,0.03)), linear-gradient(45deg, rgba(212,175,55,0.03) 25%, transparent 25%, transparent 75%, rgba(212,175,55,0.03) 75%, rgba(212,175,55,0.03))",
       },
       borderRadius: {
         lg: "var(--radius)",

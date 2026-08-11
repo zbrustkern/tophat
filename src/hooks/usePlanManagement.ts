@@ -1,37 +1,78 @@
 import { useState, useCallback } from 'react';
+import { db } from '@/lib/firebase/clientApp';
+import { doc, setDoc, deleteDoc, collection } from 'firebase/firestore';
 import { getFunctions, httpsCallable } from 'firebase/functions';
+import { useAuth } from '@/contexts/AuthContext';
 import { Plan } from '@/types/chart';
 
 export function usePlanManagement<T extends Plan>() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const { user } = useAuth();
 
   const savePlan = useCallback(async (plan: T): Promise<T> => {
+    if (!user || !db) throw new Error("Must be logged in to save plans");
     setLoading(true);
     setError(null);
 
     try {
-      const functions = getFunctions();
-      const saveFn = plan.id === 'new' ? 'create_plan' : 'update_plan';
-      const saveFunction = httpsCallable(functions, saveFn);
+      const isNew = plan.id === 'new';
+      const docRef = isNew ? doc(collection(db, 'users', user.uid, 'plans')) : doc(db, 'users', user.uid, 'plans', plan.id);
       
-      const result = await saveFunction({
-        planId: plan.id === 'new' ? undefined : plan.id,
+      const planData = {
         planName: plan.planName,
         planType: plan.planType,
-        details: plan.details
-      });
+        details: plan.details,
+        userId: user.uid,
+        lastUpdated: new Date()
+      };
 
-      const data = result.data as { success: boolean; planId?: string };
-      if (!data.success) throw new Error('Failed to save plan');
+      await setDoc(docRef, planData, { merge: true });
       
       return {
         ...plan,
-        id: data.planId || plan.id,
-        lastUpdated: new Date()
+        id: docRef.id,
+        lastUpdated: planData.lastUpdated
       } as T;
     } catch (err) {
+      console.error("Save Error: ", err);
       const message = err instanceof Error ? err.message : 'Failed to save plan';
+      setError(message);
+      throw err;
+    } finally {
+      setLoading(false);
+    }
+  }, [user]);
+
+  const deletePlan = useCallback(async (planId: string): Promise<void> => {
+    if (!user || !db) throw new Error("Must be logged in to delete plans");
+    setLoading(true);
+    setError(null);
+
+    try {
+      await deleteDoc(doc(db, 'users', user.uid, 'plans', planId));
+    } catch (err) {
+      console.error("Delete Error: ", err);
+      const message = err instanceof Error ? err.message : 'Failed to delete plan';
+      setError(message);
+      throw err;
+    } finally {
+      setLoading(false);
+    }
+  }, [user]);
+
+  const takeSnapshot = useCallback(async (planId: string): Promise<void> => {
+    // We keep snapshotting in a cloud function if it handles complex copying logic
+    setLoading(true);
+    setError(null);
+    try {
+      const functions = getFunctions();
+      const snapshotFunction = httpsCallable(functions, 'take_snapshot');
+      const result = await snapshotFunction({ planId });
+      const data = result.data as { success: boolean };
+      if (!data.success) throw new Error('Failed to take snapshot');
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Failed to take snapshot';
       setError(message);
       throw err;
     } finally {
@@ -42,6 +83,8 @@ export function usePlanManagement<T extends Plan>() {
   return {
     loading,
     error,
-    savePlan
+    savePlan,
+    deletePlan,
+    takeSnapshot
   };
 }

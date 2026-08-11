@@ -1,10 +1,12 @@
-import { Inter } from "next/font/google"
+import { Inter, Outfit } from "next/font/google"
 import { cn } from "@/lib/utils"
 import { Providers } from "@/components/providers"
 import { NavBar } from "@/components/NavBar"
+import { Toaster } from "@/components/ui/toaster"
 import "./globals.css"
 
-const inter = Inter({ subsets: ["latin"] })
+const inter = Inter({ subsets: ["latin"], variable: '--font-inter' })
+const outfit = Outfit({ subsets: ["latin"], variable: '--font-outfit' })
 
 export default function RootLayout({
   children,
@@ -14,8 +16,9 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <body className={cn(
-        "min-h-screen bg-background font-sans antialiased",
-        inter.className
+        "min-h-screen bg-background font-sans antialiased dark",
+        inter.variable,
+        outfit.variable
       )}>
         <Providers>
           <div className="flex min-h-screen">
@@ -31,6 +34,7 @@ export default function RootLayout({
             </div>
           </div>
         </Providers>
+        <Toaster />
       </body>
     </html>
   )

@@ -15,6 +15,7 @@ interface SavingsChartProps {
   chartData: {
     year: number;
     balance: number;
+    targetBalance?: number;
     totalSaved: number;
     projectedIncome: number;
   }[];
@@ -34,6 +35,10 @@ export function SavingsChart({ chartData, isThumbnail = false }: SavingsChartPro
         projectedIncome: {
             label: "Passive Income $",
             color: "#ffc658",
+        },
+        targetBalance: {
+            label: "Target",
+            color: "#94a3b8",
         },
     } satisfies ChartConfig
 
@@ -83,6 +88,13 @@ export function SavingsChart({ chartData, isThumbnail = false }: SavingsChartPro
                 type="monotone"
                 dataKey="projectedIncome"
                 stroke={chartConfig.projectedIncome.color}
+                yAxisId="left" 
+              />
+              <Line
+                type="monotone"
+                dataKey="targetBalance"
+                stroke={chartConfig.targetBalance.color}
+                strokeDasharray="5 5"
                 yAxisId="left" 
               />
             </LineChart>

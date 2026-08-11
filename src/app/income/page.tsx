@@ -1,12 +1,14 @@
 "use client"
 
 import { Suspense } from 'react';
-import { useSearchParams } from 'next/navigation';
 import IncomePlanner from '@/components/IncomePlanner';
+import { usePlanNavigation } from '@/hooks/usePlanNavigation';
 
 function IncomeContent() {
-  const searchParams = useSearchParams();
-  const planId = searchParams.get('plan');
+  const { planId, isReady } = usePlanNavigation('income', '/income');
+  
+  if (!isReady) return <div>Loading...</div>;
+  
   return <IncomePlanner planId={planId} />;
 }
 
