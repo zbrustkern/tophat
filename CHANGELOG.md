@@ -1,3 +1,10 @@
+## [2.0.1](https://github.com/zbrustkern/tophat/compare/v2.0.0...v2.0.1) (2026-08-11)
+
+
+### Bug Fixes
+
+* **auth:** replace infinite loading screen with Tuxedo Deco landing page and prominent Google Sign-In ([abd6217](https://github.com/zbrustkern/tophat/commit/abd6217c9f58139376d3b1203a2f8c7cbdbd4944))
+
 # [2.0.0](https://github.com/zbrustkern/tophat/compare/v1.12.0...v2.0.0) (2026-08-11)
 
 
