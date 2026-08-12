@@ -4,13 +4,15 @@ import Link from "next/link"
 import { usePathname } from "next/navigation"
 import SignInButton from "./SignInButton"
 import { useState } from 'react'
-import { Menu, LayoutDashboard, DollarSign, PiggyBank, GraduationCap, Target, CreditCard, Plane, Calculator, Settings, Home } from 'lucide-react'
+import { Menu, LayoutDashboard, DollarSign, PiggyBank, GraduationCap, Target, CreditCard, Plane, Calculator, Settings, Home, ShieldCheck } from 'lucide-react'
 import { useSettings } from '@/contexts/SettingsContext'
+import { useAuth } from '@/contexts/AuthContext'
 
 export function NavBar() {
   const pathname = usePathname()
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
   const { settings } = useSettings()
+  const { role } = useAuth()
   const isHolistic = settings?.holisticModeEnabled !== false // defaults to true
   
   const routes = [
@@ -68,7 +70,12 @@ export function NavBar() {
       href: "/settings",
       label: "Global Settings",
       icon: <Settings className="h-5 w-5" />
-    }
+    },
+    ...(role === 'admin' ? [{
+      href: "/admin",
+      label: "Admin Console",
+      icon: <ShieldCheck className="h-5 w-5 text-deco-gold" />
+    }] : [])
   ]
 
   return (

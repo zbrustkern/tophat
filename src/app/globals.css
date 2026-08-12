@@ -78,8 +78,26 @@
     @apply shadow-md hover:shadow-lg transition-shadow duration-200;
   }
   
-  input[type="number"] {
-    @apply bg-white shadow-sm;
+  /* Core Design System: High-contrast Dark Inputs */
+  input, select, textarea {
+    background-color: #0F172A !important;
+    color: #FFFFFF !important;
+    border-color: rgba(255, 255, 255, 0.2);
+  }
+
+  input::placeholder, select::placeholder, textarea::placeholder {
+    color: #94A3B8 !important;
+  }
+
+  /* Prevent browser autofill from turning inputs white/yellow */
+  input:-webkit-autofill,
+  input:-webkit-autofill:hover, 
+  input:-webkit-autofill:focus,
+  textarea:-webkit-autofill,
+  select:-webkit-autofill {
+    -webkit-text-fill-color: #FFFFFF !important;
+    -webkit-box-shadow: 0 0 0px 1000px #0F172A inset !important;
+    transition: background-color 5000s ease-in-out 0s;
   }
   
   button {
