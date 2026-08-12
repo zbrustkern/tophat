@@ -165,16 +165,16 @@ export default function HousePlanner({ planId }: { planId: string | null }) {
   return (
     <main className="flex flex-col gap-6">
       <PlanSelector planType="house" currentPlanId={planId || null} basePath="/house" />
-      <Card className="bg-white shadow-lg border-none">
-        <CardHeader>
-          <CardTitle className="text-2xl font-bold bg-gradient-to-r from-teal-600 to-teal-400 bg-clip-text text-transparent">
+      <Card className="bg-card/60 backdrop-blur-md border border-deco-gold/20 shadow-2xl rounded-sm">
+        <CardHeader className="space-y-1 pb-4 border-b border-white/10">
+          <CardTitle className="text-2xl font-display font-semibold uppercase tracking-widest text-deco-gold">
             Real Estate Planner
           </CardTitle>
-          <CardDescription>
+          <CardDescription className="text-muted-foreground font-light text-xs">
             Manage your mortgage and home equity
           </CardDescription>
         </CardHeader>
-        <CardContent>
+        <CardContent className="pt-6 space-y-6">
           <PlanNameField value={plan.planName} onChange={handleChange} />
 
           <div className="grid md:grid-cols-3 gap-6 mt-6">
@@ -186,7 +186,7 @@ export default function HousePlanner({ planId }: { planId: string | null }) {
             <FormField label="Annual Maintenance ($)" name="annualMaintenance" value={plan.details.annualMaintenance ?? 0} onChange={handleChange} placeholder="2000" />
 
             <div className="flex flex-col gap-1.5">
-              <Label className="text-sm font-medium text-gray-700">State</Label>
+              <Label className="text-xs font-display uppercase tracking-widest text-muted-foreground">State</Label>
               <input
                 type="text"
                 name="state"
@@ -194,30 +194,30 @@ export default function HousePlanner({ planId }: { planId: string | null }) {
                 value={plan.details.state || ''}
                 onChange={handleChange}
                 placeholder="e.g. IL"
-                className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                className="flex h-10 w-full rounded-sm border border-white/20 bg-slate-950 px-3 py-2 text-xs text-white uppercase focus:border-deco-gold"
               />
             </div>
             
             <FormField label="Annual Appreciation (%)" name="appreciationRate" value={plan.details.appreciationRate ?? 0.03} onChange={handleChange} isPercentage placeholder="3" />
             
             <div className="flex flex-col gap-2">
-              <Label className="text-sm font-medium text-gray-700">Linked Portfolios</Label>
-              <div className="flex flex-col gap-1.5 p-3 border rounded-md bg-white max-h-40 overflow-y-auto">
+              <Label className="text-xs font-display uppercase tracking-widest text-muted-foreground">Linked Portfolios</Label>
+              <div className="flex flex-col gap-1.5 p-3 border border-white/20 rounded-sm bg-slate-950 max-h-40 overflow-y-auto">
                 {plans.filter(p => p.planType === 'rebalance').length === 0 && (
-                  <span className="text-xs text-slate-500 italic">No portfolios available.</span>
+                  <span className="text-xs text-muted-foreground italic">No portfolios available.</span>
                 )}
                 {plans.filter(p => p.planType === 'rebalance').map(p => {
                   const isChecked = (plan.details.linkedPortfolioIds || []).includes(p.id);
                   return (
-                    <label key={p.id} className="flex items-center gap-2 text-sm cursor-pointer hover:bg-slate-50 p-1 rounded">
+                    <label key={p.id} className="flex items-center gap-2 text-xs cursor-pointer hover:bg-white/5 p-1 rounded text-white">
                       <input 
                         type="checkbox" 
                         checked={isChecked} 
                         onChange={() => handlePortfolioToggle(p.id)}
-                        className="rounded border-slate-300 w-4 h-4 text-blue-600 focus:ring-blue-500"
+                        className="rounded border-white/20 bg-slate-900 w-4 h-4 text-deco-gold focus:ring-deco-gold"
                       />
-                      <span className="font-medium text-slate-700">{p.planName}</span>
-                      {(p as any).details?.institution && <span className="text-xs text-slate-400">({(p as any).details.institution})</span>}
+                      <span className="font-medium text-white">{p.planName}</span>
+                      {(p as any).details?.institution && <span className="text-xs text-muted-foreground">({(p as any).details.institution})</span>}
                     </label>
                   );
                 })}
@@ -225,9 +225,9 @@ export default function HousePlanner({ planId }: { planId: string | null }) {
             </div>
           </div>
 
-          <div className="mt-8 p-4 bg-slate-50 rounded-lg border border-slate-200">
+          <div className="mt-8 p-4 bg-slate-900/90 rounded-sm border border-white/10">
             <div className="flex flex-row items-center justify-between mb-4">
-              <h3 className="text-lg font-semibold text-slate-800">Property Tax Configuration</h3>
+              <h3 className="text-xs font-display uppercase tracking-widest text-deco-gold">Property Tax Configuration</h3>
               <div className="flex items-center space-x-2">
                 <Switch
                   id="advanced-tax"
@@ -237,7 +237,7 @@ export default function HousePlanner({ planId }: { planId: string | null }) {
                     setIsDirty(true);
                   }}
                 />
-                <Label htmlFor="advanced-tax" className="font-medium text-slate-700 cursor-pointer">Advanced (e.g. IL EAV) Mode</Label>
+                <Label htmlFor="advanced-tax" className="font-display text-xs uppercase tracking-wider text-white cursor-pointer">Advanced (e.g. IL EAV) Mode</Label>
               </div>
             </div>
             
@@ -254,8 +254,8 @@ export default function HousePlanner({ planId }: { planId: string | null }) {
             )}
           </div>
 
-          <div className="mt-8 p-4 bg-slate-50 rounded-lg border border-slate-200">
-            <h3 className="text-lg font-semibold text-slate-800 mb-4">Scenario Analysis</h3>
+          <div className="mt-8 p-4 bg-slate-900/90 rounded-sm border border-white/10">
+            <h3 className="text-xs font-display uppercase tracking-widest text-deco-gold mb-4">Scenario Analysis</h3>
             <div className="grid md:grid-cols-3 gap-6">
               <FormField label="Extra Monthly Principal ($)" name="extraMonthlyPayment" value={plan.details.extraMonthlyPayment ?? 0} onChange={handleChange} placeholder="200" />
               <FormField label="Refinance Rate (%)" name="refinanceRate" value={plan.details.refinanceRate ?? 0} onChange={handleChange} isPercentage placeholder="4.5" />
@@ -263,20 +263,20 @@ export default function HousePlanner({ planId }: { planId: string | null }) {
             </div>
           </div>
         </CardContent>
-        <CardFooter className="bg-slate-50 border-t py-4 justify-between">
-          <Button onClick={updateChart} variant={isDirty ? "default" : "secondary"}>
+        <CardFooter className="bg-slate-950/80 border-t border-white/10 py-4 justify-between">
+          <Button onClick={updateChart} className={isDirty ? "bg-deco-gold hover:bg-deco-brass text-slate-950 font-display uppercase tracking-widest text-xs font-semibold" : "bg-slate-800 text-slate-300 font-display uppercase text-xs"}>
             {isDirty ? "Calculate" : "Recalculate"}
           </Button>
-          <Button onClick={handleSave} disabled={loading} className="bg-teal-600 hover:bg-teal-700">
+          <Button onClick={handleSave} disabled={loading} className="bg-deco-gold hover:bg-deco-brass text-slate-950 font-display uppercase tracking-widest text-xs font-semibold">
             {plan.id === 'new' ? 'Save Plan' : 'Update Plan'}
           </Button>
         </CardFooter>
       </Card>
 
       {chartData.length > 0 && (
-        <Card className="bg-white shadow-lg border-none">
-          <CardHeader>
-            <CardTitle>Amortization & Value</CardTitle>
+        <Card className="bg-card/60 backdrop-blur-md border border-deco-gold/20 shadow-2xl rounded-sm">
+          <CardHeader className="border-b border-white/10">
+            <CardTitle className="text-xl font-display font-semibold uppercase tracking-widest text-deco-gold">Amortization & Value</CardTitle>
           </CardHeader>
           <CardContent className="h-[400px]">
             <ResponsiveContainer width="100%" height="100%">

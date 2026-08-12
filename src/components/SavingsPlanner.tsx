@@ -188,22 +188,22 @@ export default function SavingsPlanner({
     <main className="flex flex-col">
       <PlanSelector planType="savings" currentPlanId={planId || null} basePath="/savings" />
       <div className="m-1">
-        <Card className="bg-white shadow-lg hover:shadow-xl transition-all duration-200 border-none">
-          <CardHeader className="space-y-1 pb-4">
-            <CardTitle className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-blue-400 bg-clip-text text-transparent">
+        <Card className="bg-card/60 backdrop-blur-md border border-deco-gold/20 shadow-2xl rounded-sm">
+          <CardHeader className="space-y-1 pb-4 border-b border-white/10">
+            <CardTitle className="text-2xl font-display font-semibold uppercase tracking-widest text-deco-gold">
               Savings Planner
             </CardTitle>
-            <CardDescription className="text-gray-500 font-medium">
+            <CardDescription className="text-muted-foreground font-light text-xs">
               Plan for a retirement income stream or a specific savings target.
             </CardDescription>
           </CardHeader>
-          <CardContent className="bg-gray-50/50">
+          <CardContent className="pt-6 space-y-6">
             <PlanNameField value={plan.planName} onChange={handleChange} />
             
-            <div className="mb-6 p-4 bg-sky-50 rounded-lg border border-sky-100 shadow-sm flex items-center justify-between">
+            <div className="mb-6 p-4 bg-slate-900/90 rounded-sm border border-deco-gold/30 shadow-sm flex items-center justify-between">
               <div>
-                <Label className="text-base font-semibold text-sky-900">Use Global Settings</Label>
-                <p className="text-sm text-sky-700">Sync Ages, Tax Rate, Return Rate, and Withdrawal Rate with your defaults.</p>
+                <Label className="text-xs font-display uppercase tracking-widest text-deco-gold">Use Global Settings</Label>
+                <p className="text-xs text-muted-foreground">Sync Ages, Tax Rate, Return Rate, and Withdrawal Rate with your defaults.</p>
               </div>
               <Switch 
                 checked={plan.details.useGlobalSettings !== false} 
@@ -255,23 +255,23 @@ export default function SavingsPlanner({
               )}
               
               <div className="flex flex-col gap-2">
-                <Label className="text-sm font-medium text-gray-700">Linked Portfolios</Label>
-                <div className="flex flex-col gap-1.5 p-3 border rounded-md bg-white max-h-40 overflow-y-auto">
+                <Label className="text-xs font-display uppercase tracking-widest text-muted-foreground">Linked Portfolios</Label>
+                <div className="flex flex-col gap-1.5 p-3 border border-white/20 rounded-sm bg-slate-950 max-h-40 overflow-y-auto">
                   {plans.filter(p => p.planType === 'rebalance').length === 0 && (
-                    <span className="text-xs text-slate-500 italic">No portfolios available.</span>
+                    <span className="text-xs text-muted-foreground italic">No portfolios available.</span>
                   )}
                   {plans.filter(p => p.planType === 'rebalance').map(p => {
                     const isChecked = (plan.details.linkedPortfolioIds || []).includes(p.id);
                     return (
-                      <label key={p.id} className="flex items-center gap-2 text-sm cursor-pointer hover:bg-slate-50 p-1 rounded">
+                      <label key={p.id} className="flex items-center gap-2 text-xs cursor-pointer hover:bg-white/5 p-1 rounded text-white">
                         <input 
                           type="checkbox" 
                           checked={isChecked} 
                           onChange={() => handlePortfolioToggle(p.id)}
-                          className="rounded border-slate-300 w-4 h-4 text-blue-600 focus:ring-blue-500"
+                          className="rounded border-white/20 bg-slate-900 w-4 h-4 text-deco-gold focus:ring-deco-gold"
                         />
-                        <span className="font-medium text-slate-700">{p.planName}</span>
-                        {(p as any).details?.institution && <span className="text-xs text-slate-400">({(p as any).details.institution})</span>}
+                        <span className="font-medium text-white">{p.planName}</span>
+                        {(p as any).details?.institution && <span className="text-xs text-muted-foreground">({(p as any).details.institution})</span>}
                       </label>
                     );
                   })}
@@ -300,36 +300,33 @@ export default function SavingsPlanner({
             </div>
             
             {plan.details.goalType === 'income_stream' && (
-              <div className="mt-6 p-4 bg-blue-50/80 rounded-xl border border-blue-100 text-sm text-blue-900 leading-relaxed shadow-sm">
-                <h4 className="font-semibold mb-1 flex items-center gap-1.5 text-blue-950">
+              <div className="mt-6 p-4 bg-slate-900/90 rounded-sm border border-white/10 text-xs text-muted-foreground leading-relaxed shadow-sm">
+                <h4 className="font-display uppercase tracking-widest text-xs text-deco-gold mb-1 flex items-center gap-1.5">
                   💡 About the Safe Withdrawal Rate (SWR)
                 </h4>
                 <p className="mb-2">
                   The SWR determines what percentage of your retirement portfolio is withdrawn annually to support your desired income.
                 </p>
-                <ul className="list-disc list-inside space-y-1 text-blue-900">
+                <ul className="list-disc list-inside space-y-1 text-white/80">
                   <li>
-                    <strong className="text-blue-950">The 4% Rule:</strong> A 4% safe withdrawal rate is the industry standard (based on the Trinity Study) designed to prevent you from depleting your portfolio over a 30-year retirement by keeping pace with inflation.
-                  </li>
-                  <li>
-                    <strong className="text-blue-950">Higher rates (e.g. 6-8%):</strong> Require saving less today, but carry a high risk of exhausting your capital during market downturns.
+                    <strong className="text-white">The 4% Rule:</strong> A 4% safe withdrawal rate is the industry standard (based on the Trinity Study) designed to prevent you from depleting your portfolio over a 30-year retirement.
                   </li>
                 </ul>
               </div>
             )}
           </CardContent>
-          <CardFooter className="bg-white border-t py-4">
+          <CardFooter className="bg-slate-950/80 border-t border-white/10 py-4">
             <div className="flex w-full items-center justify-between">
-            <Button 
+              <Button 
                 onClick={updateChart} 
-                variant={isDirty ? "default" : "secondary"}
-                >
+                className={isDirty ? "bg-deco-gold hover:bg-deco-brass text-slate-950 font-display uppercase tracking-widest text-xs font-semibold" : "bg-slate-800 text-slate-300 font-display uppercase tracking-widest text-xs"}
+              >
                 {isDirty ? "Recalculate" : "Calculate"}
-            </Button>
-              <div className="text-lg font-semibold">
+              </Button>
+              <div className="text-sm font-display uppercase tracking-wider text-deco-gold font-semibold">
                 Required Annual Savings: ${Math.round(requiredSavings).toLocaleString()}
               </div>
-              <Button onClick={handleSave} disabled={loading}>
+              <Button onClick={handleSave} disabled={loading} className="bg-deco-gold hover:bg-deco-brass text-slate-950 font-display uppercase tracking-widest text-xs font-semibold">
                 {plan.id === 'new' ? 'Save Plan' : 'Update Plan'}
               </Button>
             </div>
@@ -338,12 +335,12 @@ export default function SavingsPlanner({
       </div>
 
       <div className="m-1">
-        <Card className="bg-white shadow-lg hover:shadow-xl transition-all duration-200 border-none">
-          <CardHeader className="flex gap-3">
-            <CardTitle className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-blue-400 bg-clip-text text-transparent">
+        <Card className="bg-card/60 backdrop-blur-md border border-deco-gold/20 shadow-2xl rounded-sm">
+          <CardHeader className="flex gap-3 border-b border-white/10">
+            <CardTitle className="text-2xl font-display font-semibold uppercase tracking-widest text-deco-gold">
               Savings Expectations
             </CardTitle>
-            <CardDescription className="text-gray-500 font-medium">
+            <CardDescription className="text-muted-foreground font-light text-xs">
               How much do you need to save to reach your income goals?
             </CardDescription>
           </CardHeader>

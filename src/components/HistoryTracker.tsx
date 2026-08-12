@@ -70,24 +70,21 @@ export function HistoryTracker({ planId }: HistoryTrackerProps) {
 
   if (loading) {
     return (
-      <div className="m-1 animate-pulse">
-        <Card className="bg-white shadow-sm border-none p-6">
-          <div className="h-6 w-48 bg-slate-200 rounded mb-6"></div>
-          <div className="h-64 w-full bg-slate-100 rounded"></div>
-        </Card>
-      </div>
+      <Card className="bg-card/60 backdrop-blur-md border border-deco-gold/20 p-6 animate-pulse">
+        <div className="h-6 w-48 bg-slate-800 rounded mb-4"></div>
+        <div className="h-64 bg-slate-800/50 rounded"></div>
+      </Card>
     );
   }
 
-  if (data.length === 0) {
+  if (data.length < 2) {
     return (
-      <div className="m-1">
-        <Card className="bg-white shadow-sm border-none">
-          <CardContent className="p-8 text-center text-slate-500">
-            No history recorded yet. Take a snapshot to see your progress!
-          </CardContent>
-        </Card>
-      </div>
+      <Card className="bg-card/60 backdrop-blur-md border border-deco-gold/20 p-6">
+        <h3 className="text-xs font-display uppercase tracking-widest text-deco-gold mb-1">Portfolio History & Performance Tracking</h3>
+        <p className="text-xs text-muted-foreground">
+          Take daily snapshots or click <strong>Backfill History</strong> above to automatically generate a rich historical chart of your portfolio&apos;s growth.
+        </p>
+      </Card>
     );
   }
 
@@ -100,67 +97,66 @@ export function HistoryTracker({ planId }: HistoryTrackerProps) {
   };
 
   return (
-    <div className="m-1 mt-6">
-      <Card className="bg-white shadow-lg hover:shadow-xl transition-all duration-200 border-none">
-        <CardHeader className="pl-6 border-b pb-4 mb-4">
-          <CardTitle className="text-xl font-bold text-gray-800">
-            Portfolio History & Tracking
+    <Card className="bg-card/60 backdrop-blur-md border border-deco-gold/20 shadow-2xl rounded-sm">
+      <CardHeader className="flex flex-col sm:flex-row justify-between sm:items-center gap-2 border-b border-white/10 pb-4">
+        <div>
+          <CardTitle className="text-xl font-display font-semibold uppercase tracking-widest text-deco-gold">
+            Historical Performance & Value Trajectory
           </CardTitle>
-        </CardHeader>
-        <CardContent className="pl-6">
-          <div className="h-[400px] w-full">
-            <ResponsiveContainer width="100%" height="100%">
-              <LineChart
-                data={data}
-                margin={{ top: 20, right: 30, left: 20, bottom: 20 }}
-              >
-                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E2E8F0" />
-                <XAxis 
-                  dataKey="date" 
-                  axisLine={false}
-                  tickLine={false}
-                  tick={{ fill: '#64748B', fontSize: 12 }}
-                  dy={10}
-                />
-                <YAxis 
-                  tickFormatter={(val) => `$${(val / 1000)}k`}
-                  axisLine={false}
-                  tickLine={false}
-                  tick={{ fill: '#64748B', fontSize: 12 }}
-                  width={80}
-                />
-                <Tooltip 
-                  formatter={(value: number) => [formatCurrency(value), undefined]}
-                  labelStyle={{ color: '#0f172a', fontWeight: 'bold', marginBottom: '8px' }}
-                  contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1)' }}
-                />
-                <Legend 
-                  verticalAlign="top" 
-                  height={36} 
-                  iconType="circle"
-                />
-                <Line 
-                  type="monotone" 
-                  dataKey="Target Value" 
-                  stroke="#94a3b8" 
-                  strokeWidth={2}
-                  strokeDasharray="5 5"
-                  dot={false}
-                  name="Target Trendline"
-                />
-                <Line 
-                  type="monotone" 
-                  dataKey="Actual Value" 
-                  stroke="#10b981" 
-                  strokeWidth={3}
-                  activeDot={{ r: 8, fill: '#059669', stroke: '#fff', strokeWidth: 2 }}
-                  name="Actual Value"
-                />
-              </LineChart>
-            </ResponsiveContainer>
-          </div>
-        </CardContent>
-      </Card>
-    </div>
+        </div>
+      </CardHeader>
+      <CardContent className="pt-6">
+        <div className="h-[400px] w-full">
+          <ResponsiveContainer width="100%" height="100%">
+            <LineChart
+              data={data}
+              margin={{ top: 20, right: 30, left: 20, bottom: 20 }}
+            >
+              <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="rgba(255, 255, 255, 0.1)" />
+              <XAxis 
+                dataKey="date" 
+                axisLine={false}
+                tickLine={false}
+                tick={{ fill: '#94A3B8', fontSize: 12 }}
+                dy={10}
+              />
+              <YAxis 
+                tickFormatter={(val) => `$${(val / 1000)}k`}
+                axisLine={false}
+                tickLine={false}
+                tick={{ fill: '#94A3B8', fontSize: 12 }}
+                width={80}
+              />
+              <Tooltip 
+                formatter={(value: number) => [formatCurrency(value), undefined]}
+                labelStyle={{ color: '#C5A059', fontWeight: 'bold', marginBottom: '4px' }}
+                contentStyle={{ backgroundColor: '#0F172A', borderRadius: '4px', border: '1px solid rgba(255, 255, 255, 0.2)', color: '#FFFFFF' }}
+              />
+              <Legend 
+                verticalAlign="top" 
+                height={36}
+                wrapperStyle={{ color: '#FFFFFF' }}
+              />
+              <Line 
+                type="monotone" 
+                dataKey="Actual Value" 
+                stroke="#C5A059" 
+                strokeWidth={3} 
+                dot={{ r: 4, fill: '#C5A059' }}
+                activeDot={{ r: 7 }}
+              />
+              <Line 
+                type="monotone" 
+                dataKey="Target Value" 
+                stroke="#38BDF8" 
+                strokeWidth={2} 
+                strokeDasharray="5 5"
+                dot={false}
+              />
+            </LineChart>
+          </ResponsiveContainer>
+        </div>
+      </CardContent>
+    </Card>
   );
 }

@@ -318,25 +318,25 @@ export default function DeploymentDashboard({ planId }: { planId?: string | null
     <main className="flex flex-col gap-6">
       <PlanSelector planType="rebalance" currentPlanId={planId || null} basePath="/tactical-allocation" />
       <div className="m-1">
-        <Card className="bg-white shadow-lg hover:shadow-xl transition-all duration-200 border-none">
-          <CardHeader className="space-y-1 pb-4">
-            <CardTitle className="text-2xl font-bold bg-gradient-to-r from-emerald-600 to-teal-500 bg-clip-text text-transparent">
+        <Card className="bg-card/60 backdrop-blur-md border border-deco-gold/20 shadow-2xl rounded-sm">
+          <CardHeader className="space-y-1 pb-4 border-b border-white/10">
+            <CardTitle className="text-2xl font-display font-semibold uppercase tracking-widest text-deco-gold">
               Tactical Allocation Dashboard
             </CardTitle>
-            <CardDescription className="text-gray-500 font-medium">
+            <CardDescription className="text-muted-foreground font-light text-xs">
               Manage transitions from cash to equity using dynamic value-averaged risk parity.
             </CardDescription>
           </CardHeader>
-          <CardContent className="bg-gray-50/50 space-y-6">
+          <CardContent className="pt-6 space-y-6">
             <PlanNameField value={plan.planName} onChange={handleChange} />
             
             {linkedGoal && (
-              <div className="mb-6 p-4 bg-amber-50 border-amber-200 border rounded-lg text-amber-800 shadow-sm">
-                <h4 className="font-bold flex items-center gap-2">
-                  <span className="text-xl">🔗</span> Linked to Goal: {linkedGoal.planName}
+              <div className="mb-6 p-4 bg-slate-900/90 border border-deco-gold/40 rounded-sm text-deco-gold shadow-sm">
+                <h4 className="font-display uppercase tracking-widest text-xs font-semibold flex items-center gap-2">
+                  <span className="text-sm">🔗</span> Linked to Goal: {linkedGoal.planName}
                 </h4>
-                <p className="mt-1 text-sm">
-                  This portfolio is linked to your <strong>{linkedGoal.planName}</strong> goal planner. 
+                <p className="mt-1 text-xs text-muted-foreground font-sans">
+                  This portfolio is linked to your <strong className="text-white">{linkedGoal.planName}</strong> goal planner. 
                   Only input your current cash and asset holdings here. Target amounts and required contributions are managed automatically by your goal planner.
                 </p>
               </div>
@@ -344,7 +344,7 @@ export default function DeploymentDashboard({ planId }: { planId?: string | null
 
             <div className="grid md:grid-cols-3 gap-4">
               <div className="col-span-1 md:col-span-3">
-                <h3 className="text-lg font-semibold text-gray-700 mb-2 border-b pb-2">Global Parameters</h3>
+                <h3 className="text-xs font-display uppercase tracking-widest text-muted-foreground mb-2 border-b border-white/10 pb-2">Global Parameters</h3>
               </div>
 
               <FormField
@@ -362,22 +362,22 @@ export default function DeploymentDashboard({ planId }: { planId?: string | null
                 placeholder="15"
               />
               <div className="flex flex-col gap-2">
-                <label className="text-sm font-semibold text-slate-700">
-                  Start Date <span className="text-xs font-normal text-slate-500">(Months elapsed computed automatically)</span>
+                <label className="text-xs font-display uppercase tracking-widest text-muted-foreground">
+                  Start Date <span className="text-[10px] font-normal text-muted-foreground">(Months elapsed computed automatically)</span>
                 </label>
                 <input 
                   type="date"
                   name="startDate"
                   value={plan.details.startDate || ""}
                   onChange={handleChange}
-                  className="p-2 border rounded-md"
+                  className="p-2 border border-white/20 rounded-sm bg-slate-950 text-white font-sans text-xs focus:border-deco-gold"
                 />
               </div>
             </div>
 
-            <div className="grid md:grid-cols-3 gap-4 border-t pt-4">
+            <div className="grid md:grid-cols-3 gap-4 border-t border-white/10 pt-4">
               <div className="col-span-1 md:col-span-3">
-                <h3 className="text-lg font-semibold text-gray-700 mb-2 border-b pb-2">Account Configuration</h3>
+                <h3 className="text-xs font-display uppercase tracking-widest text-muted-foreground mb-2 border-b border-white/10 pb-2">Account Configuration</h3>
               </div>
 
               <FormField
@@ -389,12 +389,12 @@ export default function DeploymentDashboard({ planId }: { planId?: string | null
               />
 
               <div className="flex flex-col gap-1.5">
-                <label className="text-sm font-semibold text-slate-700">Tax Type</label>
+                <label className="text-xs font-display uppercase tracking-widest text-muted-foreground">Tax Type</label>
                 <Select value={plan.details.taxType || 'taxable'} onValueChange={(val) => handleSelectChange('taxType', val)}>
-                  <SelectTrigger className="bg-white">
+                  <SelectTrigger className="bg-slate-950 border-white/20 text-white text-xs">
                     <SelectValue placeholder="Select Tax Type" />
                   </SelectTrigger>
-                  <SelectContent>
+                  <SelectContent className="bg-slate-900 border-white/20 text-white">
                     <SelectItem value="taxable">Taxable Brokerage</SelectItem>
                     <SelectItem value="preTax">Pre-Tax (Traditional 401k/IRA)</SelectItem>
                     <SelectItem value="postTax">Post-Tax (Roth 401k/IRA)</SelectItem>
@@ -404,12 +404,12 @@ export default function DeploymentDashboard({ planId }: { planId?: string | null
               </div>
 
               <div className="flex flex-col gap-1.5">
-                <label className="text-sm font-semibold text-slate-700">Portfolio Purpose</label>
+                <label className="text-xs font-display uppercase tracking-widest text-muted-foreground">Portfolio Purpose</label>
                 <Select value={plan.details.portfolioPurpose || 'Core Wealth'} onValueChange={(val) => handleSelectChange('portfolioPurpose', val)}>
-                  <SelectTrigger className="bg-white">
+                  <SelectTrigger className="bg-slate-950 border-white/20 text-white text-xs">
                     <SelectValue placeholder="Select Purpose" />
                   </SelectTrigger>
-                  <SelectContent>
+                  <SelectContent className="bg-slate-900 border-white/20 text-white">
                     <SelectItem value="Core Wealth">Core Wealth (Retirement)</SelectItem>
                     <SelectItem value="Play Money">Play Money (Speculative)</SelectItem>
                     <SelectItem value="Cash Reserve">Cash Reserve (Liquidity)</SelectItem>
@@ -419,55 +419,55 @@ export default function DeploymentDashboard({ planId }: { planId?: string | null
             </div>
 
             <div className="space-y-4">
-              <div className="flex justify-between items-end border-b pb-2">
-                <h3 className="text-lg font-semibold text-gray-700">Current Asset Holdings</h3>
+              <div className="flex justify-between items-end border-b border-white/10 pb-2">
+                <h3 className="text-xs font-display uppercase tracking-widest text-muted-foreground">Current Asset Holdings</h3>
                 <div className="flex gap-2">
-                  <Button variant="outline" size="sm" onClick={refreshPrices} disabled={isRefreshing} className="flex items-center gap-1 text-teal-600 border-teal-200 hover:bg-teal-50">
-                    <RefreshCw className={`w-4 h-4 ${isRefreshing ? 'animate-spin' : ''}`} /> Refresh Live Prices
+                  <Button variant="outline" size="sm" onClick={refreshPrices} disabled={isRefreshing} className="flex items-center gap-1 text-xs border-deco-gold/40 text-deco-gold hover:bg-deco-gold/10 font-display uppercase tracking-wider">
+                    <RefreshCw className={`w-3.5 h-3.5 ${isRefreshing ? 'animate-spin' : ''}`} /> Refresh Live Prices
                   </Button>
-                  <Button variant="outline" size="sm" onClick={addAsset} className="flex items-center gap-1">
-                    <Plus className="w-4 h-4" /> Add Asset
+                  <Button variant="outline" size="sm" onClick={addAsset} className="flex items-center gap-1 text-xs border-white/20 text-white hover:bg-white/10 font-display uppercase tracking-wider">
+                    <Plus className="w-3.5 h-3.5" /> Add Asset
                   </Button>
                 </div>
               </div>
-              <p className="text-sm text-gray-500">Break out your current equity and cash. If you input assets here, they override the manual flat inputs below.</p>
-              <div className="bg-blue-50 border border-blue-100 rounded-md p-3 mt-2">
-                <p className="text-xs text-blue-700">
-                  <span className="font-semibold">Note on Options:</span> Any options positions you open based on recommendations (like Cash-Secured Puts) will typically resolve before your next monthly rebalance. Next month, simply update your new Cash and Equity balances (based on whether the option expired or assigned) and let the model guide your next move.
+              <p className="text-xs text-muted-foreground">Break out your current equity and cash. If you input assets here, they override the manual flat inputs below.</p>
+              <div className="bg-slate-900/80 border border-white/10 rounded-sm p-3 mt-2">
+                <p className="text-xs text-muted-foreground">
+                  <span className="font-semibold text-deco-gold">Note on Options:</span> Any options positions you open based on recommendations (like Cash-Secured Puts) will typically resolve before your next monthly rebalance. Next month, simply update your new Cash and Equity balances (based on whether the option expired or assigned) and let the model guide your next move.
                 </p>
               </div>
               
               {plan.details.assets && plan.details.assets.length > 0 && (
                 <div className="space-y-3">
                   {plan.details.assets.map((asset) => (
-                    <div key={asset.id} className="grid grid-cols-7 gap-3 items-end bg-white p-3 rounded shadow-sm border">
+                    <div key={asset.id} className="grid grid-cols-7 gap-3 items-end bg-slate-900/90 p-3 rounded-sm border border-white/10 text-white">
                       <div className="flex flex-col gap-1">
-                        <label className="text-xs font-semibold text-gray-600">Ticker</label>
-                        <input type="text" value={asset.symbol} onChange={(e) => handleAssetChange(asset.id, 'symbol', e.target.value)} className="border p-2 rounded text-sm uppercase" placeholder="SPY" />
+                        <label className="text-[10px] font-display uppercase tracking-widest text-muted-foreground">Ticker</label>
+                        <input type="text" value={asset.symbol} onChange={(e) => handleAssetChange(asset.id, 'symbol', e.target.value)} className="border border-white/20 p-2 rounded-sm text-xs bg-slate-950 text-white uppercase focus:border-deco-gold" placeholder="SPY" />
                       </div>
                       <div className="flex flex-col gap-1">
-                        <label className="text-xs font-semibold text-gray-600">Type</label>
-                        <select value={asset.type} onChange={(e) => handleAssetChange(asset.id, 'type', e.target.value)} className="border p-2 rounded text-sm bg-white">
+                        <label className="text-[10px] font-display uppercase tracking-widest text-muted-foreground">Type</label>
+                        <select value={asset.type} onChange={(e) => handleAssetChange(asset.id, 'type', e.target.value)} className="border border-white/20 p-2 rounded-sm text-xs bg-slate-950 text-white focus:border-deco-gold">
                           <option value="equity">Equity</option>
                           <option value="cash">Cash</option>
                         </select>
                       </div>
                       <div className="flex flex-col gap-1">
-                        <label className="text-xs font-semibold text-gray-600">Price ($)</label>
-                        <input type="number" value={asset.price} onChange={(e) => handleAssetChange(asset.id, 'price', Number(e.target.value))} className="border p-2 rounded text-sm" />
+                        <label className="text-[10px] font-display uppercase tracking-widest text-muted-foreground">Price ($)</label>
+                        <input type="number" value={asset.price} onChange={(e) => handleAssetChange(asset.id, 'price', Number(e.target.value))} className="border border-white/20 p-2 rounded-sm text-xs bg-slate-950 text-white focus:border-deco-gold" />
                       </div>
                       <div className="flex flex-col gap-1">
-                        <label className="text-xs font-semibold text-gray-600">Quantity</label>
-                        <input type="number" value={asset.shares} onChange={(e) => handleAssetChange(asset.id, 'shares', Number(e.target.value))} className="border p-2 rounded text-sm" />
+                        <label className="text-[10px] font-display uppercase tracking-widest text-muted-foreground">Quantity</label>
+                        <input type="number" value={asset.shares} onChange={(e) => handleAssetChange(asset.id, 'shares', Number(e.target.value))} className="border border-white/20 p-2 rounded-sm text-xs bg-slate-950 text-white focus:border-deco-gold" />
                       </div>
                       <div className="flex flex-col gap-1">
                         {asset.type === 'equity' && (
                           <>
-                            <label className="text-xs font-semibold text-gray-600">Risk Tier</label>
+                            <label className="text-[10px] font-display uppercase tracking-widest text-muted-foreground">Risk Tier</label>
                             <select 
                               value={asset.riskTier || 'core'} 
                               onChange={(e) => handleAssetChange(asset.id, 'riskTier', e.target.value)} 
-                              className="border p-2 rounded text-sm bg-white"
+                              className="border border-white/20 p-2 rounded-sm text-xs bg-slate-950 text-white focus:border-deco-gold"
                             >
                               <option value="core">Core</option>
                               <option value="growth">Growth</option>
@@ -479,19 +479,19 @@ export default function DeploymentDashboard({ planId }: { planId?: string | null
                       <div className="flex flex-col gap-1">
                         {asset.type === 'equity' && (
                           <>
-                            <label className="text-xs font-semibold text-gray-600">Target % (Opt)</label>
+                            <label className="text-[10px] font-display uppercase tracking-widest text-muted-foreground">Target % (Opt)</label>
                             <input 
                               type="number" 
                               value={asset.targetAllocation !== undefined && !isNaN(asset.targetAllocation) ? Math.round(asset.targetAllocation * 100) : ''} 
                               onChange={(e) => handleAssetChange(asset.id, 'targetAllocation', e.target.value ? Number(e.target.value) / 100 : NaN)} 
-                              className="border p-2 rounded text-sm" 
+                              className="border border-white/20 p-2 rounded-sm text-xs bg-slate-950 text-white focus:border-deco-gold" 
                               placeholder="Auto"
                             />
                           </>
                         )}
                       </div>
                       <div className="flex items-center pb-1">
-                        <Button variant="ghost" size="icon" onClick={() => removeAsset(asset.id)} className="text-red-500 hover:text-red-700 hover:bg-red-50">
+                        <Button variant="ghost" size="icon" onClick={() => removeAsset(asset.id)} className="text-rose-400 hover:text-rose-300 hover:bg-rose-500/10">
                           <Trash2 className="w-4 h-4" />
                         </Button>
                       </div>
@@ -533,12 +533,14 @@ export default function DeploymentDashboard({ planId }: { planId?: string | null
             </div>
 
           </CardContent>
-          <CardFooter className="bg-white border-t py-4">
+          <CardFooter className="bg-slate-950/80 border-t border-white/10 py-4">
             <div className="flex w-full items-center justify-between">
               <Button 
                 onClick={updateCalculations} 
-                variant={isDirty ? "default" : "secondary"}
-                className={isDirty ? "bg-emerald-600 hover:bg-emerald-700 text-white" : ""}
+                className={isDirty 
+                  ? "bg-deco-gold hover:bg-deco-brass text-slate-950 font-display uppercase tracking-widest text-xs font-semibold" 
+                  : "bg-slate-800 text-slate-300 font-display uppercase tracking-widest text-xs"
+                }
               >
                 {isDirty ? "Recalculate Model" : "Model Updated"}
               </Button>
@@ -548,44 +550,44 @@ export default function DeploymentDashboard({ planId }: { planId?: string | null
                     onClick={handleSnapshot} 
                     disabled={isSnapshotting || isDirty || plan.id === 'new'} 
                     variant="outline"
-                    className="border-indigo-200 text-indigo-700 hover:bg-indigo-50 flex items-center gap-2"
+                    className="border-white/20 text-white hover:bg-white/10 font-display uppercase tracking-wider text-xs flex items-center gap-2"
                   >
-                    <Camera className={`w-4 h-4 ${isSnapshotting ? 'animate-pulse' : ''}`} />
+                    <Camera className={`w-3.5 h-3.5 ${isSnapshotting ? 'animate-pulse text-deco-gold' : ''}`} />
                     {isSnapshotting ? "Saving..." : "Save Daily Snapshot"}
                   </Button>
-                  <span className="text-[10px] text-gray-400 mt-1">Creates a chart data point</span>
                 </div>
                 <div className="flex flex-col items-end">
                   <Button 
                     onClick={handleBackfill} 
                     disabled={isBackfilling || isDirty || plan.id === 'new' || !plan.details.startDate} 
                     variant="outline"
-                    title="Automatically assumes your current cash/shares were held at the historical date, using historical Yahoo Finance prices."
-                    className="border-amber-200 text-amber-700 hover:bg-amber-50 flex items-center gap-2"
+                    className="border-deco-gold/40 text-deco-gold hover:bg-deco-gold/10 font-display uppercase tracking-wider text-xs flex items-center gap-2"
                   >
-                    <History className={`w-4 h-4 ${isBackfilling ? 'animate-spin' : ''}`} />
+                    <History className={`w-3.5 h-3.5 ${isBackfilling ? 'animate-spin' : ''}`} />
                     {isBackfilling ? "Fetching..." : "Backfill History"}
                   </Button>
-                  <span className="text-[10px] text-gray-400 mt-1 cursor-help" title="Automatically assumes your current cash/shares were held at the historical date, using historical Yahoo Finance prices.">Auto-generates chart via Yahoo</span>
                 </div>
                 <div className="flex flex-col items-end">
-                  <Button onClick={handleSave} disabled={saving}>
+                  <Button 
+                    onClick={handleSave} 
+                    disabled={saving}
+                    className="bg-deco-gold hover:bg-deco-brass text-slate-950 font-display uppercase tracking-widest text-xs font-semibold"
+                  >
                     {saving ? "Saving..." : (plan.id === 'new' ? 'Save Plan' : 'Update Settings')}
                   </Button>
-                  <span className="text-[10px] text-gray-400 mt-1">Saves settings & assets</span>
                 </div>
               </div>
             </div>
-            {error && <p className="text-red-500 text-sm mt-2">{error}</p>}
+            {error && <p className="text-rose-400 text-xs mt-2">{error}</p>}
           </CardFooter>
         </Card>
       </div>
 
       <div className="m-1">
-        <Card className="bg-white shadow-lg hover:shadow-xl transition-all duration-200 border-none overflow-hidden relative">
-          <div className={`absolute top-0 left-0 w-2 h-full ${results.investmentGap > 0 ? 'bg-red-500' : 'bg-emerald-500'}`}></div>
-          <CardHeader className="pl-6">
-            <CardTitle className="text-xl font-bold text-gray-800">
+        <Card className="bg-card/60 backdrop-blur-md border border-deco-gold/20 shadow-2xl rounded-sm overflow-hidden relative">
+          <div className={`absolute top-0 left-0 w-2 h-full ${results.investmentGap > 0 ? 'bg-rose-500' : 'bg-emerald-500'}`}></div>
+          <CardHeader className="pl-6 border-b border-white/10">
+            <CardTitle className="text-xl font-display font-semibold uppercase tracking-widest text-deco-gold">
               Risk Parity Triggers & Recommendations
             </CardTitle>
           </CardHeader>
@@ -595,35 +597,35 @@ export default function DeploymentDashboard({ planId }: { planId?: string | null
               <div className="space-y-4">
                 <div>
                   <p className="text-sm text-gray-500 font-medium">Total Portfolio Value</p>
-                  <p className="text-3xl font-bold text-gray-800">${(results.computedCash + results.computedEquity).toLocaleString(undefined, { maximumFractionDigits: 2 })}</p>
-                  <p className="text-xs text-gray-400 mt-1">Cash: ${results.computedCash.toLocaleString()} | Equity: ${results.computedEquity.toLocaleString()}</p>
+                  <p className="text-3xl font-bold text-white font-mono">${(results.computedCash + results.computedEquity).toLocaleString(undefined, { maximumFractionDigits: 2 })}</p>
+                  <p className="text-xs text-muted-foreground mt-1">Cash: ${results.computedCash.toLocaleString()} | Equity: ${results.computedEquity.toLocaleString()}</p>
                 </div>
                 <div>
-                  <p className="text-sm text-gray-500 font-medium">Target Equity Alloc. (VIX-Adjusted)</p>
-                  <p className="text-3xl font-bold text-gray-800">${(results.targetValue * (1 - results.targetCashPercentage)).toLocaleString(undefined, { maximumFractionDigits: 2 })} <span className="text-lg text-gray-500">({(100 - results.targetCashPercentage * 100).toFixed(0)}%)</span></p>
-                  <p className="text-xs text-gray-400 mt-1">Current Equity: ${results.computedEquity.toLocaleString()}</p>
+                  <p className="text-xs font-display uppercase tracking-widest text-muted-foreground">Target Equity Alloc. (VIX-Adjusted)</p>
+                  <p className="text-3xl font-bold text-white font-mono">${(results.targetValue * (1 - results.targetCashPercentage)).toLocaleString(undefined, { maximumFractionDigits: 2 })} <span className="text-sm text-deco-gold">({(100 - results.targetCashPercentage * 100).toFixed(0)}%)</span></p>
+                  <p className="text-xs text-muted-foreground mt-1">Current Equity: ${results.computedEquity.toLocaleString()}</p>
                 </div>
                 <div>
-                  <p className="text-sm text-gray-500 font-medium">Equity Investment Gap</p>
-                  <p className={`text-2xl font-bold ${results.investmentGap > 0 ? 'text-red-500' : 'text-emerald-500'}`}>
+                  <p className="text-xs font-display uppercase tracking-widest text-muted-foreground">Equity Investment Gap</p>
+                  <p className={`text-2xl font-bold font-mono ${results.investmentGap > 0 ? 'text-rose-400' : 'text-emerald-400'}`}>
                     ${Math.abs(results.investmentGap).toLocaleString(undefined, { maximumFractionDigits: 2 })} {results.investmentGap > 0 ? '(Underweight)' : '(Overweight)'}
                   </p>
                 </div>
               </div>
 
-              <div className={`p-6 rounded-xl border ${results.investmentGap > 0 ? 'bg-red-50 border-red-100' : 'bg-emerald-50 border-emerald-100'}`}>
-                <h3 className="text-sm font-bold uppercase tracking-wider mb-1 text-gray-500">Action Required</h3>
-                <p className={`text-2xl font-bold mb-2 ${results.investmentGap > 0 ? 'text-red-700' : 'text-emerald-700'}`}>
+              <div className={`p-6 rounded-sm border ${results.investmentGap > 0 ? 'bg-rose-950/40 border-rose-500/30' : 'bg-emerald-950/40 border-emerald-500/30'}`}>
+                <h3 className="text-xs font-display uppercase tracking-widest text-muted-foreground mb-1">Action Required</h3>
+                <p className={`text-2xl font-display font-semibold uppercase tracking-wider mb-2 ${results.investmentGap > 0 ? 'text-rose-300' : 'text-emerald-300'}`}>
                   {results.recommendation.action}
                 </p>
-                <div className="bg-white/60 px-4 py-2 rounded-lg mb-4">
-                  <p className="font-mono text-sm font-semibold text-gray-800">Strategy: {results.recommendation.strategy}</p>
+                <div className="bg-slate-900/90 border border-white/10 px-4 py-2 rounded-sm mb-4">
+                  <p className="font-mono text-xs font-semibold text-deco-gold">Strategy: {results.recommendation.strategy}</p>
                 </div>
-                <p className="text-gray-700 text-sm">{results.recommendation.description}</p>
+                <p className="text-white/90 text-xs font-sans">{results.recommendation.description}</p>
                 
                 {plan.details.mockVix > 25 && (
-                  <div className="mt-4 p-3 bg-amber-100 text-amber-800 rounded-lg text-sm font-medium flex items-center gap-2">
-                    <span className="text-xl">⚠️</span> High Volatility Detected (VIX &gt; 25). Contribution scaled to ${results.adjustedContribution.toLocaleString()}
+                  <div className="mt-4 p-3 bg-amber-500/20 border border-amber-500/40 text-amber-300 rounded-sm text-xs font-medium flex items-center gap-2">
+                    <span className="text-sm">⚠️</span> High Volatility Detected (VIX &gt; 25). Contribution scaled to ${results.adjustedContribution.toLocaleString()}
                   </div>
                 )}
               </div>
@@ -635,22 +637,22 @@ export default function DeploymentDashboard({ planId }: { planId?: string | null
               priorityGap={results.priorityGap}
             />
 
-            <div className="border-t pt-6 mt-6">
-              <h3 className="text-lg font-bold text-gray-800 mb-2">Project Long-Term</h3>
-              <p className="text-sm text-gray-500 mb-4">
+            <div className="border-t border-white/10 pt-6 mt-6">
+              <h3 className="text-xs font-display uppercase tracking-widest text-deco-gold mb-2">Project Long-Term</h3>
+              <p className="text-xs text-muted-foreground mb-4">
                 Ship this portfolio&apos;s current value and target return into a long-term projection plan.
               </p>
               <div className="flex flex-col sm:flex-row gap-4">
                 <Button 
                   variant="outline" 
-                  className="w-full sm:w-auto border-blue-200 hover:bg-blue-50 text-blue-700"
+                  className="w-full sm:w-auto border-deco-gold/40 text-deco-gold hover:bg-deco-gold/10 text-xs font-display uppercase tracking-wider"
                   onClick={() => router.push(`/savings?balance=${results.computedCash + results.computedEquity}&returnRate=${plan.details.targetAnnualReturn}`)}
                 >
                   Convert to Savings Plan
                 </Button>
                 <Button 
                   variant="outline" 
-                  className="w-full sm:w-auto border-purple-200 hover:bg-purple-50 text-purple-700"
+                  className="w-full sm:w-auto border-white/20 text-white hover:bg-white/10 text-xs font-display uppercase tracking-wider"
                   onClick={() => router.push(`/income?balance=${results.computedCash + results.computedEquity}&returnRate=${plan.details.targetAnnualReturn}`)}
                 >
                   Convert to Income Plan

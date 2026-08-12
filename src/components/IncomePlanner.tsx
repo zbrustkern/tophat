@@ -444,15 +444,15 @@ export default function IncomePlanner({
               )}
             </div>
           </CardContent>
-          <CardFooter className="bg-white border-t py-4">
+          <CardFooter className="bg-slate-950/80 border-t border-white/10 py-4">
             <div className="flex w-full items-center justify-between">
-            <Button 
+              <Button 
                 onClick={updateChart} 
-                variant={isDirty ? "default" : "secondary"}
-                >
+                className={isDirty ? "bg-deco-gold hover:bg-deco-brass text-slate-950 font-display uppercase tracking-widest text-xs font-semibold" : "bg-slate-800 text-slate-300 font-display uppercase text-xs"}
+              >
                 {isDirty ? "Recalculate" : "Calculate"}
-            </Button>
-              <Button onClick={handleSave} disabled={loading}>
+              </Button>
+              <Button onClick={handleSave} disabled={loading} className="bg-deco-gold hover:bg-deco-brass text-slate-950 font-display uppercase tracking-widest text-xs font-semibold">
                 {plan.id === 'new' ? 'Save Plan' : 'Update Plan'}
               </Button>
             </div>
@@ -461,28 +461,28 @@ export default function IncomePlanner({
       </div>
 
       <div className="m-1">
-        <Card className="bg-white shadow-lg hover:shadow-xl transition-all duration-200 border-none">
-          <CardHeader className="flex flex-col sm:flex-row gap-3 justify-between sm:items-center">
+        <Card className="bg-card/60 backdrop-blur-md border border-deco-gold/20 shadow-2xl rounded-sm">
+          <CardHeader className="flex flex-col sm:flex-row gap-3 justify-between sm:items-center border-b border-white/10">
             <div>
-              <CardTitle className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-blue-400 bg-clip-text text-transparent">
+              <CardTitle className="text-2xl font-display font-semibold uppercase tracking-widest text-deco-gold">
                 Income Expectations
               </CardTitle>
-              <CardDescription className="text-gray-500 font-medium mt-1">
+              <CardDescription className="text-muted-foreground font-light text-xs mt-1">
                 How much passive income are you set to earn?
               </CardDescription>
             </div>
             
             {/* Scenario Analysis Dropdown */}
-            <div className="flex items-center gap-2 bg-slate-50 p-2 rounded-md border">
-              <Label htmlFor="comparePlan" className="text-sm font-semibold text-slate-700 whitespace-nowrap">Compare to:</Label>
+            <div className="flex items-center gap-2 bg-slate-900 p-2 rounded-sm border border-white/10">
+              <Label htmlFor="comparePlan" className="text-xs font-display uppercase tracking-widest text-muted-foreground whitespace-nowrap">Compare to:</Label>
               <select
                 id="comparePlan"
                 value={comparisonPlanId}
                 onChange={(e) => {
                   setComparisonPlanId(e.target.value);
-                  setIsDirty(true); // Prompt them to hit recalculate
+                  setIsDirty(true);
                 }}
-                className="h-8 rounded-md border border-slate-200 bg-white px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="h-8 rounded-sm border border-white/20 bg-slate-950 text-white px-2 py-1 text-xs focus:outline-none focus:border-deco-gold"
               >
                 <option value="none">None</option>
                 {plans
@@ -494,7 +494,7 @@ export default function IncomePlanner({
               </select>
             </div>
           </CardHeader>
-          <CardContent className="bg-gray-50/50 flex flex-col gap-6">
+          <CardContent className="pt-6 flex flex-col gap-6">
             <IncomeChart 
               chartData={chartData} 
               secondaryChartData={comparisonChartData.length > 0 ? comparisonChartData : undefined}
@@ -502,8 +502,8 @@ export default function IncomePlanner({
 
             {/* Delta Board */}
             {comparisonChartData.length > 0 && chartData.length > 0 && (
-              <div className="bg-white p-4 rounded-lg border shadow-sm">
-                <h3 className="text-lg font-semibold text-slate-800 mb-4 text-center">Scenario Comparison (Primary vs Comparison)</h3>
+              <div className="bg-slate-900/90 p-4 rounded-sm border border-white/10">
+                <h3 className="text-xs font-display uppercase tracking-widest text-deco-gold mb-4 text-center">Scenario Comparison (Primary vs Comparison)</h3>
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                   {[10, 20, 30, 40].map(yearsOut => {
                     // yearIndex is the number of years from start. The first index is year 0, so year 10 is index 10.

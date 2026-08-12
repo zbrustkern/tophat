@@ -183,39 +183,39 @@ export default function CollegePlanner({ planId }: { planId: string | null }) {
     <main className="flex flex-col">
       <PlanSelector planType="college" currentPlanId={planId || null} basePath="/college" />
       <div className="m-1">
-        <Card className="bg-white shadow-lg hover:shadow-xl transition-all duration-200 border-none">
-          <CardHeader className="space-y-1 pb-4">
-            <CardTitle className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-blue-400 bg-clip-text text-transparent">
+        <Card className="bg-card/60 backdrop-blur-md border border-deco-gold/20 shadow-2xl rounded-sm">
+          <CardHeader className="space-y-1 pb-4 border-b border-white/10">
+            <CardTitle className="text-2xl font-display font-semibold uppercase tracking-widest text-deco-gold">
               College Savings Planner (529)
             </CardTitle>
-            <CardDescription className="text-gray-500 font-medium">
+            <CardDescription className="text-muted-foreground font-light text-xs">
               Plan for your child&apos;s education
             </CardDescription>
           </CardHeader>
-          <CardContent className="bg-gray-50/50">
+          <CardContent className="pt-6 space-y-6">
             <PlanNameField value={plan.planName} onChange={handleChange} />
             
             <div className="flex gap-2 mb-6">
               <Button
-                variant={plan.details.calculationMode === 'goal' ? 'default' : 'secondary'}
                 onClick={() => handleModeChange('goal')}
                 type="button"
+                className={plan.details.calculationMode === 'goal' ? "bg-deco-gold hover:bg-deco-brass text-slate-950 font-display uppercase text-xs font-semibold" : "bg-slate-800 text-white font-display uppercase text-xs"}
               >
                 Calculate Final Balance
               </Button>
               <Button
-                variant={plan.details.calculationMode === 'contribution' ? 'default' : 'secondary'}
                 onClick={() => handleModeChange('contribution')}
                 type="button"
+                className={plan.details.calculationMode === 'contribution' ? "bg-deco-gold hover:bg-deco-brass text-slate-950 font-display uppercase text-xs font-semibold" : "bg-slate-800 text-white font-display uppercase text-xs"}
               >
                 Calculate Required Contribution
               </Button>
             </div>
 
-            <div className="mb-6 p-4 bg-sky-50 rounded-lg border border-sky-100 shadow-sm flex items-center justify-between">
+            <div className="mb-6 p-4 bg-slate-900/90 rounded-sm border border-deco-gold/30 shadow-sm flex items-center justify-between">
               <div>
-                <Label className="text-base font-semibold text-sky-900">Use Global Settings</Label>
-                <p className="text-sm text-sky-700">Sync Expected Return Rate with your global defaults.</p>
+                <Label className="text-xs font-display uppercase tracking-widest text-deco-gold">Use Global Settings</Label>
+                <p className="text-xs text-muted-foreground">Sync Expected Return Rate with your global defaults.</p>
               </div>
               <Switch 
                 checked={plan.details.useGlobalSettings !== false} 
@@ -274,23 +274,23 @@ export default function CollegePlanner({ planId }: { planId: string | null }) {
               )}
 
               <div className="flex flex-col gap-2">
-                <Label className="text-sm font-medium text-gray-700">Linked Portfolios</Label>
-                <div className="flex flex-col gap-1.5 p-3 border rounded-md bg-white max-h-40 overflow-y-auto">
+                <Label className="text-xs font-display uppercase tracking-widest text-muted-foreground">Linked Portfolios</Label>
+                <div className="flex flex-col gap-1.5 p-3 border border-white/20 rounded-sm bg-slate-950 max-h-40 overflow-y-auto">
                   {plans.filter(p => p.planType === 'rebalance').length === 0 && (
-                    <span className="text-xs text-slate-500 italic">No portfolios available.</span>
+                    <span className="text-xs text-muted-foreground italic">No portfolios available.</span>
                   )}
                   {plans.filter(p => p.planType === 'rebalance').map(p => {
                     const isChecked = (plan.details.linkedPortfolioIds || []).includes(p.id);
                     return (
-                      <label key={p.id} className="flex items-center gap-2 text-sm cursor-pointer hover:bg-slate-50 p-1 rounded">
+                      <label key={p.id} className="flex items-center gap-2 text-xs cursor-pointer hover:bg-white/5 p-1 rounded text-white">
                         <input 
                           type="checkbox" 
                           checked={isChecked} 
                           onChange={() => handlePortfolioToggle(p.id)}
-                          className="rounded border-slate-300 w-4 h-4 text-blue-600 focus:ring-blue-500"
+                          className="rounded border-white/20 bg-slate-900 w-4 h-4 text-deco-gold focus:ring-deco-gold"
                         />
-                        <span className="font-medium text-slate-700">{p.planName}</span>
-                        {(p as any).details?.institution && <span className="text-xs text-slate-400">({(p as any).details.institution})</span>}
+                        <span className="font-medium text-white">{p.planName}</span>
+                        {(p as any).details?.institution && <span className="text-xs text-muted-foreground">({(p as any).details.institution})</span>}
                       </label>
                     );
                   })}
@@ -298,16 +298,16 @@ export default function CollegePlanner({ planId }: { planId: string | null }) {
               </div>
             </div>
           </CardContent>
-          <CardFooter className="bg-white border-t py-4">
+          <CardFooter className="bg-slate-950/80 border-t border-white/10 py-4">
             <div className="flex w-full items-center justify-between">
               <Button 
                 onClick={updateChart} 
-                variant={isDirty ? "default" : "secondary"}
+                className={isDirty ? "bg-deco-gold hover:bg-deco-brass text-slate-950 font-display uppercase tracking-widest text-xs font-semibold" : "bg-slate-800 text-slate-300 font-display uppercase tracking-widest text-xs"}
               >
                 {isDirty ? "Recalculate" : "Calculate"}
               </Button>
               
-              <div className="text-lg font-semibold text-center mx-4">
+              <div className="text-sm font-display uppercase tracking-wider text-deco-gold font-semibold text-center mx-4">
                 {calculatedValue !== null && (
                   plan.details.calculationMode === 'goal' 
                     ? `Projected Final Balance: $${calculatedValue.toLocaleString()}`
@@ -315,7 +315,7 @@ export default function CollegePlanner({ planId }: { planId: string | null }) {
                 )}
               </div>
 
-              <Button onClick={handleSave} disabled={loading}>
+              <Button onClick={handleSave} disabled={loading} className="bg-deco-gold hover:bg-deco-brass text-slate-950 font-display uppercase tracking-widest text-xs font-semibold">
                 {plan.id === 'new' ? 'Save Plan' : 'Update Plan'}
               </Button>
             </div>
@@ -324,12 +324,12 @@ export default function CollegePlanner({ planId }: { planId: string | null }) {
       </div>
 
       <div className="m-1">
-        <Card className="bg-white shadow-lg hover:shadow-xl transition-all duration-200 border-none">
-          <CardHeader className="flex gap-3">
-            <CardTitle className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-blue-400 bg-clip-text text-transparent">
+        <Card className="bg-card/60 backdrop-blur-md border border-deco-gold/20 shadow-2xl rounded-sm">
+          <CardHeader className="flex gap-3 border-b border-white/10">
+            <CardTitle className="text-2xl font-display font-semibold uppercase tracking-widest text-deco-gold">
               College Growth
             </CardTitle>
-            <CardDescription className="text-gray-500 font-medium">
+            <CardDescription className="text-muted-foreground font-light text-xs">
               See how your education fund grows over time
             </CardDescription>
           </CardHeader>

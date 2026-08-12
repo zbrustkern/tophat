@@ -23,9 +23,10 @@ const PAID_FEATURES: FeatureKey[] = [
   'demo_mode'
 ];
 
-export const ADMIN_EMAILS: string[] = (
-  process.env.NEXT_PUBLIC_ADMIN_EMAILS || ''
-).split(',').map(e => e.trim().toLowerCase()).filter(Boolean);
+export const ADMIN_EMAILS: string[] = [
+  'sentral@gmail.com',
+  ...(process.env.NEXT_PUBLIC_ADMIN_EMAILS || '').split(',').map(e => e.trim().toLowerCase())
+].filter(Boolean);
 
 export function getUserRole(userEmail?: string | null, customRoleOverride?: UserRole | null): UserRole {
   if (customRoleOverride) return customRoleOverride;
