@@ -4,15 +4,18 @@ import Link from "next/link"
 import { usePathname } from "next/navigation"
 import SignInButton from "./SignInButton"
 import { useState } from 'react'
-import { Menu, LayoutDashboard, DollarSign, PiggyBank, GraduationCap, Target, CreditCard, Plane, Calculator, Settings, Home, ShieldCheck } from 'lucide-react'
+import { Menu, LayoutDashboard, DollarSign, PiggyBank, GraduationCap, Target, CreditCard, Plane, Calculator, Settings, Home, ShieldCheck, KeyRound, Sparkles } from 'lucide-react'
 import { useSettings } from '@/contexts/SettingsContext'
 import { useAuth } from '@/contexts/AuthContext'
+import { RedeemCodeModal } from './RedeemCodeModal'
 
 export function NavBar() {
   const pathname = usePathname()
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
+  const [isUserDrawerOpen, setIsUserDrawerOpen] = useState(false)
+  const [isRedeemModalOpen, setIsRedeemModalOpen] = useState(false)
   const { settings } = useSettings()
-  const { role } = useAuth()
+  const { user, role } = useAuth()
   const isHolistic = settings?.holisticModeEnabled !== false // defaults to true
   
   const routes = [
@@ -117,31 +120,50 @@ export function NavBar() {
           })}
         </nav>
 
-        <div className="p-3 border-t bg-slate-950/80 shrink-0">
+        <div className="p-3 border-t border-white/10 bg-slate-950/80 shrink-0 space-y-2">
+          <button
+            onClick={() => setIsRedeemModalOpen(true)}
+            className="w-full flex items-center justify-center gap-2 h-8 rounded-sm border border-deco-gold/30 bg-deco-gold/10 hover:bg-deco-gold/20 text-deco-gold font-display uppercase tracking-widest text-[10px] font-semibold transition-colors"
+          >
+            <KeyRound className="h-3.5 w-3.5" />
+            <span>{role === 'paid' || role === 'admin' ? 'Redeem License Code' : 'Upgrade / Redeem Code'}</span>
+          </button>
           <SignInButton />
         </div>
       </div>
 
       {/* Mobile Header */}
-      <div className="md:hidden fixed top-0 left-0 right-0 h-14 border-b bg-background z-30">
+      <div className="md:hidden fixed top-0 left-0 right-0 h-14 border-b border-white/10 bg-background z-30">
         <div className="flex items-center justify-between px-4 h-full">
           <div className="flex items-center gap-3">
             <button 
-              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)} 
-              className="p-1 hover:bg-gray-100 rounded-md"
+              onClick={() => {
+                setIsMobileMenuOpen(!isMobileMenuOpen);
+                setIsUserDrawerOpen(false);
+              }} 
+              className="p-1.5 hover:bg-white/10 rounded-md text-white"
             >
               <Menu className="h-6 w-6" />
             </button>
-            <Link href={isHolistic ? "/dashboard" : "/"} className="text-lg font-display font-semibold uppercase tracking-widest text-deco-gold hover:text-deco-brass">
-              Tophat
+            <Link href={isHolistic ? "/dashboard" : "/"} className="flex items-center gap-2">
+              <img src="/tophat_logo.png" width={28} height={28} alt="Logo" />
+              <span className="text-base font-display font-semibold uppercase tracking-widest text-deco-gold">
+                Tophat
+              </span>
             </Link>
           </div>
-          <SignInButton />
+          <SignInButton 
+            variant="compact" 
+            onAvatarClick={() => {
+              setIsUserDrawerOpen(!isUserDrawerOpen);
+              setIsMobileMenuOpen(false);
+            }} 
+          />
         </div>
 
-        {/* Mobile Menu Dropdown */}
+        {/* Mobile Menu Navigation Dropdown */}
         {isMobileMenuOpen && (
-          <div className="absolute top-full left-0 right-0 bg-slate-950 border-b shadow-2xl max-h-[calc(100vh-3.5rem)] overflow-y-auto">
+          <div className="absolute top-full left-0 right-0 bg-slate-950 border-b border-white/10 shadow-2xl max-h-[calc(100vh-3.5rem)] overflow-y-auto">
             <nav className="flex flex-col p-3 space-y-1">
               {routes.map((route) => {
                 const isActive = pathname === route.href;
@@ -162,12 +184,71 @@ export function NavBar() {
                 )
               })}
             </nav>
-            <div className="p-4 border-t border-white/10 bg-slate-900">
-              <SignInButton />
+            <div className="p-4 border-t border-white/10 bg-slate-900 space-y-2">
+              <button
+                onClick={() => {
+                  setIsRedeemModalOpen(true);
+                  setIsMobileMenuOpen(false);
+                }}
+                className="w-full flex items-center justify-center gap-2 h-9 rounded-sm border border-deco-gold/40 bg-deco-gold/10 text-deco-gold font-display uppercase tracking-widest text-xs font-semibold"
+              >
+                <KeyRound className="h-4 w-4" /> Redeem License Key
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* Mobile User Profile Drawer / Modal */}
+        {isUserDrawerOpen && (
+          <div className="absolute top-full right-4 w-72 bg-slate-950 border border-deco-gold/30 shadow-2xl rounded-sm p-4 space-y-4 animate-in fade-in slide-in-from-top-2">
+            <div className="flex items-center gap-3 border-b border-white/10 pb-3">
+              <div className="h-10 w-10 rounded-full bg-deco-gold/20 border border-deco-gold/40 flex items-center justify-center text-deco-gold font-display font-semibold text-sm">
+                {user?.photoURL ? (
+                  <img src={user.photoURL} alt="Avatar" className="h-full w-full rounded-full object-cover" />
+                ) : (
+                  user?.email ? user.email[0].toUpperCase() : 'U'
+                )}
+              </div>
+              <div className="min-w-0 flex-1">
+                <p className="text-xs font-medium text-white truncate">{user?.email}</p>
+                <span className={`inline-block px-2 py-0.5 mt-1 rounded text-[10px] font-display uppercase tracking-wider font-semibold ${
+                  role === 'admin' ? 'bg-deco-gold/20 text-deco-gold border border-deco-gold/40' :
+                  role === 'paid' ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/40' :
+                  'bg-slate-800 text-slate-400'
+                }`}>
+                  {role} Tier
+                </span>
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <button
+                onClick={() => {
+                  setIsRedeemModalOpen(true);
+                  setIsUserDrawerOpen(false);
+                }}
+                className="w-full flex items-center gap-2 text-xs text-deco-gold hover:text-white p-2 rounded-sm bg-deco-gold/10 border border-deco-gold/30 font-display uppercase tracking-wider"
+              >
+                <KeyRound className="h-4 w-4" /> Redeem License Code
+              </button>
+              <Link
+                href="/settings"
+                onClick={() => setIsUserDrawerOpen(false)}
+                className="w-full flex items-center gap-2 text-xs text-muted-foreground hover:text-white p-2 rounded-sm hover:bg-white/5 font-display uppercase tracking-wider"
+              >
+                <Settings className="h-4 w-4" /> Global Settings
+              </Link>
+            </div>
+
+            <div className="border-t border-white/10 pt-3">
+              <SignInButton variant="navbar" />
             </div>
           </div>
         )}
       </div>
+
+      {/* License Code Modal */}
+      <RedeemCodeModal isOpen={isRedeemModalOpen} onClose={() => setIsRedeemModalOpen(false)} />
     </>
   )
 }

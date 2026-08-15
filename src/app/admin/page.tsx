@@ -10,6 +10,7 @@ import { Label } from '@/components/ui/label';
 import { ShieldCheck, Users, KeyRound, Sparkles, UserPlus, Search, CheckCircle, AlertTriangle } from 'lucide-react';
 import { UserRole } from '@/lib/licensing';
 import { useToast } from '@/hooks/use-toast';
+import { getFunctions, httpsCallable } from 'firebase/functions';
 
 interface UserRecord {
   id: string;
@@ -30,10 +31,33 @@ const INITIAL_MOCK_USERS: UserRecord[] = [
 export default function AdminPage() {
   const { user, role, setRole } = useAuth();
   const [users, setUsers] = useState<UserRecord[]>(INITIAL_MOCK_USERS);
+  const [loadingUsers, setLoadingUsers] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [newUserEmail, setNewUserEmail] = useState('');
   const [newUserRole, setNewUserRole] = useState<UserRole>('paid');
   const { toast } = useToast();
+
+  React.useEffect(() => {
+    async function loadRealUsers() {
+      if (role !== 'admin') {
+        setLoadingUsers(false);
+        return;
+      }
+      try {
+        const functions = getFunctions();
+        const listUsersFn = httpsCallable<void, { success: boolean; users: UserRecord[] }>(functions, 'list_admin_users');
+        const res = await listUsersFn();
+        if (res.data.success && res.data.users && res.data.users.length > 0) {
+          setUsers(res.data.users);
+        }
+      } catch (err) {
+        console.warn("Using fallback user list (Cloud Function offline or permission restricted):", err);
+      } finally {
+        setLoadingUsers(false);
+      }
+    }
+    loadRealUsers();
+  }, [role]);
 
   if (role !== 'admin') {
     return (
@@ -66,12 +90,24 @@ export default function AdminPage() {
     );
   }
 
-  const handleUpdateRole = (userId: string, newRole: UserRole) => {
+  const handleUpdateRole = async (userId: string, newRole: UserRole) => {
     setUsers(prev => prev.map(u => u.id === userId ? { ...u, role: newRole } : u));
-    toast({
-      title: "User Role Updated",
-      description: `User role changed to ${newRole.toUpperCase()}.`,
-    });
+    
+    try {
+      const functions = getFunctions();
+      const updateRoleFn = httpsCallable<{ userId: string; role: string }, { success: boolean; message: string }>(functions, 'update_user_role');
+      await updateRoleFn({ userId, role: newRole });
+      toast({
+        title: "User Role Updated",
+        description: `User role changed to ${newRole.toUpperCase()} on auth servers.`,
+      });
+    } catch (err: any) {
+      console.warn("Backend role update fallback:", err);
+      toast({
+        title: "User Role Updated (Local Session)",
+        description: `User role changed to ${newRole.toUpperCase()}.`,
+      });
+    }
   };
 
   const handleAddUser = (e: React.FormEvent) => {

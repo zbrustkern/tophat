@@ -29,7 +29,10 @@ function GoogleIcon() {
 
 import { LogOut } from 'lucide-react';
 
-export default function SignInButton({ variant = 'navbar' }: { variant?: 'navbar' | 'hero' }) {
+export default function SignInButton({ variant = 'navbar', onAvatarClick }: { 
+  variant?: 'navbar' | 'hero' | 'compact';
+  onAvatarClick?: () => void;
+}) {
   const { user } = useAuth();
   const { toast } = useToast();
 
@@ -59,11 +62,31 @@ export default function SignInButton({ variant = 'navbar' }: { variant?: 'navbar
   };
 
   if (user) {
+    if (variant === 'compact') {
+      return (
+        <button
+          onClick={onAvatarClick}
+          className="h-8 w-8 rounded-full bg-deco-gold/20 border border-deco-gold/50 flex items-center justify-center text-deco-gold font-display font-semibold text-xs shrink-0 hover:scale-105 transition-transform"
+          title={user.email || 'User Account'}
+        >
+          {user.photoURL ? (
+            <img src={user.photoURL} alt="Avatar" className="h-full w-full rounded-full object-cover" />
+          ) : (
+            user.email ? user.email[0].toUpperCase() : 'U'
+          )}
+        </button>
+      );
+    }
+
     return (
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 w-full">
         <div className="flex items-center gap-2 min-w-0">
           <div className="h-6 w-6 rounded-full bg-deco-gold/20 border border-deco-gold/40 flex items-center justify-center text-deco-gold font-display font-semibold text-xs shrink-0">
-            {user.email ? user.email[0].toUpperCase() : 'U'}
+            {user.photoURL ? (
+              <img src={user.photoURL} alt="Avatar" className="h-full w-full rounded-full object-cover" />
+            ) : (
+              user.email ? user.email[0].toUpperCase() : 'U'
+            )}
           </div>
           <span className="text-xs text-white/80 font-medium truncate max-w-[110px] sm:max-w-[130px]" title={user.email || ''}>
             {user.email}
