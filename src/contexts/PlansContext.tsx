@@ -5,11 +5,14 @@ import { useAuth } from './AuthContext';
 import { db } from '@/lib/firebase/clientApp';
 import { collection, query, where, onSnapshot } from 'firebase/firestore';
 import { Plan } from '@/types/chart';
+import { DEMO_PLANS } from '@/lib/demoEngine';
 
 interface PlansContextType {
   plans: Plan[];
   loading: boolean;
   error: string | null;
+  isDemoMode: boolean;
+  toggleDemoMode: (enabled?: boolean) => void;
   refreshPlans: () => Promise<void>;
 }
 
@@ -20,8 +23,31 @@ export const PlansProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   const [plans, setPlans] = useState<Plan[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [isDemoMode, setIsDemoMode] = useState<boolean>(() => {
+    if (typeof window !== 'undefined') {
+      return localStorage.getItem('tophat_demo_mode') === 'true';
+    }
+    return false;
+  });
+
+  const toggleDemoMode = (enabled?: boolean) => {
+    setIsDemoMode(prev => {
+      const next = enabled !== undefined ? enabled : !prev;
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('tophat_demo_mode', String(next));
+      }
+      return next;
+    });
+  };
 
   useEffect(() => {
+    if (isDemoMode) {
+      setPlans(DEMO_PLANS);
+      setLoading(false);
+      setError(null);
+      return;
+    }
+
     if (!user || !db) {
       setPlans([]);
       setLoading(false);
@@ -83,13 +109,13 @@ export const PlansProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     });
 
     return () => unsubscribe();
-  }, [user]);
+  }, [user, isDemoMode]);
 
   // Dummy refresh function since onSnapshot is real-time
   const refreshPlans = async () => {};
 
   return (
-    <PlansContext.Provider value={{ plans, loading, error, refreshPlans }}>
+    <PlansContext.Provider value={{ plans, loading, error, isDemoMode, toggleDemoMode, refreshPlans }}>
       {children}
     </PlansContext.Provider>
   );

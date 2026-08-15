@@ -2,6 +2,7 @@ import { Inter, Outfit } from "next/font/google"
 import { cn } from "@/lib/utils"
 import { Providers } from "@/components/providers"
 import { NavBar } from "@/components/NavBar"
+import { DemoBanner } from "@/components/DemoBanner"
 import { Toaster } from "@/components/ui/toaster"
 import "./globals.css"
 
@@ -25,6 +26,7 @@ export default function RootLayout({
             <NavBar />
             {/* Main content wrapper with proper offset and padding */}
             <div className="flex-1 md:ml-64">
+              <DemoBanner />
               {/* Mobile header offset */}
               <div className="h-14 md:h-0" />
               {/* Content container */}

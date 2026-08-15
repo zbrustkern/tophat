@@ -5,11 +5,13 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { KeyRound, ShieldCheck, UserCheck, Sparkles, Copy, Check } from 'lucide-react';
+import { KeyRound, ShieldCheck, UserCheck, Sparkles, Copy, Check, Eye } from 'lucide-react';
 import { generateAccessCode, UserRole } from '@/lib/licensing';
 import { useToast } from '@/hooks/use-toast';
+import { usePlans } from '@/contexts/PlansContext';
 
 export default function AdminDashboard({ currentRole = 'admin', onRoleChange }: { currentRole?: UserRole; onRoleChange?: (role: UserRole) => void }) {
+  const { isDemoMode, toggleDemoMode } = usePlans();
   const [recipientEmail, setRecipientEmail] = useState('');
   const [generatedKey, setGeneratedKey] = useState<string | null>(null);
   const [inputKey, setInputKey] = useState('');
@@ -81,6 +83,30 @@ export default function AdminDashboard({ currentRole = 'admin', onRoleChange }: 
               ))}
             </div>
           )}
+        </CardHeader>
+      </Card>
+
+      {/* Demo Profile Mode Switcher Card */}
+      <Card className="bg-card/60 backdrop-blur-md border border-deco-gold/30 rounded-sm">
+        <CardHeader className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+          <div>
+            <CardTitle className="text-base font-display uppercase tracking-widest text-deco-gold flex items-center gap-2">
+              <Eye className="h-4 w-4 text-deco-gold" /> Interactive Demo Profile Mode
+            </CardTitle>
+            <CardDescription className="text-xs text-muted-foreground">
+              Switch Tophat into Demo Profile Mode ($1.25M Multi-Asset Portfolio) to test features and demonstrate app capabilities.
+            </CardDescription>
+          </div>
+          <Button
+            onClick={() => toggleDemoMode()}
+            className={`font-display uppercase tracking-wider text-xs font-semibold px-4 ${
+              isDemoMode 
+                ? 'bg-rose-500/20 text-rose-300 border border-rose-500/40 hover:bg-rose-500/30' 
+                : 'bg-deco-gold hover:bg-deco-brass text-slate-950 shadow-md'
+            }`}
+          >
+            {isDemoMode ? "Exit Demo Profile" : "Activate $1.25M Demo Profile"}
+          </Button>
         </CardHeader>
       </Card>
 

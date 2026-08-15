@@ -5,6 +5,7 @@ import { useAuth } from './AuthContext';
 import { db } from '@/lib/firebase/clientApp';
 import { doc, onSnapshot, setDoc } from 'firebase/firestore';
 import { GlobalSettings } from '@/types/chart';
+import { DEMO_SETTINGS } from '@/lib/demoEngine';
 
 interface SettingsContextType {
   settings: GlobalSettings | null;
@@ -40,6 +41,14 @@ export const SettingsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
+    const isDemo = typeof window !== 'undefined' && localStorage.getItem('tophat_demo_mode') === 'true';
+    if (isDemo) {
+      setSettings(DEMO_SETTINGS);
+      setLoading(false);
+      setError(null);
+      return;
+    }
+
     if (!user || !db) {
       setSettings(null);
       setLoading(false);
