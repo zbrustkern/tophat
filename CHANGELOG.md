@@ -1,4 +1,10 @@
-# [1.13.0](https://github.com/zbrustkern/tophat/compare/v1.12.0...v1.13.0) (2026-08-11)
+## [2.0.1](https://github.com/zbrustkern/tophat/compare/v2.0.0...v2.0.1) (2026-08-15)
+
+### Features
+
+* **v2.0:** launch Tophat Financial 2.0 release, Python Admin API, Universal Code Redemption, and Interactive Demo Engine
+
+# [2.0.0](https://github.com/zbrustkern/tophat/compare/v1.12.0...v2.0.0) (2026-08-11)
 
 
 ### Features
