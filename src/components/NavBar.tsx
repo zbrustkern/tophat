@@ -120,14 +120,32 @@ export function NavBar() {
           })}
         </nav>
 
-        <div className="p-3 border-t border-white/10 bg-slate-950/80 shrink-0 space-y-2">
-          <button
-            onClick={() => setIsRedeemModalOpen(true)}
-            className="w-full flex items-center justify-center gap-2 h-8 rounded-sm border border-deco-gold/30 bg-deco-gold/10 hover:bg-deco-gold/20 text-deco-gold font-display uppercase tracking-widest text-[10px] font-semibold transition-colors"
-          >
-            <KeyRound className="h-3.5 w-3.5" />
-            <span>{role === 'paid' || role === 'admin' ? 'Redeem License Code' : 'Upgrade / Redeem Code'}</span>
-          </button>
+        <div className="p-3 border-t border-white/10 bg-slate-950/80 shrink-0 space-y-3">
+          {/* SaaS Pro Conversion Nudge - Only visible to Free / Guest users */}
+          {role !== 'paid' && role !== 'admin' && (
+            <div className="p-3 bg-slate-900/90 border border-deco-gold/30 rounded-sm space-y-2">
+              <div className="flex items-center gap-1.5 text-xs font-display font-semibold uppercase tracking-wider text-deco-gold">
+                <Sparkles className="h-3.5 w-3.5 text-deco-gold" /> Unlock Tophat Pro
+              </div>
+              <p className="text-[10px] text-muted-foreground leading-tight">
+                Master Dashboard, HYSA Float Optimizer, and Next-Dollar Strategy.
+              </p>
+              <div className="pt-1 space-y-1.5">
+                <button
+                  onClick={() => setIsRedeemModalOpen(true)}
+                  className="w-full flex items-center justify-center gap-1.5 h-7 rounded-xs bg-deco-gold hover:bg-deco-brass text-slate-950 font-display uppercase tracking-wider text-[10px] font-bold shadow-sm"
+                >
+                  <Sparkles className="h-3 w-3" /> Upgrade to Pro
+                </button>
+                <button
+                  onClick={() => setIsRedeemModalOpen(true)}
+                  className="w-full text-[10px] text-center text-muted-foreground hover:text-deco-gold font-display uppercase tracking-wider block py-0.5"
+                >
+                  Have a key? Redeem Code
+                </button>
+              </div>
+            </div>
+          )}
           <SignInButton />
         </div>
       </div>
@@ -184,17 +202,19 @@ export function NavBar() {
                 )
               })}
             </nav>
-            <div className="p-4 border-t border-white/10 bg-slate-900 space-y-2">
-              <button
-                onClick={() => {
-                  setIsRedeemModalOpen(true);
-                  setIsMobileMenuOpen(false);
-                }}
-                className="w-full flex items-center justify-center gap-2 h-9 rounded-sm border border-deco-gold/40 bg-deco-gold/10 text-deco-gold font-display uppercase tracking-widest text-xs font-semibold"
-              >
-                <KeyRound className="h-4 w-4" /> Redeem License Key
-              </button>
-            </div>
+            {role !== 'paid' && role !== 'admin' && (
+              <div className="p-4 border-t border-white/10 bg-slate-900 space-y-2">
+                <button
+                  onClick={() => {
+                    setIsRedeemModalOpen(true);
+                    setIsMobileMenuOpen(false);
+                  }}
+                  className="w-full flex items-center justify-center gap-2 h-9 rounded-sm bg-deco-gold hover:bg-deco-brass text-slate-950 font-display uppercase tracking-widest text-xs font-semibold"
+                >
+                  <Sparkles className="h-4 w-4" /> Upgrade to Pro / Redeem Key
+                </button>
+              </div>
+            )}
           </div>
         )}
 
@@ -222,15 +242,17 @@ export function NavBar() {
             </div>
 
             <div className="space-y-2">
-              <button
-                onClick={() => {
-                  setIsRedeemModalOpen(true);
-                  setIsUserDrawerOpen(false);
-                }}
-                className="w-full flex items-center gap-2 text-xs text-deco-gold hover:text-white p-2 rounded-sm bg-deco-gold/10 border border-deco-gold/30 font-display uppercase tracking-wider"
-              >
-                <KeyRound className="h-4 w-4" /> Redeem License Code
-              </button>
+              {role !== 'paid' && role !== 'admin' && (
+                <button
+                  onClick={() => {
+                    setIsRedeemModalOpen(true);
+                    setIsUserDrawerOpen(false);
+                  }}
+                  className="w-full flex items-center gap-2 text-xs text-slate-950 font-semibold p-2 rounded-sm bg-deco-gold hover:bg-deco-brass font-display uppercase tracking-wider"
+                >
+                  <Sparkles className="h-4 w-4" /> Upgrade to Pro
+                </button>
+              )}
               <Link
                 href="/settings"
                 onClick={() => setIsUserDrawerOpen(false)}

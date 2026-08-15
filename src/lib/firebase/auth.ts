@@ -1,6 +1,8 @@
 import {
   GoogleAuthProvider,
   signInWithPopup,
+  signInWithEmailAndPassword,
+  createUserWithEmailAndPassword,
   onAuthStateChanged as _onAuthStateChanged,
   User as FirebaseUser,
 } from "firebase/auth";
@@ -27,7 +29,18 @@ export async function signInWithGoogle(): Promise<void> {
     await signInWithPopup(auth, provider);
   } catch (error) {
     console.error("Error signing in with Google", error);
+    throw error;
   }
+}
+
+export async function signInWithEmail(email: string, pass: string) {
+  if (!auth) throw new Error('Auth is not initialized');
+  return await signInWithEmailAndPassword(auth, email, pass);
+}
+
+export async function signUpWithEmail(email: string, pass: string) {
+  if (!auth) throw new Error('Auth is not initialized');
+  return await createUserWithEmailAndPassword(auth, email, pass);
 }
 
 export async function signOut(): Promise<void> {
@@ -38,6 +51,6 @@ export async function signOut(): Promise<void> {
   try {
     return auth.signOut();
   } catch (error) {
-    console.error("Error signing out with Google", error);
+    console.error("Error signing out", error);
   }
 }

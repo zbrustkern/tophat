@@ -27,7 +27,8 @@ function GoogleIcon() {
   );
 }
 
-import { LogOut } from 'lucide-react';
+import { LogOut, User } from 'lucide-react';
+import { AuthModal } from './AuthModal';
 
 export default function SignInButton({ variant = 'navbar', onAvatarClick }: { 
   variant?: 'navbar' | 'hero' | 'compact';
@@ -35,6 +36,8 @@ export default function SignInButton({ variant = 'navbar', onAvatarClick }: {
 }) {
   const { user } = useAuth();
   const { toast } = useToast();
+  const [isAuthModalOpen, setIsAuthModalOpen] = React.useState(false);
+  const [authTab, setAuthTab] = React.useState<'signin' | 'signup'>('signin');
 
   const handleSignIn = async () => {
     try {
@@ -106,23 +109,43 @@ export default function SignInButton({ variant = 'navbar', onAvatarClick }: {
 
   if (variant === 'hero') {
     return (
-      <Button 
-        onClick={handleSignIn}
-        size="lg"
-        className="bg-deco-gold hover:bg-deco-brass text-slate-950 font-display uppercase tracking-widest font-semibold px-8 py-6 text-sm shadow-lg shadow-deco-gold/20"
-      >
-        <GoogleIcon /> Sign in with Google
-      </Button>
+      <>
+        <Button 
+          onClick={() => { setAuthTab('signin'); setIsAuthModalOpen(true); }}
+          size="lg"
+          className="bg-deco-gold hover:bg-deco-brass text-slate-950 font-display uppercase tracking-widest font-semibold px-8 py-6 text-sm shadow-lg shadow-deco-gold/20"
+        >
+          Sign In / Create Account
+        </Button>
+        <AuthModal isOpen={isAuthModalOpen} onClose={() => setIsAuthModalOpen(false)} defaultTab={authTab} />
+      </>
+    );
+  }
+
+  if (variant === 'compact') {
+    return (
+      <>
+        <button
+          onClick={() => { setAuthTab('signin'); setIsAuthModalOpen(true); }}
+          className="px-3 py-1.5 rounded-sm border border-deco-gold/40 bg-deco-gold/10 text-deco-gold font-display text-xs tracking-wider uppercase font-semibold hover:bg-deco-gold/20 transition-colors"
+        >
+          Sign In
+        </button>
+        <AuthModal isOpen={isAuthModalOpen} onClose={() => setIsAuthModalOpen(false)} defaultTab={authTab} />
+      </>
     );
   }
 
   return (
-    <Button 
-      variant="outline"
-      onClick={handleSignIn}
-      className="h-9 w-full justify-center border-deco-gold/40 text-deco-gold hover:bg-deco-gold/10 font-display text-xs tracking-wider uppercase"
-    >
-      <GoogleIcon /> Sign in
-    </Button>
+    <>
+      <Button 
+        variant="outline"
+        onClick={() => { setAuthTab('signin'); setIsAuthModalOpen(true); }}
+        className="h-9 w-full justify-center border-deco-gold/40 text-deco-gold hover:bg-deco-gold/10 font-display text-xs tracking-wider uppercase"
+      >
+        Sign In / Sign Up
+      </Button>
+      <AuthModal isOpen={isAuthModalOpen} onClose={() => setIsAuthModalOpen(false)} defaultTab={authTab} />
+    </>
   );
 }
