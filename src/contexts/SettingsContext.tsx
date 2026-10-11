@@ -35,7 +35,7 @@ const defaultSettings: GlobalSettings = {
 const SettingsContext = createContext<SettingsContextType | undefined>(undefined);
 
 export const SettingsProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const { user } = useAuth();
+  const { user, loading: authLoading } = useAuth();
   const [settings, setSettings] = useState<GlobalSettings | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -49,8 +49,24 @@ export const SettingsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       return;
     }
 
+    if (authLoading) {
+      setLoading(true);
+      return;
+    }
+
     if (!user || !db) {
-      setSettings(null);
+      let initialSettings = defaultSettings;
+      if (typeof window !== 'undefined') {
+        const local = localStorage.getItem('tophat_local_settings');
+        if (local) {
+          try {
+            initialSettings = { ...defaultSettings, ...JSON.parse(local) };
+          } catch (e) {
+            console.warn("Failed to parse local settings:", e);
+          }
+        }
+      }
+      setSettings(initialSettings);
       setLoading(false);
       setError(null);
       return;
@@ -73,18 +89,31 @@ export const SettingsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       setError(null);
     }, (err) => {
       console.error("Error subscribing to global settings:", err);
-      setError("Failed to load global settings.");
+      setSettings(defaultSettings);
+      setError("Failed to load cloud settings (permissions or network). Using local defaults.");
       setLoading(false);
     });
 
     return () => unsubscribe();
-  }, [user]);
+  }, [user, authLoading]);
 
   const updateSettings = async (newSettings: Partial<GlobalSettings>) => {
-    if (!user || !db) throw new Error("Must be logged in to update settings.");
-    
-    const docRef = doc(db, 'users', user.uid, 'settings', 'global');
-    await setDoc(docRef, newSettings, { merge: true });
+    const merged = { ...(settings || defaultSettings), ...newSettings };
+    setSettings(merged);
+
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('tophat_local_settings', JSON.stringify(merged));
+    }
+
+    if (user && db) {
+      try {
+        const docRef = doc(db, 'users', user.uid, 'settings', 'global');
+        await setDoc(docRef, newSettings, { merge: true });
+      } catch (err) {
+        console.error("Failed to sync settings to Firestore:", err);
+        throw err;
+      }
+    }
   };
 
   return (

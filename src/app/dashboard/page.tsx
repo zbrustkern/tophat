@@ -35,8 +35,8 @@ const formatCurrency = (value: number) => {
 export default function DashboardPage() {
   const router = useRouter();
   const { user } = useAuth();
-  const { plans } = usePlans();
-  const { settings, updateSettings } = useSettings();
+  const { plans, loading: plansLoading } = usePlans();
+  const { settings, loading: settingsLoading, updateSettings } = useSettings();
   const { calculateMasterData } = useMasterCalculations();
 
   const incomePlans = useMemo(() => plans.filter(p => p.planType === 'income'), [plans]);
@@ -57,19 +57,33 @@ export default function DashboardPage() {
     });
   };
 
-  if (!settings?.activePlans) {
+  if (plansLoading || settingsLoading) {
+    return (
+      <main className="max-w-6xl mx-auto p-12 flex items-center justify-center">
+        <div className="text-center space-y-3">
+          <div className="h-8 w-8 mx-auto border-2 border-deco-gold border-t-transparent rounded-full animate-spin" />
+          <p className="font-display uppercase tracking-widest text-xs text-deco-gold">Loading Master Dashboard...</p>
+        </div>
+      </main>
+    );
+  }
+
+  if (plans.length === 0) {
     return (
       <main className="max-w-6xl mx-auto p-4 sm:p-6 lg:p-8">
-        <Card className="text-center py-12">
+        <Card className="text-center py-12 bg-slate-900 border border-deco-gold/30">
           <CardHeader>
-            <CardTitle className="text-2xl">Welcome to your Master Dashboard</CardTitle>
-            <CardDescription className="text-lg mt-2">
-              To view your holistic financial picture, you need to set your &quot;Active Plans&quot; in Global Settings.
+            <CardTitle className="text-2xl font-display uppercase tracking-widest text-deco-gold">Welcome to Tophat</CardTitle>
+            <CardDescription className="text-sm mt-2 text-muted-foreground">
+              To view your holistic financial picture, start by creating your first plan or completing the onboarding wizard.
             </CardDescription>
           </CardHeader>
-          <CardContent>
-            <Button onClick={() => router.push('/settings')} size="lg" className="mt-4">
-              Configure Global Settings <ArrowRight className="ml-2 h-4 w-4" />
+          <CardContent className="flex justify-center gap-4">
+            <Button onClick={() => router.push('/onboarding')} className="bg-deco-gold hover:bg-deco-brass text-slate-950 font-display uppercase tracking-wider text-xs font-semibold">
+              Start Onboarding <ArrowRight className="ml-2 h-4 w-4" />
+            </Button>
+            <Button onClick={() => router.push('/settings')} variant="outline" className="border-deco-gold/40 text-deco-gold font-display uppercase tracking-wider text-xs">
+              Configure Settings
             </Button>
           </CardContent>
         </Card>

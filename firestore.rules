@@ -1,0 +1,268 @@
+rules_version = '2';
+
+// ===============================================================
+// Assumed Data Model
+// ===============================================================
+//
+// Collection: users
+// Document ID: {userId} (matches Firebase Auth UID)
+// Fields:
+//   - role: string (optional, e.g. 'guest', 'free', 'paid', 'admin')
+//   - redeemedCode: string (optional, <= 50 chars)
+//   - email: string (optional, <= 100 chars)
+//   - displayName: string (optional, <= 100 chars)
+//   - createdAt: timestamp (optional)
+//   - lastUpdated: timestamp (optional)
+//
+// Collection: users/{userId}/settings
+// Document ID: {settingId} (e.g. 'global')
+// Fields:
+//   - taxRate, returnRate, withdrawalRate, inflationRate: number (optional)
+//   - currentAge, retirementAge, dependents: number (optional)
+//   - payors: list of strings (optional, <= 50 items)
+//   - incomes: list of maps (optional, <= 50 items)
+//   - filingStatus, stateOfResidence: string (optional, <= 50 chars)
+//   - activePlans: map (optional)
+//
+// Collection: users/{userId}/plans
+// Document ID: {planId}
+// Fields:
+//   - planName: string (optional, <= 200 chars)
+//   - planType: string (required, <= 50 chars)
+//   - details: map (optional)
+//   - formData: map (optional)
+//   - userId: string (optional, must match {userId} if provided)
+//   - lastUpdated: timestamp (optional)
+//   - createdAt: timestamp (optional)
+//
+// Collection: users/{userId}/plans/{planId}/details
+// Document ID: {detailId} (e.g. 'main')
+// Fields:
+//   - Calculation and configuration data map
+//
+// Collection: users/{userId}/plans/{planId}/history
+// Document ID: {historyId} (e.g. YYYY-MM-DD date string)
+// Fields:
+//   - timestamp: timestamp (optional)
+//   - planType: string (optional, <= 50 chars)
+//   - details: map (optional)
+//
+// Collection: wallets
+// Document ID: {userId} (matches Firebase Auth UID)
+// Fields:
+//   - spend: map (optional)
+//   - valuations: map (optional)
+//   - currentWalletIds: list of strings (optional, <= 100 items)
+//   - customCards: list of maps/strings (optional, <= 100 items)
+//   - targetCardId: string (optional, <= 100 chars)
+//   - targetTierReq: string or number (optional)
+//   - targetAirline: string (optional, <= 100 chars)
+//   - organicStatus: string (optional, <= 100 chars)
+//
+// Collection: tracking_history (root collection)
+// Document ID: {docId}
+// Fields:
+//   - userId: string (required, matches Auth UID)
+//   - timestamp: timestamp (optional)
+//   - details: map (optional)
+//
+// Collection: plans (legacy root collection)
+// Document ID: {planId}
+// Fields:
+//   - userId: string (required, matches Auth UID)
+//   - planName: string (optional, <= 200 chars)
+//   - planType: string (optional, <= 50 chars)
+//   - details: map (optional)
+//
+// Collection: admin_keys & license_keys
+// Document ID: {keyId}
+// Restricted to admin only
+// ===============================================================
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ===============================================================
+    // Helper Functions
+    // ===============================================================
+
+    // Check if the request is authenticated
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    // Check for Admin privileges via custom claim or verified bootstrap admin email
+    function isAdmin() {
+      return isAuthenticated() && (
+        request.auth.token.role == 'admin' ||
+        (request.auth.token.email != null && request.auth.token.email == 'sentral@gmail.com')
+      );
+    }
+
+    // Check if authenticated user is the owner of the resource OR an admin
+    function isOwner(userId) {
+      return isAuthenticated() && (request.auth.uid == userId || isAdmin());
+    }
+
+    // Check that immutable fields have not been modified on update
+    function fieldNotModified(field) {
+      return !request.resource.data.diff(resource.data).affectedKeys().hasAny([field]);
+    }
+
+    // ===============================================================
+    // Domain Validators
+    // ===============================================================
+
+    // Validator for user profile document data
+    function isValidUserData() {
+      return (!('displayName' in request.resource.data) || (request.resource.data.displayName is string && request.resource.data.displayName.size() <= 100)) &&
+             (!('email' in request.resource.data) || (request.resource.data.email is string && request.resource.data.email.size() <= 100)) &&
+             (!('role' in request.resource.data) || (request.resource.data.role is string && request.resource.data.role.size() <= 20)) &&
+             (!('redeemedCode' in request.resource.data) || (request.resource.data.redeemedCode is string && request.resource.data.redeemedCode.size() <= 50));
+    }
+
+    // Validate user creation with RBAC protection (prevent self-escalation to admin)
+    function isValidUserCreate(userId) {
+      return isOwner(userId) &&
+             isValidUserData() &&
+             (
+               isAdmin() ||
+               !('role' in request.resource.data) ||
+               request.resource.data.role in ['free', 'paid', 'guest']
+             );
+    }
+
+    // Validate user update with RBAC protection (prevent role modification by non-admin)
+    function isValidUserUpdate(userId) {
+      return isOwner(userId) &&
+             isValidUserData() &&
+             (
+               isAdmin() ||
+               fieldNotModified('role') ||
+               request.resource.data.role == resource.data.role
+             );
+    }
+
+    // Validator for user global / modular settings document
+    function isValidSettingsDoc() {
+      return (!('filingStatus' in request.resource.data) || (request.resource.data.filingStatus is string && request.resource.data.filingStatus.size() <= 50)) &&
+             (!('stateOfResidence' in request.resource.data) || (request.resource.data.stateOfResidence is string && request.resource.data.stateOfResidence.size() <= 50)) &&
+             (!('payors' in request.resource.data) || (request.resource.data.payors is list && request.resource.data.payors.size() <= 50)) &&
+             (!('incomes' in request.resource.data) || (request.resource.data.incomes is list && request.resource.data.incomes.size() <= 50)) &&
+             (!('activePlans' in request.resource.data) || request.resource.data.activePlans is map);
+    }
+
+    // Validator for plan documents under /users/{userId}/plans
+    function isValidPlanDoc(userId) {
+      return (!('userId' in request.resource.data) || request.resource.data.userId == userId) &&
+             (!('planName' in request.resource.data) || (request.resource.data.planName is string && request.resource.data.planName.size() <= 200)) &&
+             (!('planType' in request.resource.data) || (request.resource.data.planType is string && request.resource.data.planType.size() <= 50)) &&
+             (!('details' in request.resource.data) || request.resource.data.details is map) &&
+             (!('formData' in request.resource.data) || request.resource.data.formData is map);
+    }
+
+    // Validator for historical snapshots under /users/{userId}/plans/{planId}/history
+    function isValidHistoryDoc() {
+      return (!('planType' in request.resource.data) || (request.resource.data.planType is string && request.resource.data.planType.size() <= 50)) &&
+             (!('details' in request.resource.data) || request.resource.data.details is map);
+    }
+
+    // Validator for wallets documents
+    function isValidWalletDoc() {
+      return (!('currentWalletIds' in request.resource.data) || (request.resource.data.currentWalletIds is list && request.resource.data.currentWalletIds.size() <= 100)) &&
+             (!('customCards' in request.resource.data) || (request.resource.data.customCards is list && request.resource.data.customCards.size() <= 100)) &&
+             (!('targetCardId' in request.resource.data) || (request.resource.data.targetCardId is string && request.resource.data.targetCardId.size() <= 100)) &&
+             (!('targetAirline' in request.resource.data) || (request.resource.data.targetAirline is string && request.resource.data.targetAirline.size() <= 100)) &&
+             (!('organicStatus' in request.resource.data) || (request.resource.data.organicStatus is string && request.resource.data.organicStatus.size() <= 100)) &&
+             (!('spend' in request.resource.data) || request.resource.data.spend is map) &&
+             (!('valuations' in request.resource.data) || request.resource.data.valuations is map);
+    }
+
+    // Validator for legacy root plans collection
+    function isValidLegacyPlanDoc() {
+      return request.resource.data.userId is string &&
+             request.resource.data.userId.size() > 0 &&
+             request.resource.data.userId.size() <= 128 &&
+             (!('planName' in request.resource.data) || (request.resource.data.planName is string && request.resource.data.planName.size() <= 200)) &&
+             (!('planType' in request.resource.data) || (request.resource.data.planType is string && request.resource.data.planType.size() <= 50)) &&
+             (!('details' in request.resource.data) || request.resource.data.details is map);
+    }
+
+    // ===============================================================
+    // Rules Definition
+    // ===============================================================
+
+    // User Profile Document and Scoped Subcollections
+    match /users/{userId} {
+      allow read: if isOwner(userId);
+      allow create: if isValidUserCreate(userId);
+      allow update: if isValidUserUpdate(userId);
+      allow delete: if isOwner(userId);
+
+      // User Settings Subcollection (e.g. /users/{userId}/settings/global)
+      match /settings/{settingId} {
+        allow read: if isOwner(userId);
+        allow create, update: if isOwner(userId) && isValidSettingsDoc();
+        allow delete: if isOwner(userId);
+      }
+
+      // User Plans Subcollection (/users/{userId}/plans/{planId})
+      match /plans/{planId} {
+        allow read: if isOwner(userId);
+        allow create: if isOwner(userId) && isValidPlanDoc(userId);
+        allow update: if isOwner(userId) && isValidPlanDoc(userId) && (!('userId' in resource.data) || fieldNotModified('userId'));
+        allow delete: if isOwner(userId);
+
+        // Plan Details Subcollection (/users/{userId}/plans/{planId}/details/{detailId})
+        match /details/{detailId} {
+          allow read: if isOwner(userId);
+          allow create, update: if isOwner(userId);
+          allow delete: if isOwner(userId);
+        }
+
+        // Plan History Snapshots Subcollection (/users/{userId}/plans/{planId}/history/{historyId})
+        match /history/{historyId} {
+          allow read: if isOwner(userId);
+          allow create, update: if isOwner(userId) && isValidHistoryDoc();
+          allow delete: if isOwner(userId);
+        }
+      }
+    }
+
+    // Wallets Collection: Document ID matches auth.uid
+    match /wallets/{userId} {
+      allow read: if isOwner(userId);
+      allow create, update: if isOwner(userId) && isValidWalletDoc();
+      allow delete: if isOwner(userId);
+    }
+
+    // History Tracking Collection: Root collection scoped by resource.data.userId
+    match /tracking_history/{docId} {
+      allow read: if isOwner(resource.data.userId);
+      allow create: if isOwner(request.resource.data.userId) &&
+                       request.resource.data.userId is string &&
+                       request.resource.data.userId.size() > 0 &&
+                       request.resource.data.userId.size() <= 128;
+      allow update: if isOwner(resource.data.userId) && fieldNotModified('userId');
+      allow delete: if isOwner(resource.data.userId);
+    }
+
+    // Legacy Root Plans Collection: Scoped by resource.data.userId
+    match /plans/{planId} {
+      allow read: if isOwner(resource.data.userId);
+      allow create: if isOwner(request.resource.data.userId) && isValidLegacyPlanDoc();
+      allow update: if isOwner(resource.data.userId) && fieldNotModified('userId') && isValidLegacyPlanDoc();
+      allow delete: if isOwner(resource.data.userId);
+    }
+
+    // Admin Keys Collection: Strictly restricted to Admin role
+    match /admin_keys/{keyId} {
+      allow read, write: if isAdmin();
+    }
+
+    // License Keys Collection: Strictly restricted to Admin role (users redeem via callable function)
+    match /license_keys/{keyId} {
+      allow read, write: if isAdmin();
+    }
+  }
+}

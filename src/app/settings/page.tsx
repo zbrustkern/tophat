@@ -90,16 +90,35 @@ export default function SettingsPage() {
     });
   };
 
-  if (loading || !formData) {
-    return <main className="max-w-4xl mx-auto p-4"><p>Loading settings...</p></main>;
+  if (loading && !formData) {
+    return (
+      <main className="max-w-4xl mx-auto p-12 flex items-center justify-center">
+        <div className="text-center space-y-3">
+          <div className="h-8 w-8 mx-auto border-2 border-deco-gold border-t-transparent rounded-full animate-spin" />
+          <p className="font-display uppercase tracking-widest text-xs text-deco-gold">Loading Settings...</p>
+        </div>
+      </main>
+    );
   }
 
-  if (error) {
-    return <main className="max-w-4xl mx-auto p-4"><p className="text-red-500">{error}</p></main>;
+  if (!formData) {
+    return (
+      <main className="max-w-4xl mx-auto p-8 text-center space-y-4">
+        <p className="text-muted-foreground text-sm">Unable to load settings configuration.</p>
+        <Button onClick={() => window.location.reload()} variant="outline" className="border-deco-gold/30 text-deco-gold">
+          Reload Settings
+        </Button>
+      </main>
+    );
   }
 
   return (
     <main className="max-w-4xl mx-auto p-4 sm:p-6 lg:p-8 space-y-6">
+      {error && (
+        <div className="p-3 bg-amber-500/10 border border-amber-500/30 rounded-sm text-amber-300 text-xs">
+          {error}
+        </div>
+      )}
       <div className="mb-6 flex justify-between items-center border-b border-white/10 pb-6">
         <div>
           <h1 className="text-3xl font-display font-semibold uppercase tracking-widest text-deco-gold">Global Settings</h1>

@@ -19,7 +19,7 @@ interface PlansContextType {
 const PlansContext = createContext<PlansContextType | undefined>(undefined);
 
 export const PlansProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const { user } = useAuth();
+  const { user, loading: authLoading } = useAuth();
   const [plans, setPlans] = useState<Plan[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -45,6 +45,11 @@ export const PlansProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       setPlans(DEMO_PLANS);
       setLoading(false);
       setError(null);
+      return;
+    }
+
+    if (authLoading) {
+      setLoading(true);
       return;
     }
 
@@ -109,7 +114,7 @@ export const PlansProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     });
 
     return () => unsubscribe();
-  }, [user, isDemoMode]);
+  }, [user, isDemoMode, authLoading]);
 
   // Dummy refresh function since onSnapshot is real-time
   const refreshPlans = async () => {};
