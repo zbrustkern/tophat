@@ -57,7 +57,7 @@ export function useMasterCalculations() {
   const { calculateHouseData } = useHouseCalculations();
 
   const calculateMasterData = (plans: Plan[], settings: GlobalSettings | null): MasterDashboardData | null => {
-    if (!settings || !settings.activePlans) return null;
+    if (!settings) return null;
 
     const activePlans = settings.activePlans || {};
 
@@ -107,7 +107,7 @@ export function useMasterCalculations() {
       collegePlans.push(allCollegePlans[0]);
     }
 
-    // 2. Fetch Waterfall Data from Budget Calculations
+    // 2. Fetch Waterfall Data from Budget Calculations or fallback to Income Plans
     let waterfall = {
       grossIncome: 0,
       preTaxSavings: 0,
@@ -121,6 +121,78 @@ export function useMasterCalculations() {
     if (budgetPlan) {
       const budgetData = calculateBudgetData(budgetPlan as any, settings, plans);
       waterfall = budgetData.waterfall;
+    } else if (incomePlans.length > 0) {
+      let grossIncome = 0;
+      let taxes = 0;
+      let takeHome = 0;
+      let preTaxSavings = 0;
+      let postTaxSavings = 0;
+
+      incomePlans.forEach(ip => {
+        const incData = calculateIncomeData(ip as any, settings);
+        if (incData && incData.length > 0) {
+          const pt = incData[0];
+          grossIncome += pt.income;
+          takeHome += pt.takeHome;
+          const isPreTax = (ip.details as any).taxType !== 'postTax';
+          if (isPreTax) {
+            preTaxSavings += pt.netContribution;
+          } else {
+            postTaxSavings += pt.netContribution;
+          }
+          taxes += (pt.income - pt.netContribution - pt.takeHome);
+        }
+      });
+
+      // Include other savings/college plans if present without a budget plan
+      savingsPlans.forEach(sp => {
+        const spDetails = sp.details as any;
+        if (spDetails.goalType === 'target_amount' || spDetails.goalType === 'income_stream') {
+          const { requiredSavings } = calculateSavingsData(sp as any, settings, plans);
+          if (spDetails.taxType === 'preTax') {
+            preTaxSavings += requiredSavings;
+          } else {
+            postTaxSavings += requiredSavings;
+          }
+        }
+      });
+
+      collegePlans.forEach(cp => {
+        const { calculatedMonthlyContribution } = calculateCollegeData(cp as any, settings, plans);
+        const annualCollege = calculatedMonthlyContribution * 12;
+        if ((cp.details as any).taxType === 'preTax') {
+          preTaxSavings += annualCollege;
+        } else {
+          postTaxSavings += annualCollege;
+        }
+      });
+
+      const annualCoreBudget = 0;
+      const netCashFlow = takeHome - annualCoreBudget - postTaxSavings;
+
+      waterfall = {
+        grossIncome,
+        preTaxSavings,
+        taxes,
+        takeHome,
+        annualCoreBudget,
+        postTaxSavings,
+        netCashFlow
+      };
+    } else if (settings?.incomes && settings.incomes.length > 0) {
+      const grossIncome = settings.incomes.reduce((acc, curr) => acc + curr.amount, 0);
+      const taxRate = settings.taxRate || 0.24;
+      const taxes = grossIncome * taxRate;
+      const takeHome = grossIncome - taxes;
+      waterfall = {
+        grossIncome,
+        preTaxSavings: 0,
+        taxes,
+        takeHome,
+        annualCoreBudget: 0,
+        postTaxSavings: 0,
+        netCashFlow: takeHome
+      };
     }
 
     // 3. Compute Current Assets & Allocations
@@ -136,6 +208,15 @@ export function useMasterCalculations() {
         totalAssets += bal;
       }
     });
+
+    // If no physical portfolios exist, use the starting balance from incomePlans as "Invested Wealth (Baseline)"
+    if (portfolioPlans.length === 0) {
+      const incomeStartingBalance = incomePlans.reduce((sum, p) => sum + ((p.details as any)?.balance || 0), 0);
+      if (incomeStartingBalance > 0) {
+        allocations.push({ name: 'Invested Wealth (Baseline)', value: incomeStartingBalance });
+        totalAssets += incomeStartingBalance;
+      }
+    }
 
     // Goals that are NOT linked to a portfolio are assumed to be manual cash piles
     savingsPlans.forEach(sp => {
@@ -220,9 +301,10 @@ export function useMasterCalculations() {
     // Multiple income plans -> map by Year -> Array of points
     const incomeByYear = new Map<number, any[]>();
     incomeDataObjs.forEach(dataArr => {
-      dataArr.forEach((d: any) => {
-        if (!incomeByYear.has(d.year)) incomeByYear.set(d.year, []);
-        incomeByYear.get(d.year)!.push(d);
+      dataArr.forEach((d: any, index: number) => {
+        const yearKey = currentYear + index;
+        if (!incomeByYear.has(yearKey)) incomeByYear.set(yearKey, []);
+        incomeByYear.get(yearKey)!.push({ ...d, year: yearKey });
       });
     });
     
@@ -254,8 +336,6 @@ export function useMasterCalculations() {
       const year = currentYear + i;
       const age = currentAge + i;
 
-      const incPoint = incomeByYear.get(year);
-      
       let savBal = 0;
       let savPointFound = false;
       savingsMaps.forEach(sm => {
@@ -284,21 +364,23 @@ export function useMasterCalculations() {
       let totalTakeHome = 0;
       let totalPreTaxSav = 0;
       let totalPostTaxSav = colContrib;
+      let incBalance = 0;
 
       const incPoints = incomeByYear.get(year);
       if (incPoints) {
         incPointFound = true;
         incPoints.forEach((pt: any) => {
-           // We'll need the original plan to know if it's preTax or postTax.
-           // For simplicity, we can assume preTax unless explicitly specified.
-           // Actually, we lost the plan reference here, but we can just use pt.netContribution.
-           // If we really need exact tax mapping we should pass it from the data object.
            totalIncome += pt.income;
            totalTakeHome += pt.takeHome;
-           // If we assume all income plans are preTax for simplicity, or we map it:
-           // In calculateIncomeData we didn't expose 'isPreTax' in the point. Let's assume preTax.
            totalPreTaxSav += pt.netContribution; 
+           incBalance += (pt.balance || 0);
         });
+      }
+
+      // If no separate savings plans, use income plan's compounded balance
+      if (savBal === 0 && incBalance > 0) {
+        savBal = incBalance;
+        savPointFound = true;
       }
       
       const hData = houseByYear.get(year);
@@ -306,6 +388,8 @@ export function useMasterCalculations() {
       
       if (!incPointFound && !savPointFound && !colPointFound && !hData && i > 0) {
         const lastPoint = trajectory[trajectory.length - 1];
+        const returnRate = settings.returnRate || 0.07;
+        const carriedSavings = Math.round(lastPoint.savingsBalance * (1 + returnRate));
         trajectory.push({
           year,
           age,
@@ -315,10 +399,10 @@ export function useMasterCalculations() {
           preTaxSavings: 0,
           postTaxSavings: 0,
           netCashFlow: -waterfall.annualCoreBudget,
-          savingsBalance: lastPoint.savingsBalance,
+          savingsBalance: carriedSavings,
           collegeBalance: lastPoint.collegeBalance,
           homeEquity: lastPoint.homeEquity,
-          totalNetWorth: lastPoint.savingsBalance + lastPoint.collegeBalance + unlinkedPortfoliosBalance + lastPoint.homeEquity
+          totalNetWorth: carriedSavings + lastPoint.collegeBalance + unlinkedPortfoliosBalance + lastPoint.homeEquity
         });
         continue;
       }
@@ -345,7 +429,8 @@ export function useMasterCalculations() {
     const yearsToRetirement = Math.max(1, retirementAge - currentAgeVal);
     const swr = settings.withdrawalRate || 0.04;
 
-    const targetAnnualIncome = waterfall.annualCoreBudget > 0 ? waterfall.annualCoreBudget : 100000;
+    const fallbackIncome = waterfall.takeHome > 0 ? Math.round(waterfall.takeHome * 0.8) : 100000;
+    const targetAnnualIncome = waterfall.annualCoreBudget > 0 ? waterfall.annualCoreBudget : fallbackIncome;
     const requiredPortfolio = targetAnnualIncome / swr;
 
     const retirementPoint = trajectory.find(p => p.age === retirementAge) || trajectory[trajectory.length - 1];

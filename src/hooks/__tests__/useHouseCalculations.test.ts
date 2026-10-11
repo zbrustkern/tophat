@@ -1,3 +1,4 @@
+import { describe, it, expect } from 'vitest';
 import { renderHook } from '@testing-library/react';
 import { useHouseCalculations } from '../useHouseCalculations';
 import { HousePlan, GlobalSettings } from '@/types/chart';

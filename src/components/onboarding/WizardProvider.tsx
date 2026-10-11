@@ -14,6 +14,13 @@ export type WizardBudget = { housing: number; utilities: number; auto: number; f
 export interface WizardState {
   currentStep: number;
   
+  // Fast Start Core Inputs
+  startingBalance: number;
+  primaryIncome: number;
+  savingsRate: number;
+  autoEscalate: boolean;
+  raiseRate: number;
+
   // Step 1: Basics
   age: number;
   retirementAge: number;
@@ -52,6 +59,11 @@ interface WizardContextType {
 
 const initialState: WizardState = {
   currentStep: 1,
+  startingBalance: 25000,
+  primaryIncome: 100000,
+  savingsRate: 0.15,
+  autoEscalate: true,
+  raiseRate: 0.03,
   age: 30,
   retirementAge: 65,
   riskTolerance: 'moderate',
@@ -75,31 +87,31 @@ export function WizardProvider({ children }: { children: ReactNode }) {
   const prevStep = () => updateState({ currentStep: Math.max(1, state.currentStep - 1) });
 
   const addIncome = (income: Omit<WizardIncome, 'id'>) => {
-    updateState({ incomes: [...state.incomes, { ...income, id: uuidv4() }] });
+    setState(prev => ({ ...prev, incomes: [...prev.incomes, { ...income, id: uuidv4() }] }));
   };
   const removeIncome = (id: string) => {
-    updateState({ incomes: state.incomes.filter(i => i.id !== id) });
+    setState(prev => ({ ...prev, incomes: prev.incomes.filter(i => i.id !== id) }));
   };
 
   const addAsset = (asset: Omit<WizardAsset, 'id'>) => {
-    updateState({ assets: [...state.assets, { ...asset, id: uuidv4() }] });
+    setState(prev => ({ ...prev, assets: [...prev.assets, { ...asset, id: uuidv4() }] }));
   };
   const removeAsset = (id: string) => {
-    updateState({ assets: state.assets.filter(a => a.id !== id) });
+    setState(prev => ({ ...prev, assets: prev.assets.filter(a => a.id !== id) }));
   };
 
   const addDebt = (debt: Omit<WizardDebt, 'id'>) => {
-    updateState({ debts: [...state.debts, { ...debt, id: uuidv4() }] });
+    setState(prev => ({ ...prev, debts: [...prev.debts, { ...debt, id: uuidv4() }] }));
   };
   const removeDebt = (id: string) => {
-    updateState({ debts: state.debts.filter(d => d.id !== id) });
+    setState(prev => ({ ...prev, debts: prev.debts.filter(d => d.id !== id) }));
   };
 
   const addGoal = (goal: Omit<WizardGoal, 'id'>) => {
-    updateState({ goals: [...state.goals, { ...goal, id: uuidv4() }] });
+    setState(prev => ({ ...prev, goals: [...prev.goals, { ...goal, id: uuidv4() }] }));
   };
   const removeGoal = (id: string) => {
-    updateState({ goals: state.goals.filter(g => g.id !== id) });
+    setState(prev => ({ ...prev, goals: prev.goals.filter(g => g.id !== id) }));
   };
 
   return (

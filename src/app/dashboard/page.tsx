@@ -21,7 +21,7 @@ import {
   PieChart, Pie, Cell, 
   XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend 
 } from 'recharts';
-import { ArrowRight, TrendingUp, DollarSign, PieChart as PieIcon, Settings as SettingsIcon, ArrowUpRight } from 'lucide-react';
+import { ArrowRight, TrendingUp, DollarSign, PieChart as PieIcon, Settings as SettingsIcon, ArrowUpRight, Sparkles, CheckCircle2 } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 const COLORS = ['#D4AF37', '#C5A059', '#F9E596', '#7D6A33', '#B89745'];
@@ -116,6 +116,40 @@ export default function DashboardPage() {
     cashFlowData.push({ name: 'Surplus', value: [0, surplusM], fill: '#B89745' });
   }
 
+  const hasIncomePlan = plans.some(p => p.planType === 'income');
+  const hasBudgetPlan = plans.some(p => p.planType === 'budget');
+  const hasGoalsPlan = plans.some(p => p.planType === 'savings' || p.planType === 'college' || p.planType === 'house');
+  const hasPortfolioPlan = plans.some(p => p.planType === 'rebalance');
+
+  let planResolutionPercent = 0;
+  if (hasIncomePlan) planResolutionPercent += 25;
+  if (hasBudgetPlan) planResolutionPercent += 25;
+  if (hasGoalsPlan) planResolutionPercent += 25;
+  if (hasPortfolioPlan) planResolutionPercent += 25;
+
+  let currentLevelTitle = "Level 0: Uninitialized (0%)";
+  if (planResolutionPercent === 25) currentLevelTitle = "Level 1: Foundation (25%)";
+  else if (planResolutionPercent === 50) currentLevelTitle = "Level 2: Cash Flow Reality (50%)";
+  else if (planResolutionPercent === 75) currentLevelTitle = "Level 3: Milestones Grounded (75%)";
+  else if (planResolutionPercent === 100) currentLevelTitle = "Level 4: Master Wealth Engine (100%)";
+
+  let nextGateMessage = "";
+  let nextGateButton: { label: string; href: string } | null = null;
+
+  if (!hasBudgetPlan) {
+    nextGateMessage = "Add Core Budget to unlock 30-Day HYSA Float Yield and see your exact cash flow waterfall";
+    nextGateButton = { label: "Add Core Budget", href: "/budget" };
+  } else if (!hasGoalsPlan) {
+    nextGateMessage = "Add Milestone Goals (Retirement or 529 College) to calculate funding deficits";
+    nextGateButton = { label: "Add Milestone Goals", href: "/savings" };
+  } else if (!hasPortfolioPlan) {
+    nextGateMessage = "Link physical accounts to activate tactical rebalancing and risk tiers";
+    nextGateButton = { label: "Link Accounts", href: "/tactical-allocation" };
+  } else {
+    nextGateMessage = "All Planning Systems Integrated - Master Wealth Engine Synchronized";
+    nextGateButton = null;
+  }
+
   return (
     <main className="max-w-7xl mx-auto space-y-6 bg-deco-pattern min-h-screen">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
@@ -145,6 +179,68 @@ export default function DashboardPage() {
           </Button>
         </div>
       </div>
+
+      {/* Plan Resolution / Value Gate Status Card */}
+      <Card className="bg-card/70 border border-deco-gold/30 rounded-sm shadow-xl backdrop-blur-md relative overflow-hidden">
+        <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-deco-gold via-deco-brass to-deco-gold/20" />
+        <CardContent className="p-5 sm:p-6 space-y-4">
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div className="space-y-1">
+              <div className="flex items-center gap-2">
+                <span className="text-[10px] font-display uppercase tracking-widest text-deco-gold font-bold bg-deco-gold/15 px-2.5 py-0.5 rounded-xs border border-deco-gold/30">
+                  Plan Resolution
+                </span>
+                <span className="text-sm sm:text-base font-display font-semibold uppercase tracking-wider text-white">
+                  {currentLevelTitle}
+                </span>
+              </div>
+              <p className="text-xs text-muted-foreground">
+                Progressive wealth architecture: {hasIncomePlan ? "✓ Foundation " : "○ Foundation "} | {hasBudgetPlan ? "✓ Budget " : "○ Budget "} | {hasGoalsPlan ? "✓ Goals " : "○ Goals "} | {hasPortfolioPlan ? "✓ Assets" : "○ Assets"}
+              </p>
+            </div>
+
+            {/* Next Gate Action */}
+            <div className="flex flex-col sm:flex-row sm:items-center gap-3">
+              <div className="text-left sm:text-right">
+                <span className="block text-[10px] uppercase font-display tracking-widest text-muted-foreground">Next Value Gate</span>
+                <span className="text-xs text-deco-gold font-medium max-w-md block sm:inline-block">
+                  {nextGateMessage}
+                </span>
+              </div>
+              {nextGateButton && (
+                <Button
+                  onClick={() => router.push(nextGateButton.href)}
+                  size="sm"
+                  className="bg-deco-gold hover:bg-deco-brass text-slate-950 font-display uppercase tracking-wider text-xs font-semibold px-4 py-2 shrink-0 shadow-md shadow-deco-gold/20"
+                >
+                  {nextGateButton.label} <ArrowRight className="ml-1.5 h-3.5 w-3.5" />
+                </Button>
+              )}
+              {!nextGateButton && (
+                <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-sm bg-emerald-500/10 border border-emerald-500/30 text-emerald-300 text-xs font-display uppercase tracking-wider">
+                  <CheckCircle2 className="h-4 w-4" /> Fully Synchronized
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Deco Progress Bar */}
+          <div className="space-y-1.5 pt-1">
+            <div className="w-full bg-slate-950/80 h-2.5 rounded-xs overflow-hidden border border-white/10 p-[1px]">
+              <div
+                className="h-full bg-gradient-to-r from-deco-gold to-deco-brass rounded-xs transition-all duration-500 shadow-[0_0_12px_rgba(212,175,55,0.4)]"
+                style={{ width: `${planResolutionPercent}%` }}
+              />
+            </div>
+            <div className="flex justify-between text-[10px] font-display uppercase tracking-wider text-muted-foreground/80 px-0.5">
+              <span className={hasIncomePlan ? "text-deco-gold font-semibold" : ""}>Foundation (25%)</span>
+              <span className={hasBudgetPlan ? "text-deco-gold font-semibold" : ""}>Operating Reality (50%)</span>
+              <span className={hasGoalsPlan ? "text-deco-gold font-semibold" : ""}>Milestones Grounded (75%)</span>
+              <span className={hasPortfolioPlan ? "text-deco-gold font-semibold" : ""}>Asset Architecture (100%)</span>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
 
       {/* KPI Row */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">

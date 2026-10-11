@@ -3,7 +3,7 @@
 import React, { useState } from 'react';
 import { useWizard, WizardHolding } from './WizardProvider';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, ArrowRight, Plus, Trash2, CheckCircle2 } from 'lucide-react';
+import { ArrowLeft, ArrowRight, Plus, Trash2, CheckCircle2, Sparkles } from 'lucide-react';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent } from '@/components/ui/card';
@@ -12,7 +12,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { v4 as uuidv4 } from 'uuid';
 
 export default function Step3Assets() {
-  const { state, addAsset, removeAsset, nextStep, prevStep } = useWizard();
+  const { state, addAsset, removeAsset, nextStep, prevStep, updateState } = useWizard();
   
   const [name, setName] = useState('Fidelity 401k');
   const [type, setType] = useState('401k');
@@ -57,13 +57,27 @@ export default function Step3Assets() {
   };
 
   return (
-    <div className="space-y-8 animate-in fade-in slide-in-from-right-4 duration-500">
-      <div className="text-center space-y-3">
-        <h2 className="text-3xl sm:text-4xl font-bold tracking-tight text-white">Current Assets</h2>
-        <p className="text-indigo-200/80">List your existing bank and investment accounts and their holdings.</p>
+    <div className="space-y-6 animate-in fade-in slide-in-from-right-4 duration-500 max-w-3xl mx-auto">
+      {/* Header and Value Gate Badge */}
+      <div className="flex flex-col sm:flex-row items-center justify-between gap-3">
+        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-deco-gold/10 border border-deco-gold/30 text-deco-gold text-xs font-display uppercase tracking-wider">
+          <Sparkles className="h-3.5 w-3.5" /> Value Gate: Link physical accounts and model ticker-level risk tiers.
+        </div>
+        <Button
+          variant="ghost"
+          onClick={() => updateState({ currentStep: 7 })}
+          className="text-xs text-deco-gold hover:text-deco-brass uppercase font-display tracking-wider"
+        >
+          Skip to Dashboard →
+        </Button>
       </div>
 
-      <Card className="bg-white/5 border-white/10 backdrop-blur-md shadow-xl overflow-hidden">
+      <div className="text-center space-y-2">
+        <h2 className="text-3xl sm:text-4xl font-display font-semibold uppercase tracking-widest text-deco-gold">Current Assets</h2>
+        <p className="text-sm text-muted-foreground">List your existing bank and investment accounts and their holdings.</p>
+      </div>
+
+      <Card className="bg-card/70 border-deco-gold/30 backdrop-blur-md shadow-xl overflow-hidden rounded-sm">
         <div className="p-6 space-y-6">
           
           <div className="space-y-4">
@@ -213,16 +227,25 @@ export default function Step3Assets() {
 
         </div>
         
-        <div className="p-6 bg-black/40 border-t border-white/10 flex justify-between">
-          <Button variant="ghost" onClick={prevStep} className="text-white hover:bg-white/10">
+        <div className="p-6 bg-black/40 border-t border-white/10 flex flex-wrap items-center justify-between gap-3">
+          <Button variant="ghost" onClick={prevStep} className="text-white hover:bg-white/10 font-display uppercase tracking-wider text-xs">
             <ArrowLeft className="mr-2 h-4 w-4" /> Back
           </Button>
-          <Button 
-            onClick={nextStep} 
-            className="bg-indigo-500 hover:bg-indigo-600 text-white rounded-full px-8 shadow-[0_0_15px_rgba(99,102,241,0.3)]"
-          >
-            Continue to Debts <ArrowRight className="ml-2 h-4 w-4" />
-          </Button>
+          <div className="flex items-center gap-3">
+            <Button 
+              variant="outline" 
+              onClick={() => updateState({ currentStep: 7 })}
+              className="border-white/20 hover:border-deco-gold/50 text-muted-foreground hover:text-white font-display uppercase tracking-wider text-xs"
+            >
+              Skip to Dashboard
+            </Button>
+            <Button 
+              onClick={nextStep} 
+              className="bg-deco-gold hover:bg-deco-brass text-slate-950 font-display uppercase tracking-widest text-xs font-semibold px-8 py-6 rounded-sm shadow-lg shadow-deco-gold/20"
+            >
+              Continue to Debts <ArrowRight className="ml-2 h-4 w-4" />
+            </Button>
+          </div>
         </div>
       </Card>
     </div>

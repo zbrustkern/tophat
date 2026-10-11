@@ -3,7 +3,7 @@
 import React from 'react';
 import { useWizard } from './WizardProvider';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, ArrowRight } from 'lucide-react';
+import { ArrowLeft, ArrowRight, Sparkles } from 'lucide-react';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Card } from '@/components/ui/card';
@@ -30,15 +30,29 @@ export default function Step5Budget() {
     state.budget.discretionary;
 
   return (
-    <div className="space-y-8 animate-in fade-in slide-in-from-right-4 duration-500">
-      <div className="text-center space-y-3">
+    <div className="space-y-6 animate-in fade-in slide-in-from-right-4 duration-500 max-w-3xl mx-auto">
+      {/* Header and Value Gate Badge */}
+      <div className="flex flex-col sm:flex-row items-center justify-between gap-3">
+        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-deco-gold/10 border border-deco-gold/30 text-deco-gold text-xs font-display uppercase tracking-wider">
+          <Sparkles className="h-3.5 w-3.5" /> Value Gate: Unlock 30-day HYSA Float Yield and see your exact cash flow waterfall.
+        </div>
+        <Button
+          variant="ghost"
+          onClick={() => updateState({ currentStep: 7 })}
+          className="text-xs text-deco-gold hover:text-deco-brass uppercase font-display tracking-wider"
+        >
+          Skip to Dashboard →
+        </Button>
+      </div>
+
+      <div className="text-center space-y-2">
         <h2 className="text-3xl sm:text-4xl font-display font-semibold uppercase tracking-widest text-deco-gold">Monthly Budget</h2>
-        <p className="text-base text-muted-foreground max-w-xl mx-auto font-light">
+        <p className="text-sm text-muted-foreground max-w-xl mx-auto font-light">
           Give us a rough estimate of your monthly spending across these categories. Mortgage and auto loan payments have been pre-filled from your debts.
         </p>
       </div>
 
-      <Card className="bg-card/60 border-deco-gold/30 backdrop-blur-md shadow-xl overflow-hidden rounded-sm">
+      <Card className="bg-card/70 border-deco-gold/30 backdrop-blur-md shadow-xl overflow-hidden rounded-sm">
         <div className="p-6 md:p-10 space-y-8">
           
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
@@ -151,16 +165,25 @@ export default function Step5Budget() {
           </div>
         </div>
         
-        <div className="p-6 bg-black/40 border-t border-white/10 flex justify-between">
+        <div className="p-6 bg-black/40 border-t border-white/10 flex flex-wrap items-center justify-between gap-3">
           <Button variant="ghost" onClick={prevStep} className="text-white hover:bg-white/10 font-display uppercase tracking-wider text-xs">
             <ArrowLeft className="mr-2 h-4 w-4" /> Back
           </Button>
-          <Button 
-            onClick={nextStep} 
-            className="bg-deco-gold hover:bg-deco-brass text-slate-950 rounded-sm font-display uppercase tracking-widest text-xs font-semibold px-8 py-6 shadow-lg shadow-deco-gold/20"
-          >
-            Continue to Goals <ArrowRight className="ml-2 h-4 w-4" />
-          </Button>
+          <div className="flex items-center gap-3">
+            <Button 
+              variant="outline" 
+              onClick={() => updateState({ currentStep: 7 })}
+              className="border-white/20 hover:border-deco-gold/50 text-muted-foreground hover:text-white font-display uppercase tracking-wider text-xs"
+            >
+              Skip to Dashboard
+            </Button>
+            <Button 
+              onClick={nextStep} 
+              className="bg-deco-gold hover:bg-deco-brass text-slate-950 rounded-sm font-display uppercase tracking-widest text-xs font-semibold px-8 py-6 shadow-lg shadow-deco-gold/20"
+            >
+              Continue to Goals <ArrowRight className="ml-2 h-4 w-4" />
+            </Button>
+          </div>
         </div>
       </Card>
     </div>

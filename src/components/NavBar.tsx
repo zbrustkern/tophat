@@ -4,10 +4,21 @@ import Link from "next/link"
 import { usePathname } from "next/navigation"
 import SignInButton from "./SignInButton"
 import { useState } from 'react'
-import { Menu, LayoutDashboard, DollarSign, PiggyBank, GraduationCap, Target, CreditCard, Plane, Calculator, Settings, Home, ShieldCheck, KeyRound, Sparkles } from 'lucide-react'
+import { Menu, LayoutDashboard, DollarSign, PiggyBank, GraduationCap, Target, CreditCard, Plane, Calculator, Settings, Home, ShieldCheck, Sparkles } from 'lucide-react'
 import { useSettings } from '@/contexts/SettingsContext'
 import { useAuth } from '@/contexts/AuthContext'
 import { RedeemCodeModal } from './RedeemCodeModal'
+
+interface NavItem {
+  href: string;
+  label: string;
+  icon: React.ReactNode;
+}
+
+interface NavSection {
+  title: string;
+  items: NavItem[];
+}
 
 export function NavBar() {
   const pathname = usePathname()
@@ -18,66 +29,89 @@ export function NavBar() {
   const { user, role } = useAuth()
   const isHolistic = settings?.holisticModeEnabled !== false // defaults to true
   
-  const routes = [
-    ...(isHolistic ? [{
-      href: "/dashboard",
-      label: "Master Dashboard",
-      icon: <LayoutDashboard className="h-5 w-5" />
-    }] : []),
+  const navSections: NavSection[] = [
     {
-      href: "/",
-      label: "My Plans",
-      icon: <LayoutDashboard className="h-5 w-5" />
+      title: "OVERVIEW",
+      items: [
+        ...(isHolistic ? [{
+          href: "/dashboard",
+          label: "Master Dashboard",
+          icon: <LayoutDashboard className="h-4 w-4" />
+        }] : []),
+        {
+          href: "/",
+          label: "My Plans",
+          icon: <LayoutDashboard className="h-4 w-4" />
+        }
+      ]
     },
     {
-      href: "/income",
-      label: "Income",
-      icon: <DollarSign className="h-5 w-5" />
+      title: "FOUNDATION",
+      items: [
+        {
+          href: "/income",
+          label: "Income Planner",
+          icon: <DollarSign className="h-4 w-4" />
+        },
+        {
+          href: "/budget",
+          label: "Budget Planner",
+          icon: <Calculator className="h-4 w-4" />
+        }
+      ]
     },
     {
-      href: "/savings",
-      label: "Savings",
-      icon: <PiggyBank className="h-5 w-5" />
+      title: "LIFE MILESTONES",
+      items: [
+        {
+          href: "/savings",
+          label: "Retirement Goals",
+          icon: <PiggyBank className="h-4 w-4" />
+        },
+        {
+          href: "/college",
+          label: "College (529)",
+          icon: <GraduationCap className="h-4 w-4" />
+        },
+        {
+          href: "/house",
+          label: "Real Estate",
+          icon: <Home className="h-4 w-4" />
+        }
+      ]
     },
     {
-      href: "/college",
-      label: "College (529)",
-      icon: <GraduationCap className="h-5 w-5" />
-    },
-    {
-      href: "/house",
-      label: "Real Estate",
-      icon: <Home className="h-5 w-5" />
-    },
-    {
-      href: "/tactical-allocation",
-      label: "Portfolio",
-      icon: <Target className="h-5 w-5" />
-    },
-    {
-      href: "/wallet",
-      label: "My Wallet",
-      icon: <CreditCard className="h-5 w-5" />
-    },
-    {
-      href: "/airline-status",
-      label: "Airline Status Optimizer",
-      icon: <Plane className="h-5 w-5" />
-    },
-    {
-      href: "/budget",
-      label: "Budget Planner",
-      icon: <Calculator className="h-5 w-5" />
-    },
+      title: "TACTICAL EXECUTION",
+      items: [
+        {
+          href: "/tactical-allocation",
+          label: "Portfolio",
+          icon: <Target className="h-4 w-4" />
+        },
+        {
+          href: "/wallet",
+          label: "My Wallet",
+          icon: <CreditCard className="h-4 w-4" />
+        },
+        {
+          href: "/airline-status",
+          label: "Airline Status Optimizer",
+          icon: <Plane className="h-4 w-4" />
+        }
+      ]
+    }
+  ]
+
+  const utilityItems: NavItem[] = [
     {
       href: "/settings",
       label: "Global Settings",
-      icon: <Settings className="h-5 w-5" />
+      icon: <Settings className="h-4 w-4" />
     },
     ...(role === 'admin' ? [{
       href: "/admin",
       label: "Admin Console",
-      icon: <ShieldCheck className="h-5 w-5 text-deco-gold" />
+      icon: <ShieldCheck className="h-4 w-4 text-deco-gold" />
     }] : [])
   ]
 
@@ -100,24 +134,55 @@ export function NavBar() {
           </Link>
         </div>
 
-        <nav className="flex-1 space-y-1 p-3 overflow-y-auto min-h-0 scrollbar-thin scrollbar-thumb-white/10">
-          {routes.map((route) => {
-            const isActive = pathname === route.href;
-            return (
-              <Link
-                key={route.href}
-                href={route.href}
-                className={`flex h-9 items-center gap-3 rounded-sm px-3 text-xs font-medium transition-colors
-                  ${isActive 
-                    ? 'bg-deco-gold/15 text-deco-gold border-r-2 border-deco-gold font-semibold' 
-                    : 'text-muted-foreground hover:bg-deco-gold/5 hover:text-deco-gold'
-                  }`}
-              >
-                {route.icon}
-                <span>{route.label}</span>
-              </Link>
-            )
-          })}
+        <nav className="flex-1 p-3 overflow-y-auto min-h-0 scrollbar-thin scrollbar-thumb-white/10 space-y-3">
+          {navSections.map((section) => (
+            <div key={section.title} className="space-y-1">
+              <div className="px-3 pt-1 pb-0.5 text-[10px] font-display font-semibold uppercase tracking-widest text-muted-foreground/60">
+                {section.title}
+              </div>
+              {section.items.map((route) => {
+                const isActive = pathname === route.href
+                return (
+                  <Link
+                    key={route.href}
+                    href={route.href}
+                    className={`flex h-8 items-center gap-2.5 rounded-sm px-3 text-xs font-medium transition-colors
+                      ${isActive 
+                        ? 'bg-deco-gold/15 text-deco-gold border-r-2 border-deco-gold font-semibold' 
+                        : 'text-muted-foreground hover:bg-deco-gold/5 hover:text-deco-gold'
+                      }`}
+                  >
+                    {route.icon}
+                    <span>{route.label}</span>
+                  </Link>
+                )
+              })}
+            </div>
+          ))}
+
+          {/* Settings & Admin Console */}
+          <div className="pt-2 border-t border-white/5 space-y-1">
+            <div className="px-3 pt-1 pb-0.5 text-[10px] font-display font-semibold uppercase tracking-widest text-muted-foreground/60">
+              SETTINGS
+            </div>
+            {utilityItems.map((route) => {
+              const isActive = pathname === route.href
+              return (
+                <Link
+                  key={route.href}
+                  href={route.href}
+                  className={`flex h-8 items-center gap-2.5 rounded-sm px-3 text-xs font-medium transition-colors
+                    ${isActive 
+                      ? 'bg-deco-gold/15 text-deco-gold border-r-2 border-deco-gold font-semibold' 
+                      : 'text-muted-foreground hover:bg-deco-gold/5 hover:text-deco-gold'
+                    }`}
+                >
+                  {route.icon}
+                  <span>{route.label}</span>
+                </Link>
+              )
+            })}
+          </div>
         </nav>
 
         <div className="p-3 border-t border-white/10 bg-slate-950/80 shrink-0 space-y-3">
@@ -182,25 +247,56 @@ export function NavBar() {
         {/* Mobile Menu Navigation Dropdown */}
         {isMobileMenuOpen && (
           <div className="absolute top-full left-0 right-0 bg-slate-950 border-b border-white/10 shadow-2xl max-h-[calc(100vh-3.5rem)] overflow-y-auto">
-            <nav className="flex flex-col p-3 space-y-1">
-              {routes.map((route) => {
-                const isActive = pathname === route.href;
-                return (
-                  <Link
-                    key={route.href}
-                    href={route.href}
-                    onClick={() => setIsMobileMenuOpen(false)}
-                    className={`flex items-center gap-3 px-4 py-2.5 rounded-sm text-xs font-medium transition-colors
-                      ${isActive 
-                        ? 'bg-deco-gold/15 text-deco-gold border-l-2 border-deco-gold font-semibold' 
-                        : 'text-muted-foreground hover:bg-deco-gold/5 hover:text-deco-gold'
-                      }`}
-                  >
-                    {route.icon}
-                    <span>{route.label}</span>
-                  </Link>
-                )
-              })}
+            <nav className="flex flex-col p-3 space-y-3">
+              {navSections.map((section) => (
+                <div key={section.title} className="space-y-1">
+                  <div className="px-4 pt-1 pb-0.5 text-[10px] font-display font-semibold uppercase tracking-widest text-muted-foreground/60">
+                    {section.title}
+                  </div>
+                  {section.items.map((route) => {
+                    const isActive = pathname === route.href
+                    return (
+                      <Link
+                        key={route.href}
+                        href={route.href}
+                        onClick={() => setIsMobileMenuOpen(false)}
+                        className={`flex items-center gap-3 px-4 py-2 rounded-sm text-xs font-medium transition-colors
+                          ${isActive 
+                            ? 'bg-deco-gold/15 text-deco-gold border-l-2 border-deco-gold font-semibold' 
+                            : 'text-muted-foreground hover:bg-deco-gold/5 hover:text-deco-gold'
+                          }`}
+                      >
+                        {route.icon}
+                        <span>{route.label}</span>
+                      </Link>
+                    )
+                  })}
+                </div>
+              ))}
+
+              <div className="pt-2 border-t border-white/10 space-y-1">
+                <div className="px-4 pt-1 pb-0.5 text-[10px] font-display font-semibold uppercase tracking-widest text-muted-foreground/60">
+                  SETTINGS
+                </div>
+                {utilityItems.map((route) => {
+                  const isActive = pathname === route.href
+                  return (
+                    <Link
+                      key={route.href}
+                      href={route.href}
+                      onClick={() => setIsMobileMenuOpen(false)}
+                      className={`flex items-center gap-3 px-4 py-2 rounded-sm text-xs font-medium transition-colors
+                        ${isActive 
+                          ? 'bg-deco-gold/15 text-deco-gold border-l-2 border-deco-gold font-semibold' 
+                          : 'text-muted-foreground hover:bg-deco-gold/5 hover:text-deco-gold'
+                        }`}
+                    >
+                      {route.icon}
+                      <span>{route.label}</span>
+                    </Link>
+                  )
+                })}
+              </div>
             </nav>
             {role !== 'paid' && role !== 'admin' && (
               <div className="p-4 border-t border-white/10 bg-slate-900 space-y-2">
