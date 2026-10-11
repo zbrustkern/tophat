@@ -1,3 +1,33 @@
+# [3.0.0](https://github.com/zbrustkern/tophat/compare/v2.0.1...v3.0.0) (2026-10-11)
+
+
+* feat!: launch Tophat Financial 2.0 release and fix semantic release configuration ([f8909ca](https://github.com/zbrustkern/tophat/commit/f8909ca713d3fa983d17d46618d915a1b0337e82))
+
+
+### Bug Fixes
+
+* **auth:** improve SignInButton and SignOut visual layout and contrast for desktop and mobile ([c4bbe22](https://github.com/zbrustkern/tophat/commit/c4bbe225165dfbbd5cdb639a62d1749691c5b334))
+* **budget & settings:** overhaul Budget Planner waterfall/table layout and convert Global Settings to Tuxedo Deco dark theme ([86ee7cd](https://github.com/zbrustkern/tophat/commit/86ee7cd1d18fbf100af7223783868e07fd868328))
+* **settings:** resolve infinite loading freeze, resilient defaults fallback, and add hardened firestore rules ([0d5ec05](https://github.com/zbrustkern/tophat/commit/0d5ec050f2e9e36fd2d76cf0468d34480b3e55ca))
+* **ux:** make sidebar nav scrollable and pin Sign Out button to bottom ([dba1917](https://github.com/zbrustkern/tophat/commit/dba19173017169447296d1998c55a096b51b2ae8))
+
+
+### Features
+
+* **admin:** add dedicated /admin console page, fix global input contrast bug, and add admin nav route ([255d7ab](https://github.com/zbrustkern/tophat/commit/255d7ab8eda5031efafd7a36b8a9545ca933c998))
+* **auth & saas:** add Email/Password auth, AuthModal with signup promo code entry, intelligent Pro upgrade nudge, and hide code redemption for Pro/Admin users ([eeec907](https://github.com/zbrustkern/tophat/commit/eeec9071543ecaa905b003ac79ef96a92999b288))
+* **branding:** update to Tuxedo Deco logo and implement secure Admin email & role resolution engine ([ce1ef7b](https://github.com/zbrustkern/tophat/commit/ce1ef7b02d49dd62e961247ed885ba7cd95f87b9))
+* **demo:** implement Interactive Demo Profile Mode (.25M Multi-Asset Portfolio) with Admin Switcher and sticky DemoBanner ([0494734](https://github.com/zbrustkern/tophat/commit/049473495eebd5cc0ec57740f6a35a089da32ad4))
+* **design:** complete Tuxedo Deco dark glass overhaul across all sub-planners and add sentral@gmail.com default admin ([8808c9c](https://github.com/zbrustkern/tophat/commit/8808c9ccb45116bd029454bb8fe965afede1669e))
+* **security:** implement local CLI admin claim script, JWT custom claim reader, and Firestore rules enforcement ([7ce0d73](https://github.com/zbrustkern/tophat/commit/7ce0d730adc5da6f7c0fad01a691fcbf07504248))
+* **staging:** Tuxedo Deco wizard contrast fix, Retirement Goal engine, Payor cash flow isolation, Admin panel & Demo script ([3ab9a65](https://github.com/zbrustkern/tophat/commit/3ab9a65a5f3fbee9fa9dcb94cad3e79264b783e5))
+* **v2.0.0:** release Tophat 2.0.0 with Python Admin user management, universal Code Redemption modal, and Mobile Header UX overhaul ([bea0852](https://github.com/zbrustkern/tophat/commit/bea085249a0f44869efe7b629b57a961bcbdda20))
+
+
+### BREAKING CHANGES
+
+* Tophat Financial 2.0 Major Architecture & Design System Update
+
 ## [2.0.1](https://github.com/zbrustkern/tophat/compare/v2.0.0...v2.0.1) (2026-08-15)
 
 ### Features
